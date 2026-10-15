@@ -202,6 +202,16 @@ class PreviewRecovery(unittest.TestCase):
         self.restored.mkdir()
         with self.assertRaisesRegex(KPPError,'unused'):import_preview(self.bundle,self.restored)
 
+    def test_output_parent_alias_into_workspace_is_refused(self):
+        alias=self.root/'workspace-alias'
+        try:
+            alias.symlink_to(self.ws,target_is_directory=True)
+        except OSError as error:
+            self.skipTest('Directory symlink privilege unavailable: '+str(error))
+        with self.assertRaisesRegex(KPPError,'new and outside'):
+            export_preview(self.ws,alias/'nested.zip')
+        self.assertFalse((self.ws/'nested.zip').exists())
+
     def test_tampered_duplicate_and_unsafe_archive_members_refused(self):
         export_preview(self.ws,self.bundle)
         with zipfile.ZipFile(self.bundle) as archive:

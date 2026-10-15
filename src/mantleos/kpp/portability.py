@@ -124,7 +124,7 @@ def export_bundle(workspace, candidate, suite, request, plan, approval, output):
         raise KPPError('Bundle output already exists (no overwrite)')
     recipe, state = load(workspace)
     candidate, suite = Path(candidate).resolve(), Path(suite).resolve()
-    if out == candidate or candidate in out.parents or out == suite or suite in out.parents:
+    if out.resolve().is_relative_to(candidate) or out.resolve().is_relative_to(suite):
         raise KPPError('Bundle output cannot be inside source or suite')
     audit(candidate)
     stage = read_json(candidate / STAGE_MANIFEST)
@@ -266,7 +266,7 @@ def _preview_relationships(payload):
 def export_preview(workspace,output,browser_state=None):
     """Carry exact reviewed preview sources and optional source-bound user data."""
     out=Path(output).absolute();workspace=Path(workspace).resolve()
-    if out.exists() or out.is_symlink() or out.is_relative_to(workspace):
+    if out.exists() or out.is_symlink() or out.resolve().is_relative_to(workspace):
         raise KPPError('Preview bundle must be new and outside workspace')
     recipe,state=load(workspace)
     if state['preview_kind']!='progressive-web':raise KPPError('No progressive preview to export')

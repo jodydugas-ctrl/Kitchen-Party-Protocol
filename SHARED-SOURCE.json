@@ -76,7 +76,7 @@
     "src/mantleos/kpp/ingest.py": "6bdb6385f2fedef0cabfa7f53319061c363ccc09de6e379959f6d66c95a4357f",
     "src/mantleos/kpp/pantry.py": "d0e59accc8cfdec13641960690fb8aeb36776173509582f880a79905e6d7d692",
     "src/mantleos/kpp/png.py": "6849482a8f8b6cb1c1650d59467a7b86c2836e0ed37965d2856f6e5b453de9f0",
-    "src/mantleos/kpp/portability.py": "5476e4ee1fc2f9712283060cc3a211cb4001338bac75002de3238e199d571e87",
+    "src/mantleos/kpp/portability.py": "768a0a510b95008cf740952e836fcf1ef389c16c7fa32cada2300c5df4aaa6bd",
     "src/mantleos/kpp/reflex.py": "15909f79161a587156cb257395a7534c1f8e1802becbc4103e2b12c7e554a5a9",
     "src/mantleos/kpp/resources/AGENTS.md": "f75adb9eb8eb3d54a9bfc224f7a7038553d3dc2e956bda442d80292c92999180",
     "src/mantleos/kpp/resources/BUILD-STATUS.md": "e623c48736313b990288c2731cfb92b143bdea946428e47030013f139d449603",
@@ -236,5 +236,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "3c94f51ad53c86e8efb83d7a05a7ad74f06c00f2a82f631f125a9a486f609e50"
+  "source_digest": "a48b4f70ded94229361d38539653afe6fc48c0640e219f98304a48371ad3c7d4"
 }
