@@ -38,7 +38,7 @@
     "kind": "bundled-files",
     "files": {
       "src/mantleos/engram.py": "6f44b80a01c28982bf70f477984b5478c20f21b8a544439becdd70aec164a2e7",
-      "src/mantleos/kpp/engram_carriers.py": "dc0916a001a45d8330e8d6d8f025ebb60215279ca7d5a025ed50ad599e2c1440"
+      "src/mantleos/kpp/engram_carriers.py": "d0382d175f21df7fd953dee3871bd12acfdf70e804a640ce447cc09d19f95158"
     }
   },
   "specimen": {

@@ -3,7 +3,7 @@
   "review": "PUBLIC_REVIEWED",
   "scope": "Reviewed synthetic identity, empty initial ledger, identical decoded Body, current runtime; no supplied history or archive",
   "files": {
-    "raven-fresh.vcw": "a1e185c87af5e0b0ab2f308a760b0694287580fc700c35a9e922c1fb6dde0369",
-    "raven-fresh.vcw.png": "eb3c59bf7515f727a6b4b70e32563fbf1e0fb8a00e8a773cf36586f0330bf581"
+    "raven-fresh.vcw": "69fbff12eca18af561dd4b546cd926dfb913841b08cf399e5bb02b44e37a3119",
+    "raven-fresh.vcw.png": "224d328059a4839c79d2526aa77df51b169a00c3b9e9c254bd8058fb48c62313"
   }
 }

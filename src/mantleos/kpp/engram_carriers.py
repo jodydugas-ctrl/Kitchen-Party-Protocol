@@ -24,7 +24,7 @@ def fresh_body(output, *, persona=None, persona_name=None, identity=None):
         persona_name = 'Situated-Calibrating Raven'
     elif not isinstance(persona,str) or not persona.strip() or not isinstance(persona_name,str) or not persona_name.strip():
         raise KPPError('Supply nonempty custom persona text and name together')
-    contract = birth.make_birth(bio_id=identity or 'engram-'+uuid.uuid4().hex,
+    contract = birth.make_birth(bio_id=identity or 'e-'+uuid.uuid4().hex,
         name='Fresh Engram', description='Fresh Engram; no inherited memory or identity',
         persona_name=persona_name, persona=persona)
     return lifecycle.create(contract, output, portable=True)
