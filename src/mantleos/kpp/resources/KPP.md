@@ -1,6 +1,6 @@
-# Kitchen Party Protocol (KPP) · 1.1.0a2
+# Kitchen Party Protocol (KPP) · 1.1.0a4
 
-KPP is the primary maintained project. MantleOS was built using KPP and remains associated through the same shared implementation. Read [SYSTEMS.md](SYSTEMS.md) for the shared definitions: recipe requirements are attributes on the existing Neutral Anchor, never another Anchor family.
+KPP is the independently maintained development protocol. MantleOS is the experimental AI-embodiment testbed built using it. They share implementation and retain one authoritative Anchor model wherever Anchor is selected. Read [SYSTEMS.md](SYSTEMS.md).
 
 ## Purpose
 
@@ -12,21 +12,21 @@ The central engineering assumption is a **dependably executing Oven**. KPP evalu
 
 **KPP-01 · Fitness for recipe.** Complexity is allowed, even welcomed, where functional need calls for it. Prefer the fewest independent systems that satisfy all obligations; preserve meaningful redundancy and boundaries.
 
-**KPP-02 · Contract before code.** A recipe names the outcome, constraints, Chase Target, tissue(s), ingredient selection, Fidelity plan, permissions and measurable Anchors. A UI-only surface is not declared full function.
+**KPP-02 · Contract before code.** A recipe names the outcome, constraints, target, tissue(s), ingredient selection, Fidelity plan, permissions and measurable obligations. A UI-only surface is not declared full function.
 
 **KPP-03 · Ingredient neutrality.** An ingredient is any reusable capability, mechanism or coherent codebase. It may be microscopic, organ-sized, a full GitHub repo, or a semantic contract without bundled implementation. Preferred environments are recommendations, not exclusivity rules. Check actual compatibility and licenses.
 
-**KPP-04 · Model neutrality.** Baker, Baker's assistant, Oven and reviewer describe workflow roles. The operator retains approval authority; AI may assist these roles but a MIND proposal never supplies operator or Baker approval. Neither a persona nor a specific model is inherited by default.
+**KPP-04 · Model neutrality.** Baker, Baker's assistant, Oven and reviewer describe workflow roles. The Baker may be human, AI, or collaborative and remains responsible for the Cake. A Taster supplies evaluation. Acceptance is an explicit scoped act within host authorization; a MIND proposal never supplies approval by itself. Neither a persona nor a specific model is inherited by default.
 
-**KPP-05 · Recipe-selected tissue.** Anchor Code is a valuable cross-model tissue and a strong default where a supported execution profile exists. Python, JavaScript, and others are legitimate alternatives. Anchor syntax has profile-specific semantics: do not invent operators.
+**KPP-05 · Recipe-selected tissue.** Implementation choices belong to the recipe. KPP understands Anchor Coding, Python, JavaScript and declared alternatives without imposing a universal preference. Recipe/4 records component-level policies and decisions; declaring a language does not establish execution support. Anchor syntax has profile-specific semantics: do not invent operators.
 
 **KPP-06 · Progressive Fidelity.** Fidelity denotes the depth of relationship obligations, not product quality. A shallow representation preserves the observed surface. Deeper levels trace direct interactions, consequences and cross-system effects. Fidelity may vary across subsystems and is bounded to what the Scanner can actually establish.
 
-**KPP-07 · Chase allocation.** Chase identifies an appropriate reference target, chooses the next unmet functional obligation (including user-relevant features), and stops each pursuit once its declared checks are satisfied. Chase never silently changes the receipt or declares universal equivalence.
+**KPP-07 · Optional Chase allocation.** The recipe selects Chase as a technique from the Pantry; the Oven executes it. Chase identifies an appropriate reference target, chooses the next unmet functional obligation (including user-relevant features), and stops each pursuit once its declared checks are satisfied. Chase never silently changes the receipt or declares universal equivalence.
 
 **KPP-08 · Continuous usability.** Checked functionality may be used while the product is BUILDING. Unavailable controls must be gated honestly; maintain established state and compatible interfaces. Do not infer that “working” means “complete.”
 
-**KPP-09 · Absolute recipe acceptance.** COMPLETE means **100% of mandatory Anchors in the pinned recipe have evidence of satisfaction**, with no known unapproved user-facing features. Internal helpers are permitted when necessary. The current CLI records Baker attestations and does not itself detect arbitrary feature deviations; the Baker must check scope. Changes to the mandatory scope require a new version/revision with explicit Baker review, not moving the goalposts unnoticed. All acceptance is scoped to the checks, target revision and test environment.
+**KPP-09 · Absolute recipe acceptance.** COMPLETE means **100% of mandatory obligations in the pinned recipe have evidence of satisfaction**, with no known unapproved user-facing features. Internal helpers are permitted when necessary. The current CLI records Baker attestations and does not itself detect arbitrary feature deviations; the Baker must check scope. Changes to the mandatory scope require a new version/revision with explicit Baker review, not moving the goalposts unnoticed. All acceptance is scoped to the checks, target revision and test environment.
 
 **KPP-10 · Effect/admission boundary.** Scanning, reasoning and generation produce observations and proposals. Untrusted repository content and LLM output are not authority to change the user's environment. Admit a module only after appropriate permission and verification; retain evidence and a recovery path.
 
@@ -36,7 +36,7 @@ The central engineering assumption is a **dependably executing Oven**. KPP evalu
 
 ## Kitchen vocabulary
 
-- **Baker**: the operator responsible for the desired product and explicit scoped acceptance. AI may assist this role; a MIND proposal never supplies operator approval.
+- **Baker**: the human, AI, or collaboration responsible for the desired product and explicit scoped acceptance. Evaluation may be delegated to a Taster; responsibility stays with the Baker. Actor labels confer no host permissions.
 - **Assistant**: helps interpret requests, discover targets, design recipes and assess trade-offs.
 - **Oven**: executes build/repair/test loops and implements selected tissues with a recipe-defined model/settings.
 - **Pantry**: ingredient catalog with capabilities, interfaces, suitability, provenance, dependencies and optional implementations.
@@ -44,7 +44,7 @@ The central engineering assumption is a **dependably executing Oven**. KPP evalu
 - **Scan**: a bounded observation of a reference or proposed implementation; structural and dynamic scans must be distinguished.
 - **Fidelity**: depth of behavioral connection discovery/implementation, not an absolute measure of code complexity.
 - **Chase**: target-selection, priority and stop/redirection mechanisms, scoped to the recipe.
-- **Receipt**: evidence of tests and acceptance. KPP uses `kpp.recipe/3` as the requirements contract; “receipt” should not be mistaken for the recipe. `completion-receipt.json` is the final scoped attestation.
+- **Receipt**: evidence of tests and acceptance. KPP supports legacy `kpp.recipe/3` and explicit-choice `kpp.recipe/4` requirements contracts; “receipt” should not be mistaken for the recipe. `completion-receipt.json` is the final scoped attestation.
 - **Bake**: one request can initiate multiple internal cycles; an installed feature is not necessarily accepted.
 - **Admission**: the host/body permits a verified proposed change to become active.
 
@@ -64,7 +64,7 @@ The central engineering assumption is a **dependably executing Oven**. KPP evalu
 
 ## Developer practice
 
-The Python CLI works with no external models. It demonstrates a runnable subset: recipe acceptance, read-only static Scan, deterministic next-anchor scheduling, a local browser app with built-in progressive JS modules, and a project-specific Oven handoff. It does not implement universal code synthesis, arbitrary deep dynamic tracing, semantic equivalence for all programs, or automated hot reload of arbitrary unsafe code. For those tasks an AI Oven and permitted external tooling are needed. Refer to `docs/PROTOCOL.md` for exact state transitions.
+The Python CLI works with no external models. It demonstrates a runnable subset: recipe acceptance, read-only static Scan, recipe-selected requirement scheduling, a local browser app with built-in progressive JS modules, and a project-specific Oven handoff. It does not implement universal code synthesis, arbitrary deep dynamic tracing, semantic equivalence for all programs, or automated hot reload of arbitrary unsafe code. For those tasks an AI Oven and permitted external tooling are needed. Refer to `docs/PROTOCOL.md` for exact state transitions.
 
 See `specimens/README.md` for the supported portable Anchor profile and the opt-in Anchor-to-Python bridge, and `docs/TRANSFORMATION.md` for preservation and emergent capability tracking.
 
@@ -98,3 +98,5 @@ This is a small pantry improvement, not a new organ or universal source-to-code 
 **KPP-22 · GUI accountability.** Every observed source-pinned declaration maps to mandatory obligations or explicit Baker scope exclusions. Report unknown runtime contexts and conformance separately. Source observation cannot accept Anchors. New scope requires a reviewed contract; tests of a self-defined imitation do not establish reference parity.
 
 Python standard library runs the kitchen; browser products share one runtime. Qt XML discovery requires no Qt. Only explicitly reviewed local scripts may use executed tests; no sandbox is supplied. Unsupported profiles/schemas fail. See docs/PROTOCOL.md and docs/GUI-REFERENCE.md.
+
+See [artisanal construction](docs/ARTISANAL-CONSTRUCTION.md) for role-neutral Baker responsibility, optional Chase and augmentation evidence.

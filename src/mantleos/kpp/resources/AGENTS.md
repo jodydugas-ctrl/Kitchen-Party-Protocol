@@ -7,7 +7,8 @@ The `kpp` namespace is an entry-point facade; do not create separate Anchor or
 CELL definitions, execution profiles, scanners or approval registries there.
 
 Common definitions live in mantleos.anchors, mantleos.cells and mantleos.tissue.
-Recipe requirements are attributes on the existing Neutral Anchor. Source-defined
+Recipe/3 requirements retain the existing Neutral Anchor binding. Recipe/4
+requirements are general obligations unless shared-neutral binding is explicit. Source-defined
 singularities/types cannot be redefined by model proposals or rehashed content.
 Evidence and MIND proposals never grant operator or Baker approval.
 

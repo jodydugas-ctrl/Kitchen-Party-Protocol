@@ -17,3 +17,10 @@ Original archive SHA-256:
 External projects referenced by Pantry declarations are not automatically
 bundled, licensed, executed or authorized. The exact inventory records source
 integrity, not authentication or Baker acceptance. Public hosting does not relicense bundled components.
+
+
+The owner-supplied Anchor_Organ_KPP_SCAN_Bridge_POC.zip (SHA-256
+`b0eb542833118aaccea160b8a4c31a06eb33590c14f42121d126c8adf3ef25f9`) contributes the organ projection/mapping approach.
+The new adapter uses canonical KPP/SCAN code, and original KPP fixture licensing
+is retained. Imported instructions and historical test receipts remain data;
+the archive and experimental SCAN v0.28 implementation are not bundled.

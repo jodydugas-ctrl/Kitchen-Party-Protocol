@@ -99,6 +99,16 @@ def validate_inventory(obj, recipe=None):
     return obj
 
 
+def scan_qt(source, identity):
+    """Compatibility entry point over canonical SCAN interface extraction."""
+    import time
+    from ..scan.discovery import scan_qt as native
+    try:
+        return native(source, identity, deadline=time.monotonic() + 30)
+    except (ValueError, OSError) as error:
+        raise KPPError(str(error)) from error
+
+
 def read_inventory(recipe, repo):
     if "reference_gui" not in recipe:
         return None
@@ -110,7 +120,11 @@ def read_inventory(recipe, repo):
     source_path=root/recipe["reference_gui"]["source_root"]
     if source_path.is_symlink() or not source_path.resolve().is_relative_to(root):
         raise KPPError("Unsafe GUI source root")
-    observed=scan_qt(source_path, inventory["source"]["identity"])
+    from .scanner import scan
+    observed = scan(source_path, filters=['interface'], identity=inventory['source']['identity'],
+                    max_files=1000, max_bytes=2_000_000)['interface_inventory']
+    if observed is None:
+        raise KPPError('Interface inventory requires .ui files with supported declarations')
     if observed["source"] != inventory["source"]:
         raise KPPError("GUI source bytes changed; revise source/recipe pins")
     fields=("id", "kind", "file", "path", "label", "class", "shortcut", "properties", "observation", "confidence", "declaration")
@@ -137,16 +151,3 @@ def coverage(inventory, accepted=()):
             "uninspected": inventory["uninspected"],
             "visual_conformance": "NOT_MEASURED", "runtime_behavior": "NOT_OBSERVED",
             "scope": "Inventory coverage of static declarations only; not exhaustive GUI discovery or parity"}
-
-
-def scan_qt(source, identity):
-    """Use the canonical bounded MantleOS Qt extractor, then KPP validation."""
-    import time
-    from ..scan.discovery import _directory, scan_qt as shared_scan_qt
-    if not text(identity):
-        raise KPPError('Qt scan needs a source identity')
-    try:
-        result = shared_scan_qt(_directory(source), identity, deadline=time.monotonic() + 60)
-        return validate_inventory(result)
-    except (ValueError, OSError) as error:
-        raise KPPError(str(error)) from error

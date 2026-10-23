@@ -60,6 +60,8 @@ def coverage(recipe, state):
 def chase(recipe, state, activity=None):
     """Schedule from the same recipe graph edges used by coverage and handoff."""
     active = accepted_ids(recipe, state)
+    from .construction import construction_plan
+    use_chase = construction_plan(recipe)["ordering"] == "chase"
     activity = activity or {}
     results = []
     for anchor in recipe["anchors"]:
@@ -68,12 +70,18 @@ def chase(recipe, state, activity=None):
         missing = [dep for dep in anchor.get("depends", []) if dep not in active]
         ready = not missing
         area = anchor.get("area", "other")
-        score = (100 if ready else -100) + min(100, max(0, activity.get(area, 0)))*5 - anchor["depth"]
+        score = ((100 if ready else -100) + min(100, max(0, activity.get(area, 0)))*5 - anchor["depth"]) if use_chase else int(ready)
         if anchor["required"]:
             score += 10
         results.append({"id": anchor["id"], "area": area, "depth": anchor["depth"],
                         "ready": ready, "missing_dependencies": missing, "priority": score,
                         "required": anchor["required"]})
+    from .construction import construction_plan
+    if not use_chase:
+        # Recipe order among ready obligations; no activity or depth weighting.
+        for item in results:
+            item['priority'] = 1 if item['ready'] else 0
+        return sorted(results, key=lambda e: not e['ready'])
     return sorted(results, key=lambda e: (-e["priority"], e["id"]))
 
 
@@ -88,9 +96,12 @@ def load_scan(path):
 def functional_graph(recipe, state, scan=None, activity=None, workspace=None):
     """Scoped cross-view graph. Scanned source is evidence, never executable authority."""
     accepted = accepted_ids(recipe, state)
-    from .. import kitchen
-    shared_binding = kitchen.bind(recipe)
-    applications = {item['id']: item for item in shared_binding['applications']}
+    from .language import binding_mode
+    shared_binding, applications = None, {}
+    if binding_mode(recipe) == 'shared-neutral':
+        from .. import kitchen
+        shared_binding = kitchen.bind(recipe)
+        applications = {item['id']: item for item in shared_binding['applications']}
     nodes = []
     edges = []
     for ing in recipe["ingredients"]:
@@ -108,7 +119,7 @@ def functional_graph(recipe, state, scan=None, activity=None, workspace=None):
         nodes.append({"id":aid, "kind":"anchor", "label":a["statement"], "depth":a["depth"],
                       "area":a.get("area", "other"), "required":a["required"],
                       "status":"BAKER_ACCEPTED" if a["id"] in accepted else "UNMET",
-                      "basis":"recipe-declared", "application":applications[a["id"]]})
+                      "basis":"recipe-declared", **({'application': applications[a['id']]} if a['id'] in applications else {})})
         for dep in a.get("depends", []):
             edges.append({"from":aid, "to":"anchor:"+dep, "kind":"depends-on", "basis":"recipe-declared"})
     if "reference_gui" in recipe:
@@ -164,12 +175,14 @@ def functional_graph(recipe, state, scan=None, activity=None, workspace=None):
     if workspace is not None and "gui_inventory" in state:
         from .conformance import coverage_matrix
         matrix=coverage_matrix(workspace)
-    return {"schema":"kpp.functional-graph/1", "recipe_hash":state["recipe_hash"],
+    from .construction import construction_plan
+    return {"construction":construction_plan(recipe), "schema":"kpp.functional-graph/1", "recipe_hash":state["recipe_hash"],
             "nodes":nodes,"edges":edges,"anchor_binding":shared_binding,
             "views":{
                 "fidelity": {str(d):sorted(a["id"] for a in recipe["anchors"] if a["depth"] == d)
                              for d in sorted({a["depth"] for a in recipe["anchors"]})},
-                "chase":chase(recipe,state,activity),
+                "chase":chase(recipe,state,activity),  # compatibility alias for requirement ordering
+                "requirements":chase(recipe,state,activity),
                 "coverage":coverage(recipe,state)},
             "gui_matrix":matrix,
             "scan":None if scan is None else {"requested_depth":scan.get("requested_depth"),

@@ -109,7 +109,7 @@ function loadScript(mod) {
  return new Promise((resolve,reject)=>{
   const script=document.createElement('script');
   script.dataset.kppModule=mod.id;
-  script.src='/modules/'+encodeURIComponent(mod.id)+'.js';
+  script.src='/modules/'+encodeURIComponent(mod.id)+'.js?sha256='+encodeURIComponent(mod.sha256);
   if(!/^[a-f0-9]{64}$/.test(mod.sha256)){reject(new Error('Missing source pin'));return;}
   const bytes=mod.sha256.match(/../g).map(s=>String.fromCharCode(parseInt(s,16))).join('');
   script.integrity='sha256-'+btoa(bytes);script.crossOrigin='anonymous';
@@ -144,8 +144,13 @@ async function poll() {
   const desired=new Set(snapshot.modules.filter(mod=>mod.enabled).map(mod=>mod.id));
   for(const id of [...active.keys()].reverse())if(!desired.has(id))withdraw(id);
   for(const mod of snapshot.modules) {
-   if(seen.has(mod.id)&&seen.get(mod.id)!==mod.sha256)throw new Error('Existing module source changed');
-   seen.set(mod.id,mod.sha256);
+   const previous=seen.get(mod.id);
+   const generation=mod.generation||0;
+   if(previous&&previous.sha256!==mod.sha256) {
+    if(!Number.isSafeInteger(generation)||generation<=previous.generation||snapshot.revision<=revision)throw new Error('Unversioned module source change');
+    withdraw(mod.id);definitions.delete(mod.id);failures.delete(mod.id);
+   }
+   seen.set(mod.id,{sha256:mod.sha256,generation});
    if(!mod.enabled)failures.delete(mod.id);
   }
   revision=snapshot.revision;

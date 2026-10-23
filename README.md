@@ -8,13 +8,13 @@ requires evidence and explicit Baker acceptance.
 KPP is the primary project we maintain going forward. MantleOS was built using
 KPP and remains an associated project. Both share one implementation of Anchors,
 CELLs, programs, SCAN, Body, memory and carriers. Read [SYSTEMS.md](SYSTEMS.md)
-and [the project guide](docs/PROJECT.md). Current version: **1.1.0a2**, alpha.
+and [the project guide](docs/PROJECT.md). Current version: **1.1.0a4**, alpha.
 
 `python -m kpp` and `python -m mantleos kpp` reach the same modules. `python -m kpp systems` describes their shared contracts. `python tools/verify_shared.py --source MANTLEOS_ROOT` checks the shared source against a selected checkout.
 
 KPP builds useful software from a Pantry and a pinned Recipe. The Baker chooses the outcome and acceptance; the Oven implements it; Scan discovers bounded observations; Chase selects the next unmet obligation. Fidelity means depth of behavioral consequences. A usable BUILDING app is distinct from an accepted COMPLETE recipe.
 
-One current recipe contract, one Functional Graph, one browser module runtime, one reviewed local Python test path. Python 3.11–3.14 and the standard library run the kitchen; a browser is needed only for browser previews. No third-party Python package, model account, container engine, Node runtime, Qt installation or remote service is required. Optional developer browser probes use separately available Playwright/Chromium; they are not product dependencies.
+Compatible recipe/3 and recipe/4 contracts, one Functional Graph, one browser module runtime, one reviewed local Python test path. Python 3.11–3.14 and the standard library run the kitchen; a browser is needed only for browser previews. No third-party Python package, model account, container engine, Node runtime, Qt installation or remote service is required. Optional developer browser probes use separately available Playwright/Chromium; they are not product dependencies.
 
 Run directly from source with `PYTHONPATH=src` and `python -m kpp`, or install
 the local project with `python -m pip install .` to get the `kpp` command.
@@ -82,3 +82,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for checks and generated views.
 KPP's MIT license covers the KPP contributions; bundled shared components retain
 their own terms, including reserved rights. See [component notices](THIRD-PARTY-NOTICES.md)
 and [licensing details](docs/PROJECT.md#provenance-and-licensing).
+
+
+The [Notepad Save organ demonstration](docs/ORGAN-SAVE.md) connects recipe-owned
+organs, fresh source observations, real browser checks and reviewed source
+replacement/restoration. Run `python tools/check_organ_save.py --output NEW_DIR
+--execute --reviewed` with locally available Playwright/Chromium. It preserves
+drafts and retained source and leaves acceptance open.

@@ -15,7 +15,8 @@ from pathlib import Path
 from .core import KPPError, canonical, digest, read_json, write_json, validate_recipe, parse_json
 from .reflex import STAGE_MANIFEST, APPROVAL_SCHEMA, audit, _relative_file
 from .testing import validated_suite
-from .workshop import load, log, mutating, preview_fingerprint, asset
+from .workshop import load, log, mutating, preview_fingerprint, asset, supported_runtime
+from .module_revisions import revision_sources
 
 SCHEMA = 'kpp.reflex-bundle/1'
 MAX_FILES = 160
@@ -226,7 +227,7 @@ def _preview_relationships(payload):
     if digest(labels)!=state.get('ingredient_labels_hash') or labels.get('recipe_hash')!=digest(recipe):
         raise KPPError('Preview ingredient labels changed')
     expected={'recipe.json','state.json','ingredient-labels.json','history.jsonl','app/runtime.js'}
-    if payload.get('app/runtime.js')!=asset('progressive.js') or state.get('runtime_sha256')!=_hash(asset('progressive.js')):
+    if not supported_runtime(payload.get('app/runtime.js',b''), state.get('runtime_sha256')):
         raise KPPError('Unsupported carried preview runtime')
     for name,pin in recipe['preview']['assets'].items():
         expected.add('app/'+name)
@@ -236,8 +237,9 @@ def _preview_relationships(payload):
         raise KPPError('Invalid carried modules')
     for mod in modules:
         if not isinstance(mod.get('id'),str) or not isinstance(mod.get('sha256'),str):raise KPPError('Invalid carried module identity')
-        name='app/modules/'+mod['id']+'.js';_safe_name(name);expected.add(name)
-        if _hash(payload.get(name,b''))!=mod['sha256']:raise KPPError('Carried module source changed')
+        for name,pin in revision_sources(mod).items():
+            _safe_name(name);expected.add(name)
+            if _hash(payload.get(name,b''))!=pin:raise KPPError('Carried module source changed')
     if state.get('initial_body_sha256'):
         expected.add('app/body-state.json')
         data=payload.get('app/body-state.json',b'')
@@ -274,7 +276,8 @@ def export_preview(workspace,output,browser_state=None):
     for name in (*recipe['preview']['assets'],'runtime.js'):
         payload['app/'+name]=_read_file(workspace/'app'/name)
     for mod in state['modules']:
-        name='app/modules/'+mod['id']+'.js';payload[name]=_read_file(workspace/name)
+        for name in revision_sources(mod):
+            payload[name]=_read_file(workspace/name)
     if state['gui_evidence']:
         from .conformance import read_evidence, _artifact
         for reference in state['gui_evidence']:

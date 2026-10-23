@@ -39,20 +39,20 @@ def destination(value, body=None):
 
 
 def capabilities():
-    from .registry import DEFAULTS
+    from .registry import DEFAULTS, FILTERS
     return {'schema':'scan.native-capabilities/1','owner':'system.metabolism','coordinator':'mantle.kernel',
             'implementation':'shared src/mantleos/scan','runtime':'bundled Python standard library',
             'mandatory_external_dependencies':[], 'specimen_execution_default':False,
             'interfaces':sorted([*CAPABILITIES,'scan.inspect','scan.compact','scan.experiment']),
-            'extensions':DEFAULTS,'native_language_coverage':{
+            'extensions':DEFAULTS,'filters':list(FILTERS),'native_language_coverage':{
                 'python':'STRUCTURE_AND_PARTIAL_FLOW','anchor':'STRUCTURE_ONLY',
-                'json':'STRUCTURE_ONLY','toml':'STRUCTURE_ONLY',
+                'interface':'STRUCTURE_ONLY','json':'STRUCTURE_ONLY','toml':'STRUCTURE_ONLY',
                 'typescript':'BOUNDED_LEXICAL_STRUCTURE','pe':'BOUNDED_BINARY_METADATA'},
             'inspection_engine':{'owner':'NATIVE_SCAN','available':True,
                 'views':['all','application','artifact','members','boundaries'],
                 'detail':['summary','full'],'shared_graph_and_cache':True},
             'optional_specialists':['typescript-static'],
-            'discovery':{'operation':'scan.discover','workers':2,'scanners':['native','qt-declarations'],
+            'discovery':{'operation':'scan.discover','workers':2,'engine':'mantleos.scan','parallelism':'captured-file extraction',
                          'shared_source_pins':True,'gui_required':True,'automatic_acceptance':False},
             'retention':'Separate authorized memory/checked-action admission; diagnostic dispatch has no ledger',
             'limitations':['Static findings do not prove runtime behavior','No OS sandbox or decompilation is claimed']}
@@ -63,11 +63,11 @@ def inspect(arguments, body=None):
     from .planner import plan
     from .registry import Registry
     from .html_report import render_report
-    fields(arguments,('source','workspace'),('objective','max_files','max_bytes','max_file_bytes','max_seconds','max_nodes','provider_policy','allow_external','settings'))
+    fields(arguments,('source','workspace'),('objective','max_files','max_bytes','max_file_bytes','max_seconds','max_nodes','provider_policy','allow_external','filters','execution','settings'))
     from .inspection import inspect as inspection, settings as inspection_settings
     selected = inspection_settings(arguments.get('settings'))
     folder = destination(arguments['workspace'],body)
-    options = {key:arguments[key] for key in ('max_files','max_bytes','max_file_bytes','max_seconds','max_nodes','provider_policy','allow_external') if key in arguments}
+    options = {key:arguments[key] for key in ('max_files','max_bytes','max_file_bytes','max_seconds','max_nodes','provider_policy','allow_external','filters','execution') if key in arguments}
     report = scan(arguments['source'],folder,**options)
     view = inspection(report,selected,source=arguments['source'])
     write_json(folder / 'inspection.json',view)

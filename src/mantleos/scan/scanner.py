@@ -1,4 +1,5 @@
 """Incremental extraction, with fresh graph binding on every source snapshot."""
+from concurrent.futures import ThreadPoolExecutor
 from collections import Counter, defaultdict
 import json
 import os
@@ -10,7 +11,7 @@ import time
 from .adapters import adapter_revision, extract
 from .common import EXCLUDES, ScanError, canonical, digest, identity, outside, sha, source_paths, write_json
 from .graph import graph_metrics
-from .registry import Registry
+from .registry import Registry, select_filters, source_filter
 
 
 class Cache:
@@ -85,7 +86,7 @@ def connect_graph(nodes):
     return edges
 
 
-def scan(root, workspace, *, node=None, provider_policy=None, allow_external=False, max_files=1000, max_bytes=16_000_000, max_file_bytes=512_000, max_seconds=60, max_nodes=100000):
+def scan(root, workspace, *, node=None, provider_policy=None, allow_external=False, max_files=1000, max_bytes=16_000_000, max_file_bytes=512_000, max_seconds=60, max_nodes=100000, filters=None, execution='serial'):
     root, workspace = Path(root).resolve(), Path(workspace).resolve()
     if not root.is_dir(): raise ScanError("Source must be a directory")
     outside(workspace, root)
@@ -93,6 +94,9 @@ def scan(root, workspace, *, node=None, provider_policy=None, allow_external=Fal
         raise ScanError("Scan limits must be positive integers")
     if max_files > 1000 or max_file_bytes > 2_000_000 or max_bytes > 64_000_000 or max_nodes > 500000:
         raise ScanError("Requested limits exceed this release's bounded profile")
+    selected = select_filters(filters)
+    if execution not in ('serial', 'parallel'):
+        raise ScanError('Unsupported scan execution mode')
     from .providers import Providers
     providers = Providers(provider_policy, allow_external=allow_external, source=root)
     registry, cache = Registry(workspace), Cache(workspace)
@@ -137,6 +141,9 @@ def scan(root, workspace, *, node=None, provider_policy=None, allow_external=Fal
                     raise ScanError("Source changed while being read, or exceeds byte budget")
                 total += len(data)
                 entry["sha256"] = sha(data)
+                if source_filter(family) not in selected:
+                    entry["status"] = "FILTERED"
+                    continue
                 if family == "inventory":
                     entry["status"] = "UNSUPPORTED"
                     gaps.append({"path": relative, "reason": "No qualified syntax adapter; use research or map a compatible extension"})
@@ -159,18 +166,33 @@ def scan(root, workspace, *, node=None, provider_policy=None, allow_external=Fal
             except (OSError, ValueError) as exc:
                 entry["status"] = "ERROR"
                 gaps.append({"path": relative, "reason": str(exc)[:500]})
-        for entry, data, key in jobs:
+        def extract_job(job):
+            entry, data, _ = job
             if time.monotonic() - started >= max_seconds:
-                entry["status"] = "LIMIT"
-                gaps.append({"path": entry["path"], "reason": "Extraction time budget"})
-                continue
+                return None, 'Extraction time budget'
             try:
-                value = extract(entry["path"], data, entry["family"], deadline=started + max_seconds)
-                admit(entry, value)
-                cache.put(key, value)
+                value = extract(entry['path'], data, entry['family'], deadline=started + max_seconds)
+                if time.monotonic() - started >= max_seconds:
+                    return None, 'Extraction time budget'
+                return value, None
             except (ValueError, SyntaxError, RecursionError, UnicodeError, MemoryError) as exc:
-                entry["status"] = "ERROR"
-                gaps.append({"path": entry["path"], "reason": type(exc).__name__ + ": " + str(exc)[:300]})
+                return None, type(exc).__name__ + ': ' + str(exc)[:300]
+
+        # Only captured-byte extraction runs in workers. Cache access and graph
+        # admission stay on the owning thread, in deterministic inventory order.
+        pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix='scan') if execution == 'parallel' else None
+        try:
+            results = pool.map(extract_job, jobs) if pool else map(extract_job, jobs)
+            for (entry, data, key), (value, error) in zip(jobs, results):
+                if error:
+                    entry['status'] = 'LIMIT' if error == 'Extraction time budget' else 'ERROR'
+                    gaps.append({'path': entry['path'], 'reason': error})
+                else:
+                    admit(entry, value)
+                    cache.put(key, value)
+        finally:
+            if pool:
+                pool.shutdown(wait=True, cancel_futures=True)
         # Admit the native graph first. Optional records cannot consume its budget
         # or replace its evidence, even when an enhancement fails.
         native_nodes = [node for entry in inventory for node in facts.get(entry['path'],{}).get('nodes',[])]
@@ -210,7 +232,7 @@ def scan(root, workspace, *, node=None, provider_policy=None, allow_external=Fal
                 continue
             entry["status"] = value["coverage"]
             entry["limitations"] = value.get("gaps", [])
-            if entry["family"] in ("anchor", "typescript", "pe"):
+            if entry["family"] in ("anchor", "typescript", "pe", "interface"):
                 gaps.extend({"path": entry["path"], "reason": reason} for reason in entry["limitations"])
             if "provider" in value:
                 entry["provider"] = value["provider"]
@@ -225,7 +247,7 @@ def scan(root, workspace, *, node=None, provider_policy=None, allow_external=Fal
     edges.extend(derived[:remaining])
     graph = {"schema": "scan.graph/1", "files": inventory, "nodes": nodes, "edges": edges, "gaps": gaps,
              "adapter_revisions": revisions, "limits": {"files": max_files, "bytes": max_bytes, "file_bytes": max_file_bytes, "nodes": max_nodes},
-             "scope": {"modality": "STATIC", "specimen_executed": False, "runtime_observed": False,
+             "scope": {"filters": selected, "modality": "STATIC", "specimen_executed": False, "runtime_observed": False,
                        "excluded_directory_names": sorted(EXCLUDES), "excluded_files": "symlinks, .env*, .pyc, .pyo",
                        "inventory_exhausted_within_exclusions": not stopped, "behavioral_verification": "NOT_RUN",
                        "limitations": ["Bounded structural and partial flow analysis, not a complete semantic model.",
@@ -234,7 +256,7 @@ def scan(root, workspace, *, node=None, provider_policy=None, allow_external=Fal
     if any(n["attributes"].get("analysis_origin") == "optional-provider" for n in nodes):
         graph["node_identity_scheme"] = "scan.native-plus-specialist/1"
     report = {"schema": "scan.report/1", "source_root": str(root), "graph": graph, "graph_digest": digest(graph),
-              "run": {"cache_hits": hits, "cache_misses": misses, "seconds": time.monotonic() - started,
+              "run": {"execution": execution, "cache_hits": hits, "cache_misses": misses, "seconds": time.monotonic() - started,
                       "source_bytes": total, "typescript_batches": int(bool(enhancement_attempts)),
                       "enhancement_cache_hits":enhancement_hits,"enhancement_cache_misses":enhancement_misses},
               "metrics": graph_metrics(nodes, [e for e in edges if e["kind"] in ("possible_call", "possible_import")])}

@@ -16,14 +16,14 @@ BUILD_RULE = (
     'Keep that mounted app and its current user state alive while admitting reviewed modules. '
     'After every build/test/refinement cycle, read mantleos.kpp.build.step(workspace) '
     '(CLI: kpp build-step --workspace DIR) and pursue the next ready unmet obligation. '
-    'Continue the Chase loop within the authorized scope and declared budget; one visible app or one '
+    'Continue the recipe-selected refinement loop within the authorized scope and declared budget; one visible app or one '
     'passing feature is not recipe completion. Failed or untested obligations stay open. '
     'Keep unavailable controls gated, retain recovery history, and check state preservation after updates. '
     'A test result or MIND proposal never supplies Baker/operator approval. '
-    'Finish only with current evidence and required explicit acceptance for every mandatory Anchor '
+    'Finish only with current evidence and required explicit acceptance for every mandatory obligation '
     'and preservation obligation. If blocked, awaiting review, out of budget or lacking a mount tool, '
     'report the exact remaining obligations and resume point; do not claim COMPLETE. '
-    'Use the existing complete Anchor profile when compiling the final self-contained .anchor artifact. '
+    'Follow the pinned implementation choices; use an existing complete Anchor profile only when the recipe selects an .anchor artifact. '
     'Do not regenerate its bridge/Python target for every streamed source fragment. '
     'These are host workflow steps, not new Anchor opcodes or authority grants.'
 )
@@ -47,7 +47,9 @@ def step(workspace):
     satisfied = not report['unmet_anchors'] and not report['unaccepted_properties']
     decision = ('COMPLETE' if state['phase'] == 'COMPLETE' and satisfied else
                 'READY_FOR_COMPLETION' if satisfied else 'CONTINUE' if next_item else 'BLOCKED')
-    return {'schema': 'mantle.kpp-build-step/1', 'recipe_id': recipe['id'],
+    from .language import implementation_plan
+    from .construction import construction_plan
+    return {'construction': construction_plan(recipe), 'implementation': implementation_plan(recipe), 'schema': 'mantle.kpp-build-step/1', 'recipe_id': recipe['id'],
         'recipe_sha256': state['recipe_hash'], 'revision': state['revision'],
         'phase': state['phase'], 'decision': decision,
         'unmet_anchors': report['unmet_anchors'],
@@ -67,14 +69,14 @@ def run(workspace, *, open_preview, refine, max_cycles=16):
     Exceptions propagate: unknown effects must be reconciled, not silently retried.
     """
     if type(max_cycles) is not int or not 1 <= max_cycles <= 256:
-        raise KPPError('Chase needs a declared budget of 1..256 cycles')
+        raise KPPError('Refinement needs a declared budget of 1..256 cycles')
     if not callable(open_preview) or not callable(refine):
-        raise KPPError('Chase requires explicit host preview and refinement operations')
+        raise KPPError('Refinement requires explicit host preview and refinement operations')
     initial = step(workspace)
     def current_step():
         current = step(workspace)
         if current['recipe_sha256'] != initial['recipe_sha256']:
-            raise KPPError('Recipe changed during Chase; review a new build explicitly')
+            raise KPPError('Recipe changed during ' + ('Chase' if initial['construction']['ordering'] == 'chase' else 'refinement') + '; review a new build explicitly')
         return current
     preview = open_preview(deepcopy(initial))
     if not isinstance(preview, dict):
