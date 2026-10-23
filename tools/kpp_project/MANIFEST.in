@@ -5,6 +5,7 @@ recursive-include examples *.md *.json *.py
 recursive-include pantry *.json
 recursive-include previews *.html *.css *.js
 recursive-include recipes *.json
+recursive-include contracts *.json
 recursive-include references *.json *.ui
 recursive-include release-evidence *.json
 recursive-include shared *
@@ -15,3 +16,5 @@ recursive-exclude * __pycache__ *.py[cod]
 prune .work
 prune workspaces
 prune .venv
+
+recursive-include tools/kpp_project *.py *.md *.toml *.in *.yml *.yaml .gitattributes .gitignore

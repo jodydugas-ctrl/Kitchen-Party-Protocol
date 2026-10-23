@@ -7,9 +7,25 @@ DEFAULTS = {".py": "python", ".pyi": "python", ".pyw": "python",
             ".js": "typescript", ".jsx": "typescript", ".ts": "typescript",
             ".tsx": "typescript", ".mjs": "typescript", ".cjs": "typescript",
             ".mts": "typescript", ".cts": "typescript",
+            ".ui": "interface", ".html": "interface", ".htm": "interface",
             ".json": "json", ".toml": "toml", ".anchor": "anchor",
             ".dll":"pe", ".exe":"pe", ".sys":"pe", ".winmd":"pe", ".netmodule":"pe"}
-FAMILIES = {"python", "typescript", "json", "toml", "anchor", "pe"}
+FAMILIES = {"python", "typescript", "json", "toml", "anchor", "pe", "interface"}
+FILTERS = ('code', 'interface', 'data')
+
+
+def select_filters(value):
+    if value is None:
+        return list(FILTERS)
+    if not isinstance(value, (list, tuple)) or not value or any(v not in FILTERS for v in value):
+        raise ScanError('Use existing scan filters: code, interface, data')
+    return [name for name in FILTERS if name in value]
+
+
+def source_filter(family):
+    return 'interface' if family == 'interface' else 'data' if family in ('json', 'toml') else 'code'
+
+
 LENSES = {
     "anchor": {"description": "Static Molecule ownership and serialized Anchor slots; no runtime routing", "kinds": ["anchor_molecule", "anchor"], "min_loop_depth": 0},
     "organic": {"description": "Responsibilities and ownership candidates", "kinds": ["module", "function", "class", "import"], "min_loop_depth": 0},

@@ -1,14 +1,10 @@
-# One shared KPP and MantleOS system
+# KPP protocol, MantleOS testbed and shared implementation
 
-KPP is the primary maintained construction protocol and tooling project. MantleOS
-was built using KPP and remains an associated project. They share the same system
-and do not define independent Anchor
-models. Their common implementation is `mantleos`; the full KPP workflow lives
-in `mantleos.kpp`. The standalone `kpp` import and command are entry points to
-those same modules. A new feature in either project must be promoted into this
-common source in the KPP project and promoted to the associated MantleOS checkout.
-Do not maintain competing definitions. Checkout parity is checked explicitly;
-GitHub hosting does not provide automatic source synchronization.
+KPP is the independently maintained development protocol. MantleOS is the
+creator's experimental testbed for exploring AI embodiment through code. Both
+use the same mantleos implementation; the standalone kpp namespace is a facade.
+Shared changes originate in KPP and are promoted identically to MantleOS.
+Hosting provides no automatic synchronization.
 
 ## One Anchor model
 
@@ -29,13 +25,18 @@ or rehashing a field. `anchor.application/1` binds those attributes to a trusted
 definition. Project/register views and serialized executable Anchor slots are
 applications of this same model.
 
-In KPP, a recipe requirement is an application of the existing **Neutral**
-Anchor. Its statement, Fidelity depth, test, dependency, preservation obligation
-and evidence are attributes. “Recipe Anchor”, “acceptance Anchor” and “test
-Anchor” describe uses of the same Anchor, not new types or singularities.
-`mantleos.kitchen.bind` produces `mantle.kpp-binding/1`, retaining the complete
-`kpp.recipe/3` as attributes. The Functional Graph derives the same applications;
-it is not another writable registry of meaning or approval.
+Recipe/3 retains its existing Neutral Anchor binding. Recipe/4 treats the
+historical `anchors` field as general measurable obligations and defaults to
+`anchor_binding: none`. Validation and the Functional Graph do not invoke the
+Anchor model for unbound recipes. Explicit `shared-neutral` binding uses these
+same definitions; there is no second Anchor family. `mantleos.kitchen.bind`
+retains the complete recipe in `mantle.kpp-binding/1` without approval.
+
+Recipe/4 implementation components record required, preferred or recommendation
+choices with selected languages and rationale. Language and Anchor profile are
+separate. Declaration, tool availability, executed verification and Baker
+acceptance remain distinct. Rust can be declared without an execution backend.
+See docs/LANGUAGE-CHOICES.md and the read-only `language-plan` command.
 
 KPP's complete recipe validator, Pantry, workspace, Reflex, testing, GUI evidence,
 Chase and Baker-acceptance workflow are implemented in `mantleos.kpp` and ship
@@ -101,7 +102,7 @@ transfers approval. Host independence and fresh receiving-host review remain.
 independently useful Canvas slice while BUILDING, before generating later stages
 or packaging the full portable app. Preserve the mounted Body and current user
 state as reviewed modules arrive. Recheck the pinned recipe after each refinement
-and continue Chase against every unmet mandatory Anchor and preservation
+and refine every unmet mandatory obligation and preservation
 obligation. A visible app or passing test never supplies Baker acceptance.
 Review/budget/blocking stops retain the unresolved requirements and resume point.
 The host still owns its real preview tools, typed release and effect permissions.
@@ -129,3 +130,18 @@ ongoing development. Changes to common meaning and implementation must be review
 and promoted to MantleOS with matching source. Local export does
 not create a GitHub repository, publish source, configure services or change
 existing licenses. Component notices and source provenance accompany both builds.
+
+
+## Recipe-owned organs and source revision evidence
+
+`mantleos.kpp.organs` validates a read-only ownership/dependency projection of the
+existing recipe; it adds no Anchor meanings, CELL types or approval registry.
+The maintained SCAN engine supplies source observations with explicit coverage
+and gaps. Real browser tests separately qualify the Notepad Save behavior profile.
+Reviewed replacement and restoration use the existing workspace writer lock,
+immutable retained source, source-bound evidence and append-only history. Editor
+state remains owned by the deterministic Body. Managed JavaScript is not a sandbox,
+and tests, source digests and transport never grant Baker acceptance. The same
+implementation and example ship in both projects. See KPP's docs/ORGAN-SAVE.md.
+
+See [artisanal construction](docs/ARTISANAL-CONSTRUCTION.md) for role-neutral Baker responsibility, optional Chase and augmentation evidence.

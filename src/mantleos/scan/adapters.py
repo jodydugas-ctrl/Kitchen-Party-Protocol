@@ -24,6 +24,8 @@ def adapter_revision(family):
                       sha((source_directory() / "SOURCE-PINS.json").read_bytes())])
     if family == "typescript":
         parts.append(sha((PACKAGE / "javascript.py").read_bytes()))
+    if family == "interface":
+        parts.append(sha((PACKAGE / "interfaces.py").read_bytes()))
     if family == "pe":
         parts.append(sha((PACKAGE / "pe.py").read_bytes()))
     return digest(parts)
@@ -242,6 +244,9 @@ def extract(path, data, family, *, deadline=None):
     if family == "pe":
         from .pe import extract_pe
         return extract_pe(path,data,deadline=deadline)
+    if family == "interface":
+        from .interfaces import extract_interface
+        return extract_interface(path, data, deadline=deadline)
     builder = Builder(path, sha(data))
     text = data.decode("utf-8-sig")
     if family == "json":

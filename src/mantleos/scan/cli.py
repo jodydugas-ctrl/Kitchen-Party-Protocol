@@ -40,12 +40,14 @@ def main(argv=None, *, body=None):
     inspect.add_argument("--max-nodes", type=int, default=100000)
     inspect.add_argument("--provider-policy", help="Explicit optional provider policy outside source")
     inspect.add_argument("--allow-external", action="store_true", help="Permit a policy-pinned optional host parser for this invocation")
+    inspect.add_argument('--filter', dest='filters', action='append', choices=('code','interface','data'))
+    inspect.add_argument('--execution', choices=('serial','parallel'), default='serial')
     from .inspection import VIEWS
     inspect.add_argument('--view', choices=tuple(VIEWS), default='all')
     inspect.add_argument('--detail', choices=('summary','full'), default='summary')
     inspect.add_argument('--target', default='.')
     inspect.add_argument('--max-items', type=int, default=2000)
-    discovery = sub.add_parser('discover', help='Concurrent native code and Qt declaration discovery on one checked source revision')
+    discovery = sub.add_parser('discover', help='Pinned code and interface views from one scan on one checked source revision')
     discovery.add_argument('source'); discovery.add_argument('--output', required=True)
     discovery.add_argument('--identity', required=True); discovery.add_argument('--gui-root')
     discovery.add_argument('--execution', choices=('parallel','serial'), default='parallel', help='Serial provides an equivalent-scope timing baseline')
@@ -143,7 +145,7 @@ def main(argv=None, *, body=None):
                             'max_seconds':args.max_seconds,'max_nodes':args.max_nodes})
         elif args.command == "inspect":
             report = native('snapshot',{'source':args.source,'workspace':args.workspace,'max_files':args.max_files,'max_bytes':args.max_bytes,
-                            'max_file_bytes':args.max_file_bytes,'max_seconds':args.max_seconds,'max_nodes':args.max_nodes,
+                            'max_file_bytes':args.max_file_bytes,'max_seconds':args.max_seconds,'max_nodes':args.max_nodes,'filters':args.filters,'execution':args.execution,
                             'provider_policy':args.provider_policy,'allow_external':args.allow_external,
                             'settings':{'view':args.view,'detail':args.detail,'target':args.target,'max_items':args.max_items}})['report']
             result = {"schema": "mantle.scan-inspect/1", "result": "PASS", "graph_digest": report["graph_digest"],

@@ -7,8 +7,10 @@ from . import anchors, json_contract as contract
 
 
 def bind(recipe):
-    contract.require(type(recipe) is dict and recipe.get('schema') == 'kpp.recipe/3',
+    contract.require(type(recipe) is dict and recipe.get('schema') in ('kpp.recipe/3', 'kpp.recipe/4'),
                      'Unsupported KPP recipe version')
+    contract.require(recipe.get('schema') == 'kpp.recipe/3' or recipe.get('anchor_binding', 'none') == 'shared-neutral',
+                     'Recipe must explicitly select anchor_binding shared-neutral')
     contract.identifier(recipe.get('id'))
     contract.text(recipe.get('goal'))
     obligations = recipe.get('anchors')

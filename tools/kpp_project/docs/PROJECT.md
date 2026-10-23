@@ -1,8 +1,10 @@
 # KPP project and shared source
 
 Kitchen Party Protocol is the primary project for ongoing KPP and shared-system
-development. MantleOS is an associated project built with KPP. Both use the same
-Anchor definitions, CELL contracts, execution, scanning, Body, memory and carriers.
+development. MantleOS is an associated project built with KPP. They share
+implementation, CELL contracts, execution, scanning, Body, memory and carriers.
+Recipe/3 retains Anchor binding; recipe/4 makes that binding explicit and optional.
+Anchor users share the same authoritative definitions.
 
 The Python namespace `mantleos` remains the common implementation for compatibility.
 KPP's workflow lives in `src/mantleos/kpp`; `src/kpp` exposes the same module objects.

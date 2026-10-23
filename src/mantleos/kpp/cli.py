@@ -14,7 +14,7 @@ from .adaptation import fit as assess_fit, reflex_plan
 from .reflex import stage as reflex_stage, audit as reflex_audit, approval_template
 from .testing import run_suite, accept_tested, verify_report
 from .portability import export_bundle, import_bundle, review_candidate, export_preview, import_preview
-from .gui import scan_qt, read_inventory
+from .gui import read_inventory
 from .conformance import record_capture, compare_captures, read_evidence, coverage_matrix
 
 def print_json(obj):
@@ -26,6 +26,8 @@ def main(argv=None):
     p=argparse.ArgumentParser(prog="kpp",description="Kitchen Party Protocol / local developer tools")
     sub=p.add_subparsers(dest="cmd",required=True)
     sub.add_parser('systems', help='Describe the one shared MantleOS/KPP system')
+    a=sub.add_parser('language-plan', help='Report recipe implementation choices without execution')
+    a.add_argument('--recipe', type=Path, required=True)
     a=sub.add_parser('bind', help='Inspect a recipe as applications of the shared Neutral Anchor')
     a.add_argument('--recipe', type=Path, required=True)
     a=sub.add_parser('cell', help='Produce a kernel-relative CELL using the shared kernel')
@@ -123,6 +125,33 @@ def main(argv=None):
     a.add_argument("--workspace",type=Path,required=True)
     a.add_argument("--proposal",type=Path,required=True)
     a.add_argument("--out",type=Path)
+    for command in ('organ-project', 'organ-evidence'):
+        a=sub.add_parser(command, help='Read-only recipe-owned organ projection/evidence; no approval')
+        a.add_argument('--recipe', type=Path, required=True)
+        a.add_argument('--organs', type=Path, required=True)
+        a.add_argument('--out', type=Path)
+        if command=='organ-evidence':
+            a.add_argument('--bindings', type=Path, required=True)
+            a.add_argument('--scan', type=Path, required=True)
+            a.add_argument('--source', type=Path, required=True)
+    a=sub.add_parser('module-test', help='Execute reviewed Notepad Save behavior in real local Chromium')
+    a.add_argument('--workspace', type=Path, required=True)
+    a.add_argument('--id', required=True)
+    a.add_argument('--source', type=Path, required=True)
+    a.add_argument('--organs', type=Path, required=True)
+    a.add_argument('--output', type=Path, required=True)
+    a.add_argument('--execute', action='store_true')
+    a.add_argument('--reviewed', action='store_true')
+    a.add_argument('--chromium')
+    for command in ('module-replace', 'module-restore'):
+        a=sub.add_parser(command, help='Explicitly reviewed revision selection; invalidates acceptance')
+        a.add_argument('--workspace', type=Path, required=True)
+        a.add_argument('--id', required=True)
+        a.add_argument('--expected-revision', type=int, required=True)
+        a.add_argument('--reviewed', action='store_true')
+        if command=='module-replace':
+            a.add_argument('--source', type=Path, required=True)
+            a.add_argument('--evidence', type=Path, required=True)
     a=sub.add_parser("install",help="Install an append-only JavaScript module")
     a.add_argument("--workspace",type=Path,required=True)
     a.add_argument("--id",required=True)
@@ -158,10 +187,9 @@ def main(argv=None):
     a.add_argument("--depth",type=int,default=1)
     a.add_argument("--workspace", type=Path, help="External SCAN cache; defaults to a disposable workspace")
     a.add_argument("--out",type=Path)
-    a=sub.add_parser("gui-scan",help="Read-only Qt .ui declarations; no runtime or parity claim")
-    a.add_argument("path",type=Path)
-    a.add_argument("--identity",required=True,help="Source label; content revision is computed, not asserted")
-    a.add_argument("--out",type=Path)
+    a.add_argument('--filter', dest='filters', action='append', choices=('code', 'interface', 'data'))
+    a.add_argument('--identity', help='Source identity for the derived interface inventory')
+    a.add_argument('--execution', choices=('serial', 'parallel'), default='serial')
     a=sub.add_parser("serve",help="Local progressive browser preview; loopback only")
     a.add_argument("--workspace",type=Path,required=True)
     a.add_argument("--port",type=int,default=8765)
@@ -210,6 +238,9 @@ def main(argv=None):
         if args.cmd=='systems':
             from .systems import describe
             print_json(describe())
+        elif args.cmd=='language-plan':
+            from .language import implementation_plan
+            print_json(implementation_plan(read_json(args.recipe)))
         elif args.cmd=='bind':
             from ..kitchen import bind
             print_json(bind(validate_recipe(read_json(args.recipe))))
@@ -281,7 +312,8 @@ def main(argv=None):
         elif args.cmd=="plan":
             recipe,state=load(args.workspace)
             labels=read_json(args.workspace/"ingredient-labels.json")
-            print_json({"recipe":recipe["id"],"goal":recipe["goal"],"target":recipe["target"],"tissue":recipe["tissue"],
+            from .construction import construction_plan
+            print_json({"construction":construction_plan(recipe), "recipe":recipe["id"],"goal":recipe["goal"],"target":recipe["target"],"tissue":recipe["tissue"],
                         "ingredient_labels":labels["ingredients"],
                         "mode":recipe["mode"],"product_kind":recipe.get("product_kind","unspecified"),
                         "delivery_mode":recipe.get("delivery_mode","artifact"),"preview_kind":state.get("preview_kind"),
@@ -307,6 +339,27 @@ def main(argv=None):
         elif args.cmd=="check":
             report=inspection(args.workspace)
             print_json({"structural_integrity":"PASS","acceptance":report,"scope":"Manifest and installed file hashes; not browser behavior"})
+        elif args.cmd in ('organ-project','organ-evidence'):
+            from .organs import project, evidence
+            recipe=read_json(args.recipe);mapping=read_json(args.organs)
+            result=project(recipe,mapping) if args.cmd=='organ-project' else evidence(
+                recipe,mapping,read_json(args.bindings),read_json(args.scan),args.source)
+            if args.out:write_json(args.out,result);print(args.out)
+            else:print_json(result)
+        elif args.cmd=='module-test':
+            from .organ_testing import run_module_tests
+            result=run_module_tests(args.workspace,args.id,args.source,read_json(args.organs),args.output,
+                                    execute=args.execute,reviewed=args.reviewed,chromium=args.chromium)
+            print_json({'result':result['result'],'report':str(args.output/'report.json'),
+                        'runtime':result['runtime'],'acceptance':'NOT_GRANTED'})
+            return 0 if result['result']=='PASS' else 3
+        elif args.cmd=='module-replace':
+            from .module_revisions import replace_module
+            print_json(replace_module(args.workspace,args.id,args.source,args.evidence,
+                                     expected_revision=args.expected_revision,reviewed=args.reviewed))
+        elif args.cmd=='module-restore':
+            from .module_revisions import restore_module
+            print_json(restore_module(args.workspace,args.id,expected_revision=args.expected_revision,reviewed=args.reviewed))
         elif args.cmd=="install":print_json(install_module(args.workspace,args.id,args.source,args.depends))
         elif args.cmd in ("module-enable","module-disable"):
             print_json(set_module_enabled(args.workspace,args.id,args.cmd=="module-enable",getattr(args,"cascade",False)))
@@ -331,11 +384,7 @@ def main(argv=None):
             from .workshop import report_observation
             print_json(report_observation(args.workspace,args.feature,args.evidence))
         elif args.cmd=="scan":
-            result=scan(args.path,args.depth,workspace=args.workspace)
-            if args.out:write_json(args.out,result);print(args.out)
-            else:print_json(result)
-        elif args.cmd=="gui-scan":
-            result=scan_qt(args.path,args.identity)
+            result=scan(args.path,args.depth,workspace=args.workspace,filters=args.filters,identity=args.identity,execution=args.execution)
             if args.out:write_json(args.out,result);print(args.out)
             else:print_json(result)
         elif args.cmd=="gui-record":

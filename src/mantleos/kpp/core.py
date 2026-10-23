@@ -6,6 +6,7 @@ from pathlib import Path
 
 SLUG = re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
 SUPPORTED_RECIPE = "kpp.recipe/3"
+SUPPORTED_RECIPES = (SUPPORTED_RECIPE, "kpp.recipe/4")
 SUPPORTED_INGREDIENT = "kpp.ingredient/1"
 
 class KPPError(ValueError):
@@ -43,7 +44,7 @@ def write_json(path, data):
 
 
 def validate_recipe(recipe):
-    if not isinstance(recipe, dict) or recipe.get("schema") != SUPPORTED_RECIPE:
+    if not isinstance(recipe, dict) or recipe.get("schema") not in SUPPORTED_RECIPES:
         raise KPPError("Unsupported recipe schema")
     if not isinstance(recipe.get("id"), str) or not SLUG.fullmatch(recipe["id"]):
         raise KPPError("Invalid recipe id")
@@ -51,12 +52,16 @@ def validate_recipe(recipe):
         raise KPPError("Recipe needs goal")
     if recipe.get("tissue") not in ("anchor", "python", "javascript", "mixed", "unspecified"):
         raise KPPError("Unsupported tissue")
+    from .language import validate_implementation
+    validate_implementation(recipe)
+    from .construction import construction_plan
+    construction_plan(recipe)
     if not isinstance(recipe.get("fidelity"), int) or type(recipe["fidelity"]) is not int or not 1 <= recipe["fidelity"] <= 32:
         raise KPPError("Fidelity must be integer in 1..32")
     if recipe.get("mode") not in ("composition", "chase", "hybrid", "transformation"):
         raise KPPError("Invalid baking mode")
     if not isinstance(recipe.get("target"), dict) or not recipe["target"].get("description"):
-        raise KPPError("Recipe needs described Chase Target")
+        raise KPPError("Recipe needs described target")
     if not isinstance(recipe.get("ingredients"), list) or not all(isinstance(x,str) and SLUG.fullmatch(x) for x in recipe["ingredients"]):
         raise KPPError("Invalid ingredient identifiers")
     if len(recipe["ingredients"]) != len(set(recipe["ingredients"])):
@@ -178,19 +183,23 @@ def validate_recipe(recipe):
     for aid in ids:visit(aid,set())
     from .gui import validate_contract
     validate_contract(recipe)
-    # KPP requirements are contextual applications of the SAME source-defined
-    # Neutral Anchor used by programs and project/register views.
-    from .. import anchors as shared_anchors, kitchen
-    neutral = shared_anchors.definition('Neutral')
-    for obligation in anchors:
-        for field, expected in (('type', neutral.type), ('definition', neutral.id),
-                                ('singularity', neutral.singularity)):
-            if field in obligation and obligation[field] != expected:
-                raise KPPError('KPP obligations cannot redefine Anchor singularity or type')
-    try:
-        kitchen.bind(recipe)
-    except (ValueError, TypeError, KeyError) as error:
-        raise KPPError('Invalid shared Anchor application: ' + str(error)) from error
+    from .language import binding_mode
+    if binding_mode(recipe) == 'shared-neutral':
+        # KPP requirements are contextual applications of the SAME source-defined
+        # Neutral Anchor used by programs and project/register views.
+        from .. import anchors as shared_anchors, kitchen
+        neutral = shared_anchors.definition('Neutral')
+        for obligation in anchors:
+            for field, expected in (('type', neutral.type), ('definition', neutral.id),
+                                    ('singularity', neutral.singularity)):
+                if field in obligation and obligation[field] != expected:
+                    raise KPPError('KPP obligations cannot redefine Anchor singularity or type')
+        try:
+            kitchen.bind(recipe)
+        except (ValueError, TypeError, KeyError) as error:
+            raise KPPError('Invalid shared Anchor application: ' + str(error)) from error
+    elif any({'type', 'definition', 'singularity'} & obligation.keys() for obligation in anchors):
+        raise KPPError('Anchor definition attributes require anchor_binding shared-neutral')
     return recipe
 
 

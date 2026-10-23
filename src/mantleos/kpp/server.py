@@ -4,6 +4,8 @@ import re
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from .core import KPPError
+from .module_revisions import source_path
+from urllib.parse import parse_qs, urlsplit
 from .workshop import load, record_activity, inspection, priorities, preview_fingerprint
 
 ID=re.compile(r"^[a-z][a-z0-9_-]{0,63}$")
@@ -51,7 +53,11 @@ def serve(workspace,host="127.0.0.1",port=8765):
                 if path.startswith("/modules/") and path.endswith(".js"):
                     mid=path[len("/modules/"):-3]
                     if ID.fullmatch(mid) and mid in {m["id"] for m in state["modules"]}:
-                        self.send((workspace/"app"/"modules"/(mid+".js")).read_bytes(),"text/javascript");return
+                        module=next(m for m in state['modules'] if m['id']==mid)
+                        requested=parse_qs(urlsplit(self.path).query).get('sha256')
+                        if requested is not None and requested != [module['sha256']]:
+                            self.send('{"error":"stale module revision"}',status=409);return
+                        self.send((workspace/source_path(module)).read_bytes(),"text/javascript");return
                 self.send('{"error":"not found"}',status=404)
             except (KPPError,OSError,ValueError) as err:
                 self.send(json.dumps({"error":str(err)}),status=409)

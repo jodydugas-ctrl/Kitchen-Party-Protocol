@@ -48,7 +48,7 @@ import importlib as _importlib
 import sys as _sys
 if not (3, 11) <= _sys.version_info[:2] < (3, 15):
     raise RuntimeError('KPP/MantleOS requires Python 3.11 through 3.14')
-from mantleos.kpp import __version__
+from mantleos.kpp import __version__, implementation_plan
 for _name in MODULES:
     _module = _importlib.import_module('mantleos.kpp.' + _name)
     _sys.modules[__name__ + '.' + _name] = _module
