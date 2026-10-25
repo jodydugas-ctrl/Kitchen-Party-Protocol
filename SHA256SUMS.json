@@ -559,7 +559,7 @@
     "tests/test_kitchen.py": "7b3094c586551749549176579f04f52aa6289236fc14a315b33c6750966e972d",
     "tests/test_language.py": "0ed5a9d0aeaead5b1d9c477de58d9889fe98d7873a881b31c437daca89f9e1d3",
     "tests/test_organs.py": "520e5af02a840982ad1dc3ac13af6280696ec22f60dffdd477d03357a55a7849",
-    "tests/test_pantry_labels.py": "5969ac6f44b5668728517be18a2414839db1785e17be790f47528394eb8f7d63",
+    "tests/test_pantry_labels.py": "a5b52d36498bea6b6ebd1338df8467d5db4c9e2e4387b7913ea2a491d7c8f150",
     "tests/test_portability.py": "4775887492868f3f16229f41b9ee6e6392ac0de5f8c1a95522dff7c63bdaf120",
     "tests/test_preview_recovery.py": "f4b7f72bab8e6c5f8fde1e16e0c4c5f44de1382a6f91f27a0da1ea84cdf25898",
     "tests/test_progressive_web.py": "b2313484a08cc349c0809254c4897afe887aee5079c075c64fd38bbcd26fbc47",
