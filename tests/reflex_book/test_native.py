@@ -50,6 +50,8 @@ class NativeTests(unittest.TestCase):
                 self.assertEqual((restored/'REFLEX-DATA/program.json').read_bytes(),self.payload)
                 self.assertEqual({p.name for p in (restored/'REFLEX-DATA').iterdir()},native.FILES)
                 self.assertNotIn(SECRET,(restored/'REFLEX-DATA/manifest.json').read_bytes())
+                for name in ('SPEC.md','PROVENANCE.md'):
+                    self.assertTrue((restored/'runtime_lib/mantleos/reflex'/name).is_file())
 
     def test_decode_never_invokes_vm_admission_or_registry(self):
         with patch.object(vm,'run',side_effect=AssertionError('VM invoked')), \

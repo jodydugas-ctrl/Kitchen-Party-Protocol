@@ -42,7 +42,7 @@
     "src/mantleos/augmentation_host.py": "088732b2e47aee65b0009f136ba563aeeb69770147d2c2a17b815dcc9664d712",
     "src/mantleos/birth.py": "7c83ce697bdfd2d18441f12f6ec2faef289f7c183d1852e8bbff05744be3d74b",
     "src/mantleos/body_entrypoint.py": "872d57af281ff3bb51683efb438676b62d90f4cd8642e3d94f13d7e98f4230e2",
-    "src/mantleos/builder.py": "dba106a0bcd60aa451a0d24cc6f4836b1ded84cbb6073b7fb982fa346943f495",
+    "src/mantleos/builder.py": "577b14adac3f27e060edbdf773e684fa0742a53c6e5eb3ad7f892919f1942e0e",
     "src/mantleos/cartridge.py": "56e22f0fc5e3339b8a87b9d29605846db8a68f4df4d3894b3604a21f2546a896",
     "src/mantleos/cells.py": "736e14c3e7e04d81a44135228e1f4b4b508ea4cfd43d7efb0366d0cda000a71c",
     "src/mantleos/checkpoint.py": "d9568402aeab178367acd3abc8db4e0cba8baa1366386d6f50ac07a523c50e7d",
@@ -160,7 +160,7 @@
     "src/mantleos/kpp/resources/examples/reflex_book/golden_vectors.json": "649e2561e129d7330e9355e0a499eb6ad462aa6bc48e7209090bf72e11935b8c",
     "src/mantleos/kpp/resources/examples/reflex_book/invalid_budget.json": "db13ba4c3e7ce860db92f5ea56f68d53b3f3078fc643096e11f2069e028b8f3d",
     "src/mantleos/kpp/resources/examples/reflex_book/invalid_capability.json": "402101c472c6e1891407facfb246a652e09271628df545a71d17affcdc91a75d",
-    "src/mantleos/kpp/resources/examples/reflex_book/invalid_corrupt_binary.hex": "02256bad64a0ae9f3ebaa9d3ba541a03c25c9bcbe494d70ad8efbcf84a81fa6f",
+    "src/mantleos/kpp/resources/examples/reflex_book/invalid_corrupt_binary.hex.hex.txt": "c24c1a4e5ff4965abb5a4735c23d4d7e00621674b1ec0d29d383c4cfda6bfb68",
     "src/mantleos/kpp/resources/examples/reflex_book/invalid_duplicate_guard.json": "17f4fcb911dec31721e9b0e421e3feb6baf7e5bcaa001b4a8e951b2329f0a8e6",
     "src/mantleos/kpp/resources/examples/reflex_book/invalid_duplicate_key.json": "9af2ac53489a7393ef5a15f8221e56acae6e60a845cfc111394742ccfac072d9",
     "src/mantleos/kpp/resources/examples/reflex_book/invalid_extra_field.json": "bbb47de88ac977adf14147973222061e6902c1561a95318e0b9adcdd73f97cb6",
@@ -355,5 +355,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "ed26736b7433a468807ee7e75e412c92d2ff7cad20450df700999e9133677cd8"
+  "source_digest": "72ef8a3348b6cd6a1c7d9b3cbc9f89ec9541aa1f0027f47138737401ad33756c"
 }
