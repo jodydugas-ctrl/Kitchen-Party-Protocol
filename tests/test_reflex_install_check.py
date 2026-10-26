@@ -26,7 +26,7 @@ class InstalledCheckTests(unittest.TestCase):
 
     def test_output_inside_source_is_refused_before_creation(self):
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
+            root = Path(temp).resolve(); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
             with patch.object(CHECK, 'checkout_roots', return_value=[root]):
                 with self.assertRaisesRegex(ValueError, 'OUTSIDE'):
                     CHECK.check(wheel, root / 'output')
@@ -34,7 +34,7 @@ class InstalledCheckTests(unittest.TestCase):
 
     def test_existing_output_is_preserved(self):
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
+            root = Path(temp).resolve(); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
             output = root / 'existing'; output.mkdir(); (output / 'marker').write_bytes(b'keep')
             with self.assertRaises(FileExistsError):
                 CHECK.check(wheel, output)
@@ -43,7 +43,7 @@ class InstalledCheckTests(unittest.TestCase):
 
     def test_failed_environment_creation_leaves_fail_receipt(self):
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
+            root = Path(temp).resolve(); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
             with patch.object(CHECK.venv.EnvBuilder, 'create', side_effect=OSError('injected')):
                 with self.assertRaises(OSError):
                     CHECK.check(wheel, root / 'output')
@@ -53,14 +53,14 @@ class InstalledCheckTests(unittest.TestCase):
 
     def test_wrong_bootstrap_digest_never_creates_output(self):
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
+            root = Path(temp).resolve(); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
             with self.assertRaisesRegex(ValueError, 'digest mismatch'):
                 CHECK.check(wheel, root / 'output', pip_wheel=wheel, pip_sha256='0' * 64)
             self.assertFalse((root / 'output').exists())
 
     def test_even_a_pinned_bootstrap_cannot_escape_environment(self):
         with tempfile.TemporaryDirectory() as temp:
-            root = Path(temp); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
+            root = Path(temp).resolve(); wheel = root / 'example.whl'; wheel.write_bytes(b'fixture')
             bootstrap = root / 'pip.whl'
             with zipfile.ZipFile(bootstrap, 'w') as archive:
                 archive.writestr('pip/../../escaped.txt', b'escape')

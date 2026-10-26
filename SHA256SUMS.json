@@ -656,7 +656,7 @@
     "tests/test_reflex_book_compatibility.py": "35f28c530edd1056c8daa9d7fd6cfb22b69f4fa8dc2d1947e036ebcfac12bad1",
     "tests/test_reflex_book_reference.py": "2c9a68ce0985f668615d7537b077038656f55cea05f044b7fc8d0125492abdfc",
     "tests/test_reflex_execution.py": "c81038352ea13abde99458cc098f658672ae2739541c3ea7155c2bf69b2d1bd9",
-    "tests/test_reflex_install_check.py": "1b78edac917c485007e75d03195ffcc6fa55720068a56b20570f3ad6c6fbe173",
+    "tests/test_reflex_install_check.py": "e38c2b590e9c7bbaf1c5072ba3e7f2d948fe0f577e91690d643b048820cb65d4",
     "tests/test_reflex_stage.py": "acc7546cc960892512181bfbb09796f54bb21b4b4b1f6f2045f8e5186bcccae9",
     "tests/test_release_validation.py": "ab0a20cef8f5de314b0d31739d5ac53f0cc999c07b9c4e546ee13889099c4ee9",
     "tests/test_scan_integration.py": "f14b86d0c452132ebd2b671a8b08d64090d0f2ced10017a7175933c31c0995d2",
