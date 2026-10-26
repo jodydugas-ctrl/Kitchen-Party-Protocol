@@ -15,7 +15,12 @@
     "reflex-language",
     "unknown",
     "determinism",
-    "authority"
+    "authority",
+    "department:languages",
+    "department:cognition",
+    "department:carriers",
+    "experimental",
+    "reflex"
   ],
   "minimum_fidelity": 3,
   "dependencies": [

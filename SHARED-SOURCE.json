@@ -203,7 +203,7 @@
     "src/mantleos/kpp/resources/pantry/chase-gate.json": "d3dd7341d7f089f29884537d500875746df49cd6cbc7b99ba1bc7b5bbc655db4",
     "src/mantleos/kpp/resources/pantry/checked-body-effects.json": "4b820c284f2da36978a927e442059bb3f6713c086f2af4ced3c2e8348c1f9505",
     "src/mantleos/kpp/resources/pantry/chroma-png-memory.json": "04f043e9cd332a019ff0cea979f7fdda0e0a1743118b673c59ac851e4bbf1482",
-    "src/mantleos/kpp/resources/pantry/engram-continuity.json": "cfea3767be09c62fcde926f527283f4b77201d273f98c515703e0de30de896d7",
+    "src/mantleos/kpp/resources/pantry/engram-continuity.json": "d28154efbfb5d920c22d95cc2b939f85314247ad965668d3f017c9e8d65ebcfc",
     "src/mantleos/kpp/resources/pantry/external-project.json": "4769f2786369f5e3833343139bce24e9058101e2e49ddca2729c2671de60ee64",
     "src/mantleos/kpp/resources/pantry/fidelity-trace.json": "bf20ca4adca34de6e57ca89549a9333040b46a4cdaa9bd30baf5e985c85dcfe3",
     "src/mantleos/kpp/resources/pantry/interface-shell.json": "ad2242976260bd59df497528f48e8abc91b2a210c02ef0810c8e5cd689df19bc",
@@ -213,9 +213,9 @@
     "src/mantleos/kpp/resources/pantry/progressive-web-runtime.json": "33f5934f63c2a5bcf9d1d5cd5d588598b377b37e81015f6432dea20f3cf06127",
     "src/mantleos/kpp/resources/pantry/python-tissue.json": "7e0869723f368e0d8a1d1610e705df6ba234048ff9f0832a199aa768bd9432c2",
     "src/mantleos/kpp/resources/pantry/recipe-organ-contracts.json": "5524d0082a30db844e866feb996452aa3a1bd72e93cfb889cf91a17830c372f5",
-    "src/mantleos/kpp/resources/pantry/reflex-book.json": "b110a813dfc9e89952ff5de7c054bb81e2a90560aefe1b497a92af6a84742eb1",
+    "src/mantleos/kpp/resources/pantry/reflex-book.json": "b478589fa6d4f933dc7e84b0d19728da00f6ad36940b0019eccc3d3644e383aa",
     "src/mantleos/kpp/resources/pantry/text-editor.json": "dda988e8cf4f6d94cc90e64cc123adeb0a6241748034447c657bb35d53420b45",
-    "src/mantleos/kpp/resources/pantry/vcw-cartridge-memory.json": "38dd2d98f39885eae8b69d94e891abcbda717aff2f61f1898cce5752cc3d336f",
+    "src/mantleos/kpp/resources/pantry/vcw-cartridge-memory.json": "8047305d2ced31d1d84cfd3cd6a149022471db49752627b003f6180396de8601",
     "src/mantleos/kpp/resources/personas/raven.md": "6ab766b066a88c8c0cbd23bf1e6db655a273c6f2988b4e2c0cb4b3bfd893fc33",
     "src/mantleos/kpp/resources/previews/calculator/base.js": "c9dba278d8e13afcd15d9f17d84e880ea6239f85834873bf4718898931591fc0",
     "src/mantleos/kpp/resources/previews/calculator/index.html": "38af2443b52203896e8f79a6e9c3db0dff026dcff3f1bbecd97067a3113f9c19",
@@ -430,5 +430,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "ad76c1d09d160c02145e5e6a3a6272f1b900de98dcac055e5d0493fa9fd7c9a7"
+  "source_digest": "946640570268e2a493c48a9012d1433a594743e5dd8e9437dc482aca05674ed6"
 }
