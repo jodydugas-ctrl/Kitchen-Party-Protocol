@@ -2,7 +2,7 @@
   "files": {
     ".gitattributes": "a157e4d60a6463b1570d86c9b0eba2f0ebb9473c38afd3aeab27967603418a4b",
     ".github/workflows/ci.yml": "6d87a10a3fc75948c88b18c8cb054ba9587c098e10577c57121befc695b8613e",
-    ".gitignore": "e03c7503b139d86247ad5135e56aec2be70601f0016b7d44b6cd2d29126dd9d0",
+    ".gitignore": "0948f623d2fd044d25a020cb065b9255b94c9862b851933277b985c30d010ef4",
     "AGENTS.md": "156dece29912e53bfe3b208150aa3dc5d2bde3591a59ebb652b3fe210e155616",
     "BUILD-STATUS.md": "e623c48736313b990288c2731cfb92b143bdea946428e47030013f139d449603",
     "CONTRIBUTING.md": "aed809ddb580a11510a24aa4f1b2dc168195312d751dab1f0349b67dcbe93b8f",
@@ -710,7 +710,7 @@
     "tools/journal_specimen.py": "20cc2a1a84d6e3e837d64de05aed7a8cacacee60e7d75ea0ca6c045b132ecb12",
     "tools/kpp_project/.gitattributes": "a157e4d60a6463b1570d86c9b0eba2f0ebb9473c38afd3aeab27967603418a4b",
     "tools/kpp_project/.github/workflows/ci.yml": "6d87a10a3fc75948c88b18c8cb054ba9587c098e10577c57121befc695b8613e",
-    "tools/kpp_project/.gitignore": "e03c7503b139d86247ad5135e56aec2be70601f0016b7d44b6cd2d29126dd9d0",
+    "tools/kpp_project/.gitignore": "0948f623d2fd044d25a020cb065b9255b94c9862b851933277b985c30d010ef4",
     "tools/kpp_project/MANIFEST.in": "61a6f43801abc3d0a613b1986239b95c55b6cef91a0d3c54e7ba5138a17245d2",
     "tools/kpp_project/docs/PROJECT-VERIFICATION.md": "24fdb3b56b632ca597fe4b6d3146f232632e8964a37c76991b21eb8a2a5d4bb9",
     "tools/kpp_project/docs/PROJECT.md": "06563ab86e8ea6f0858b0e34f7bb6069cd6c68d85fb6d09b0568a1d8a293712d",
