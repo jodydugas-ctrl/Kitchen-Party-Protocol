@@ -18,7 +18,9 @@ class SatisfactionTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         repo = Path(__file__).resolve().parents[1]
-        if (repo / 'tests').name == 'tests' and not (repo / 'recipes').exists():
+        if not (repo / 'src/mantleos').is_dir():
+            repo = repo.parent
+        if not (repo / 'recipes').exists():
             repo = repo / 'src/mantleos/kpp/resources'
         self.repo = repo
         self.recipe = json.loads((repo / 'recipes/conventional-python-v4.json').read_text('utf8'))
