@@ -38,8 +38,8 @@ def inventory(root):
 
 def verifier_pin():
     here = Path(__file__).parent
-    return digest({n: hashlib.sha256((here / n).read_bytes()).hexdigest()
-                   for n in ('satisfaction.py', 'core.py', 'graph.py', 'workshop.py')})
+    return digest({**{n: hashlib.sha256((here.parent / n).read_bytes()).hexdigest() for n in ('anchors.py', 'anchor_design.py')}, **{n: hashlib.sha256((here / n).read_bytes()).hexdigest()
+                   for n in ('satisfaction.py', 'core.py', 'graph.py', 'workshop.py', 'build.py', 'testing.py', 'construction.py')}})
 
 
 def suite_spec(path, recipe):

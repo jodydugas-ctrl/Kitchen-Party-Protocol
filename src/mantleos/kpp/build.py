@@ -37,10 +37,14 @@ def step(workspace):
         packet = plan(workspace)
         byid = {a['id']: a for a in recipe['anchors']}
         target = packet['targets'][0] if packet['targets'] else None
+        if state['phase'] == 'COMPLETE':
+            decision = 'COMPLETE' if packet['status'] == 'VERIFIED' else 'BLOCKED'
+        else:
+            decision = 'BLOCKED' if packet['blockers'] else 'CONTINUE' if target or packet['status'] != 'VERIFIED' else 'AWAITING_REVIEW'
         return {'schema': 'mantle.kpp-build-step/1', 'recipe_id': recipe['id'],
                 'recipe_sha256': state['recipe_hash'], 'revision': state['revision'],
                 'phase': state['phase'], 'construction': __import__('mantleos.kpp.construction', fromlist=['construction_plan']).construction_plan(recipe),
-                'decision': 'BLOCKED' if packet['blockers'] else 'CONTINUE' if target or packet['status'] != 'VERIFIED' else 'AWAITING_REVIEW',
+                'decision': decision,
                 'next': deepcopy(byid[target]) if target else None, 'satisfaction': packet}
     report = coverage(recipe, state)
     obligations = {item['id']: item for item in recipe['anchors']}

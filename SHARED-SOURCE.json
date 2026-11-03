@@ -74,7 +74,7 @@
     "src/mantleos/kpp/artifacts.py": "bf5e372f519f2435cf68fbae4968f4e1feea4c6be54a693d7b714d18861211c6",
     "src/mantleos/kpp/assets/progressive-v1.js": "024a814137bc31eda0ed51345dedc0e40550b981aef00e4fad4b7fd5ffe04f5f",
     "src/mantleos/kpp/assets/progressive.js": "4612742a893271b23c72ce5ee346a207793994a5991b4e63d35e7a55151ebc0c",
-    "src/mantleos/kpp/build.py": "56a1f1cc46b52dd353a9915eaf4fe25890e350ef10490357e00b2e37411a7695",
+    "src/mantleos/kpp/build.py": "335749bba19223169f8a9f5360800b0cbf6672a96e70af2d5d308f7f8f61a8f8",
     "src/mantleos/kpp/cells.py": "3832310c5860effa080d7f476ab583bbfa0487c2ebd677ce1f484a87af1d23dc",
     "src/mantleos/kpp/cli.py": "ebf19d3fa9f511a31c2e3e621357d8f557f624627544437ffb89fd24357fbc9c",
     "src/mantleos/kpp/conformance.py": "fffcf832e79a89c3a1b26fd1eefaae5442cc0bf5ecdbc3641d0573248f715a38",
@@ -311,7 +311,7 @@
     "src/mantleos/kpp/resources/tools/validate_release.py": "59fcb221c4fb36cda07841f558ec7077dac99a09617b79330e56e7fea3b180f4",
     "src/mantleos/kpp/resources/tools/verify_release.py": "24050ee8b643ccc131cefdf0b504e1ca4fdd74c876977d13ff83c1f8d1d3621b",
     "src/mantleos/kpp/resources/tools/verify_shared.py": "4f438c9362c386130efde49f89d4771328320ff1a420cf888a031ee0fd6c3cf3",
-    "src/mantleos/kpp/satisfaction.py": "e3f3fdeee8de66680a86a416e5875749e902f7df4ee7c2b75682492b40f2e129",
+    "src/mantleos/kpp/satisfaction.py": "07bd2c205176def557b6d1a1c68f249f372649805bb3ab17ddf18c4d0c2a1754",
     "src/mantleos/kpp/scanner.py": "93778e7531711c00dde9ac9c5ee5da5c9fa77b6392dd0d8c5e8f031e252684be",
     "src/mantleos/kpp/server.py": "40bdb674b73ebbb8f03670d5e6df57ec4a0d5312da5f19f66d4d6ce2955e4f46",
     "src/mantleos/kpp/specimens.py": "8700be709a6dac95ea17289e917b18367d266cc7818e9b852845bcd780716c48",
@@ -481,5 +481,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "892762af71304074d4142bb82a21743b4089522e55965d69342c4cff80a0d140"
+  "source_digest": "5c4c8aa1fd094e72ae756e1baf53b36a7e14b8a0df7224c427d9f7fecebce3e6"
 }

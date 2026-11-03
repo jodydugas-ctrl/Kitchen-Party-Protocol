@@ -60,6 +60,7 @@ class SatisfactionTests(unittest.TestCase):
         accept_tested(self.ws,final['report_path'],self.candidate,self.suite,'Synthetic Baker')
         self.assertTrue(all(evidence_current(r) for r in load(self.ws)[1]['accepted'].values()))
         finish(self.ws)
+        self.assertEqual(step(self.ws)["decision"],"COMPLETE")
 
     def test_batch_atomic_and_dependencies(self):
         p=s.plan(self.ws,32);self.assertEqual(p['targets'],['a','b'])
