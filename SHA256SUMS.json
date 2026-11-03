@@ -743,7 +743,7 @@
     "tests/test_reflex_install_check.py": "e38c2b590e9c7bbaf1c5072ba3e7f2d948fe0f577e91690d643b048820cb65d4",
     "tests/test_reflex_stage.py": "acc7546cc960892512181bfbb09796f54bb21b4b4b1f6f2045f8e5186bcccae9",
     "tests/test_release_validation.py": "ab0a20cef8f5de314b0d31739d5ac53f0cc999c07b9c4e546ee13889099c4ee9",
-    "tests/test_satisfaction.py": "dcb45010f7366557ee73f4694369826c80b249c41833f3d52b9da9078a04e8a5",
+    "tests/test_satisfaction.py": "89c666f047d2e0f54049a5900c771a47c11a405e204cd53f754e5db0da1dda0f",
     "tests/test_scan_integration.py": "f14b86d0c452132ebd2b671a8b08d64090d0f2ced10017a7175933c31c0995d2",
     "tests/test_unified_system.py": "94248a499728dd22c42654fae5ba81cda44faca494d8c7bebbf1c0e9d186b1b3",
     "tools/benchmark_anchor_design.py": "7c9a5b9723970ef471d039ec34b61403dfb2f80abf12f03a3ee69ccc778ae0ad",
