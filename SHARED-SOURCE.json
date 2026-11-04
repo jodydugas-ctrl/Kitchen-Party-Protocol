@@ -45,7 +45,7 @@
     "src/mantleos/birth.py": "7c83ce697bdfd2d18441f12f6ec2faef289f7c183d1852e8bbff05744be3d74b",
     "src/mantleos/body_entrypoint.py": "872d57af281ff3bb51683efb438676b62d90f4cd8642e3d94f13d7e98f4230e2",
     "src/mantleos/builder.py": "577b14adac3f27e060edbdf773e684fa0742a53c6e5eb3ad7f892919f1942e0e",
-    "src/mantleos/cartridge.py": "6071f9e641d1e8f3050a1ecf585566f8ac20c11e18213ebeb3c108579dd5b470",
+    "src/mantleos/cartridge.py": "75546c818ec1d58d4a8cb0f899232b0a936c89725d51a034f1640b3c1457d374",
     "src/mantleos/cells.py": "736e14c3e7e04d81a44135228e1f4b4b508ea4cfd43d7efb0366d0cda000a71c",
     "src/mantleos/checkpoint.py": "d9568402aeab178367acd3abc8db4e0cba8baa1366386d6f50ac07a523c50e7d",
     "src/mantleos/chromamem.py": "9a12cae4b17feb5f3e1f0c3ccab0dd4b0acf5a90f459035d8685f8c39d3add3f",
@@ -141,8 +141,8 @@
     "src/mantleos/kpp/resources/docs/RELEASE-VALIDATION.md": "6e2b6c396f48075f8d99fd98bdbcc2c65f02e0ce243c70fee24ec2f10891007a",
     "src/mantleos/kpp/resources/docs/SECURITY.md": "eb1a87cbc81a7b8882b2c5f8cc724089f3bb0caf2f5d7a03b2bb7aa518e79e4e",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "494e06079af5d5a44bea6af86b2714da6f998c953e787f30383479b916a838ba",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "f9234a39f2e54b8152184d3405ed1abdeada07807a82ddaef0f5bc2a901fc647",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "38bccf2b8f5eeae41d026f4533416ee58a7c2fa1a3af2b7571436b024c513ed4",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "95cc5f94e44d26f29b09e54bb5ab896948ed7b8b498d0c9f98a0ae934bcd792a",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -278,7 +278,7 @@
     "src/mantleos/kpp/resources/pantry/recipe-organ-contracts.json": "5524d0082a30db844e866feb996452aa3a1bd72e93cfb889cf91a17830c372f5",
     "src/mantleos/kpp/resources/pantry/reflex-book.json": "b478589fa6d4f933dc7e84b0d19728da00f6ad36940b0019eccc3d3644e383aa",
     "src/mantleos/kpp/resources/pantry/text-editor.json": "dda988e8cf4f6d94cc90e64cc123adeb0a6241748034447c657bb35d53420b45",
-    "src/mantleos/kpp/resources/pantry/vcw-cartridge-memory.json": "8047305d2ced31d1d84cfd3cd6a149022471db49752627b003f6180396de8601",
+    "src/mantleos/kpp/resources/pantry/vcw-cartridge-memory.json": "b9bde74e986a35fe986bce3cb9e91f3aa9936f5fa04a30eaa1ffdfd1608e27c4",
     "src/mantleos/kpp/resources/pantry/verified-reply-release.json": "7e09de3cceae505ffccbe4debaa22a98e75a30b7a2c715f6a1648a8e69a6b227",
     "src/mantleos/kpp/resources/personas/raven.md": "6ab766b066a88c8c0cbd23bf1e6db655a273c6f2988b4e2c0cb4b3bfd893fc33",
     "src/mantleos/kpp/resources/previews/calculator/base.js": "c9dba278d8e13afcd15d9f17d84e880ea6239f85834873bf4718898931591fc0",
@@ -336,6 +336,7 @@
     "src/mantleos/kpp/resources/specimens/mantleos/memory-ledger.anchor": "ed9f040a3d8c74f781adf02638445c85ccbbee4cbccf99909287208f3c049924",
     "src/mantleos/kpp/resources/tools/benchmark_anchor_design.py": "7c9a5b9723970ef471d039ec34b61403dfb2f80abf12f03a3ee69ccc778ae0ad",
     "src/mantleos/kpp/resources/tools/benchmark_journal.py": "b0d5035b824be572dd2551bea826de867d63d3b6dd6540912c1f5008c073c1de",
+    "src/mantleos/kpp/resources/tools/benchmark_studio_startup.py": "e45a1ecc5b29edc770a1a82535cf982505b8c3c211a54f32d2c7a9d41e7a2008",
     "src/mantleos/kpp/resources/tools/check_browser_preview.py": "e428f579bf912b1bfc9ccd6282a730e6a1477c830386d0e8dab0e2764d6c2a25",
     "src/mantleos/kpp/resources/tools/check_gui_observations.py": "9a07f75d2d4b79fe378156e3df1b6392a431d9b4c85748d0c1ee08c7218af97f",
     "src/mantleos/kpp/resources/tools/check_organ_save.py": "f64d1ee0ffdb379a4a2e798bd03ddb4de2a96ec85473227e911b310156b7b444",
@@ -537,5 +538,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "c11bda0e249eb707c2e87dfeaf25456c19e16507792cbf4dc502b7f55dd8aeb5"
+  "source_digest": "f9af3626e7864cbaa4d91072d93d1d8c27506e0afcb5432448f7258e2142c289"
 }

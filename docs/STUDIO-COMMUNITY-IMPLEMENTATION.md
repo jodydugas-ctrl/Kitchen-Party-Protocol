@@ -143,6 +143,24 @@ false corruption with separate queries and passes with the snapshot boundary.
 Later foreign commits still invalidate the next refresh. This changes storage
 consistency without changing Anchor or canonical-record semantics.
 
+Cold Journal opening still verifies its retained Body snapshot. Profiling nine
+resident sessions found repeated manifest file opens dominating startup. Manifest
+verification now streams all bytes through one MiB of scratch space per reader,
+uses at most four scoped readers for larger inventories, and bounds queued work.
+Small inventories stay sequential. Inventory, path, digest and byte-length checks
+remain mandatory; timestamps do not establish integrity. Errors close and join
+readers before temporary snapshot cleanup. These readers perform verification I/O
+and do not create Engram limbs, model calls or persistent workers.
+
+For a repeatable startup-only comparison, stop a synthetic Studio instance in
+stasis, then run `python tools/benchmark_studio_startup.py --nest NEST --output NEW_DIRECTORY`.
+The harness acquires cooperating worker leases and alternates fresh processes
+using a sequential manifest-loop reference and the current verifier. It records
+three cold samples per mode and twenty reused-session checks per process. Outputs
+exclude PRIMER contents and conversations. Startup measurements do not qualify
+ordinary-turn or provider latency; the separate Journal benchmark retains those
+synthetic history/attachment cases.
+
 An isolated Windows/Node-RED qualification on 3 November 2026 used the owner's
 selected OpenRouter primary with synthetic founding material: four committed
 turns covered a remembered marker, recall, correction, and checked `body.status`.

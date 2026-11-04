@@ -7,9 +7,13 @@ import shutil
 import tempfile
 import unittest
 from mantleos.studio_mind_budget import MindBudget
-from tests.test_studio_mind_budget import bindings
 from mantleos import studio, specimens, journal, studio_auto_mind as auto
 from mantleos.limbs import LimbSet
+
+
+def bindings(value='a'):
+    return {name:value*64 for name in ('frame_sha256','source_sha256',
+            'config_sha256','route_sha256','policy_sha256')}
 
 
 class AutoMindTests(unittest.TestCase):

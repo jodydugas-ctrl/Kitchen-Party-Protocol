@@ -129,6 +129,38 @@ execution on Node-RED also passed against the saved UI document's parameters.
 These remain staged experiments: full workflow execution in that UI is unavailable
 and returns 501, and resident AppAI integration has not been qualified.
 
+## Cold-start manifest investigation
+
+A profile of nine synthetic resident Journals attributed 18.7 of 25.0 seconds
+to manifest verification, with thousands of file opens. The bounded streaming
+implementation retains every inventory/hash/length check, reads the complete
+file contents, and waits for readers to finish on failure. Focused tests cover
+bounded simultaneous handles, late-byte corruption, preserved timestamps,
+wrong lengths and missing/extra files. Carrier tests passed after refreshing the
+reviewed cartridge source pin in the Pantry. An initial run correctly rejected
+the then-stale source pin. The full runtime regression passed **523 tests,
+five skips, 783.987 seconds**. The subsequent complete release run also
+passed: **523 tests, five skips, 800.941 seconds**, including the portable
+test fixture and reusable startup harness.
+
+Six alternating fresh-process startup samples used the same nine synthetic
+Journals: three with the digest-pinned original unpack implementation explicitly
+injected as a benchmark fixture, and three with the current verifier. Cold medians
+were **23.152 s and 13.015 s**, a **43.8% observed reduction in this startup case**.
+Each process also performed twenty checks with its sessions already loaded.
+No model calls, encounter preparations or canonical memory changes occurred.
+These measurements concern process startup, not OS cache-cold performance,
+ordinary warm turns, provider latency, large-history matrices or cold attachments.
+They do not establish the separate 50% warm-turn target or a fixed response time.
+
+The reusable `tools/benchmark_studio_startup.py` was also executed end to end.
+Its sequential manifest-loop reference and current verifier produced medians of
+23.579 s and 13.164 s (44.2% observed startup reduction), with the same three
+cold samples per mode and twenty reused-session checks per fresh process.
+It acquires cooperating controller/limb leases and checks that canonical heads
+and source remain unchanged. No model requests occurred. This repetition retains
+the same startup-only limitations; it is not full-product acceptance.
+
 ## Remaining qualification and delivery
 
 Full automation GUI/command depth, expression/runtime integration, executions,
