@@ -845,7 +845,7 @@
     "tests/test_satisfaction.py": "e7f408412af9e352729d5fecdab963a7783b3c9d12e7a88767bdb6beba3f6432",
     "tests/test_scan_integration.py": "f14b86d0c452132ebd2b671a8b08d64090d0f2ced10017a7175933c31c0995d2",
     "tests/test_studio.py": "3da2eb644c8ebcb7d792df07ceba67d69426567d50f38c47901d3fb8754bd859",
-    "tests/test_studio_auto_mind.py": "638b6472086b55b5e59744c7fd8f62c3953bbad2b5f3b45635841f8b9e1fe8ed",
+    "tests/test_studio_auto_mind.py": "fb7d0c88117eb057af594b4fc25101e3538873ce63bf444df03cefbb22a36703",
     "tests/test_studio_chase_inventory.py": "b3c3b91fb1ae24c1b1763440b26eb3ebbaffd2d8faf3cf9007cb482dff95cdd4",
     "tests/test_studio_conditions.py": "fae4768743bf63c827c82180ff1398441990e25d184852f985845184dd8ea473",
     "tests/test_studio_demo.py": "4b12a42741048c45df78ce5fd0db99ccf796dbaf89b5e3697ed5451957791938",
