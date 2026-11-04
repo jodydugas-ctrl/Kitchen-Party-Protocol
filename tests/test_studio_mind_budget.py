@@ -60,6 +60,23 @@ class MindBudgetTests(unittest.TestCase):
         self.assertEqual(status['accounts']['mind']['remaining_micro_usd'],30)
         self.assertEqual(self.store.status({'mind':20,'limbs':50})['accounts']['mind']['remaining_micro_usd'],0)
 
+    def test_account_identity_and_explicit_schema_upgrade_preserve_holds(self):
+        self.reserve()
+        identity=self.store.identity()
+        self.assertEqual(MindBudget(self.path).identity(),identity)
+        # Reconstruct the actual previous schema, retaining its attempt table.
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute('DROP TABLE accounting_identity')
+            db.execute('PRAGMA user_version=1')
+            db.commit()
+        with self.assertRaisesRegex(ValueError,'Unsupported'):
+            MindBudget(self.path)
+        upgraded=MindBudget(self.path,create=True)
+        self.assertNotEqual(upgraded.identity(),identity)
+        self.assertEqual(upgraded.status({'mind':100,'limbs':50})['accounts']['mind']['encumbered_micro_usd'],60)
+        self.assertFalse(upgraded.reserve(purpose='mind',request_id='one',binding=bindings(),
+            maximum_micro_usd=60,cap_micro_usd=100)['new'])
+
     def test_competing_limbs_share_one_atomic_cap(self):
         def reserve(i):
             try:return self.reserve(str(i),purpose='limbs',maximum_micro_usd=40)['new']

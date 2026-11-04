@@ -141,8 +141,8 @@
     "src/mantleos/kpp/resources/docs/RELEASE-VALIDATION.md": "6e2b6c396f48075f8d99fd98bdbcc2c65f02e0ce243c70fee24ec2f10891007a",
     "src/mantleos/kpp/resources/docs/SECURITY.md": "eb1a87cbc81a7b8882b2c5f8cc724089f3bb0caf2f5d7a03b2bb7aa518e79e4e",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "18a462a756b5a27af49a59e6558bfcf67e8e7f821e21cee0736d04590da37683",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "5bbe76fa13f002fcf3e8ed3560e9897223c160896b48d1b5bab72bd7a4121d6c",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "f716cefae3b813be218aa6688d0e6f6d14961b3738b5100dd6f30f7cfb00183a",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "11a43aa70bdaad216c96ca2392e46f079d6059627bc3faa67428887bafff7c1d",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -518,11 +518,11 @@
     "src/mantleos/skin_cli.py": "82290542d4a22108485659226d2c2f3bd627750fe32139d9368b72d5ac0a5359",
     "src/mantleos/specimens.py": "d3d75a6db6b2cdf2ecff12977234e185034078e736301c42906e66cd45ba0091",
     "src/mantleos/storage.py": "57ff2b4f7e3c7e7d3401f6b35cc07e1d8a224f8cb6c1fd64dbf3186f9d2703dd",
-    "src/mantleos/studio.py": "3a40169fa5568f3ed8bb3a13c05cfea30df4011001441f87705b8100eb449979",
-    "src/mantleos/studio_auto_mind.py": "11ac7404816c4a3224779bc54e374ff4b304571a694b02e942b6019ff108dbb4",
+    "src/mantleos/studio.py": "b369b82a37f34fb6a177741714b6aa987d8a5510771e045d47853103681a8e47",
+    "src/mantleos/studio_auto_mind.py": "6d5ee36827e8790b731710da6249dbd9e37afeec7b5a08c238080fd72d24ecd0",
     "src/mantleos/studio_demo.py": "0862d97246310b5c0d9459fe316e74e432550cbf722047da9eff677dd7a36216",
     "src/mantleos/studio_handlers.py": "c1abf0bea4808d3c843424c0d5135b84858ddefd6c4b0d34aae47da825e14cbb",
-    "src/mantleos/studio_mind_budget.py": "ec3329908388de9872ad4b629973f78781ee4d4c7db6587ac2407c2c93a7c438",
+    "src/mantleos/studio_mind_budget.py": "deffd6dbcc836bd2439340fd042609eae762bcbac8221b0b20ebbf8e13a45559",
     "src/mantleos/studio_mind_config.py": "204e677ef91fe010f8301f6c1c522495407cf248be90250edd201aaedf4a89bd",
     "src/mantleos/studio_mind_provider.py": "3ec4a1eeddb2575932c6fc7580e5250abba782e640491971ac9d3aa8225cc48a",
     "src/mantleos/studio_project.py": "308704eaef96f1fd4bb48582097ad0e80e5feae1cd1c579151b62d4c15cc0129",
@@ -537,5 +537,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "8a6026bf417c1a8929d8a92d53aac54827b1f1b88e0f455722169cadb2debe66"
+  "source_digest": "d15118efe60de6b0f19447dfda730ef355d446f716d05a1dea00e9d486b34ad1"
 }

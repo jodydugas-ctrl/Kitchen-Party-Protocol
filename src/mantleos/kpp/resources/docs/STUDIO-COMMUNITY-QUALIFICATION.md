@@ -39,8 +39,9 @@ No limb inference or live free-backup fallback occurred.
 Reported aggregate inference cost was $0.004408801. Conservative persistent MIND
 reservations retained $0.071639; reload/source review did not replenish that
 account. The configured MIND/combined-limb caps were $1/$0.50, without an automatic
-reset. Accounting is local to a configured NEST, not an independent global witness
-against additional NEST copies, administrative tampering or full-system rollback.
+reset. Those live observations used the earlier per-NEST accounting implementation.
+The shared-accounting correction below preserves those historical observations;
+it does not retroactively qualify their limits across independent copies.
 
 Individual ordinary end-to-end observations were 1.43–2.36 seconds; the checked
 action took 11.65 seconds. Fresh-process corrected recall took 1.59 seconds.
@@ -66,11 +67,35 @@ SQLite snapshot and preserves refresh invalidation for subsequent foreign commit
 The new test failed before the fix and passes after it. This claim applies to
 verification, not an assertion that every public operation is one read transaction.
 
+## Owner-accounting correction, 4 November 2026
+
+The default accounting location now belongs to the owner configuration. Multiple
+NESTs can share the same MIND and combined-limb accounts, including an explicitly
+selected historical per-NEST database. Reviewed upgrades preserve reservations
+and results; route configuration pins the database identity and refuses missing
+or substituted accounting. Different owner files must select a shared account
+explicitly when they share a cap. Administrative or full-system rollback remains
+unqualified; these local guards do not control other clients using the same key.
+
+Focused accounting/automatic-bridge verification passed 17 tests. After the final
+reconfiguration-continuity assertion, the complete KPP suite passed **516 tests,
+five skips, 943.658 seconds**. No inference requests were made in this continuation.
+These are synthetic local checks, not a new live-provider or persona qualification.
+
+The isolated pinned n8n 2.46.4 reference also passed native SQLite and expression
+startup checks and actual browser manual/IF execution. Private Node-RED experiments
+dispatched upstream NoOp and IF operations, including per-item VM expressions,
+strict late errors without partial output, continue-on-fail and empty inputs.
+Their source checkers remain fixture/partial pins. They do not establish production
+dependency-closure integrity, effect authority, execution persistence or all-node
+compatibility. An official-editor compatibility experiment remains private staging,
+separate from the resident AppAI and from the maintained product implementation.
+
 ## Remaining qualification and delivery
 
 Full automation GUI/command depth, expression/runtime integration, executions,
 node/credential catalogs, credentials and settings remain required work. The n8n
-reference instance is not yet runtime-qualified. Live free fallback, limb keys,
+reference has only the bounded startup and manual/IF observations above. Live free fallback, limb keys,
 the private resident persona, independent-principal isolation, full performance
 matrices and other provider/platform behaviors remain untested here.
 

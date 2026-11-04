@@ -13,7 +13,7 @@ import sqlite3
 import time
 
 APP_ID = 0x414D4247
-SCHEMA = 1
+SCHEMA = 2
 MAX_RESULT_BYTES = 262144
 
 
@@ -43,7 +43,7 @@ class AttemptConflict(ValueError):
 
 
 class MindBudget:
-    """One stable operational database per NEST, shared by all limb workers.
+    """One owner-selected operational database, shared by NESTs and limb workers.
 
     Caller methods are trusted controller interfaces, never public JSON commands.
     A claim token only prevents cooperating workers from mixing attempts; it is
@@ -75,7 +75,27 @@ class MindBudget:
                       CHECK(reserved>=0), CHECK(charged IS NULL OR charged>=0));
                     COMMIT;
                 ''')
+            # Only explicit initialization/configuration may upgrade the old
+            # accounting schema. Attempts and their conservative holds survive.
+            if create and db.execute('PRAGMA user_version').fetchone()[0] == 1:
+                if db.execute('PRAGMA application_id').fetchone()[0] != APP_ID:
+                    raise ValueError('Unsupported MIND accounting database')
+                db.execute('BEGIN IMMEDIATE')
+                db.execute('CREATE TABLE accounting_identity (id TEXT PRIMARY KEY)')
+                db.execute('INSERT INTO accounting_identity VALUES(?)', (secrets.token_hex(32),))
+                db.execute('PRAGMA user_version=2')
+                db.commit()
             self._schema(db)
+
+    def identity(self):
+        """Opaque local account binding; neither a key nor authentication."""
+        with self._db() as db:
+            self._schema(db)
+            rows = db.execute('SELECT id FROM accounting_identity').fetchall()
+            if (len(rows) != 1 or not isinstance(rows[0][0], str) or
+                    len(rows[0][0]) != 64 or any(c not in '0123456789abcdef' for c in rows[0][0])):
+                raise ValueError('Invalid MIND accounting identity')
+            return rows[0][0]
 
     def _paths(self):
         for candidate in (self.path, *self.path.parents):

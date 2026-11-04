@@ -419,6 +419,7 @@ def main(argv=None):
         if command=='mind-configure':
             p.add_argument('--owner-file',type=Path,required=True)
             p.add_argument('--catalog',type=Path,required=True)
+            p.add_argument('--accounting-file',type=Path)
             p.add_argument('--reviewed',action='store_true')
         if command=='run':
             p.add_argument('--node',type=Path,required=True);p.add_argument('--modules',type=Path,required=True);p.add_argument('--port',type=int,default=18880)
@@ -431,7 +432,8 @@ def main(argv=None):
         if args.command=='mind-serve':return studio_auto_mind.serve(args.nest)
         if args.command=='mind-configure':
             result=studio_auto_mind.configure(args.nest,owner_file=args.owner_file,
-                catalog=c.loads(args.catalog.read_text('utf8')),reviewed=args.reviewed)
+                catalog=c.loads(args.catalog.read_text('utf8')),accounting_file=args.accounting_file,
+                reviewed=args.reviewed)
         else:result=studio_auto_mind.public_status(args.nest)
         print(json.dumps(result,ensure_ascii=False,indent=2))
         return 0

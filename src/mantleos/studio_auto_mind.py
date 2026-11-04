@@ -7,6 +7,7 @@ PRIMER, change a route, authorize effects, or grant Baker acceptance.
 import hashlib
 import json
 from pathlib import Path
+import sqlite3
 import sys
 import uuid
 
@@ -16,10 +17,10 @@ from .studio_mind_config import load_owner_file
 from .studio_mind_budget import MindBudget
 from .studio_mind_provider import StudioProvider
 
-SCHEMA='studio.openrouter-route/1'
+SCHEMA='studio.openrouter-route/2'
 
 
-def configure(nest, *, owner_file, catalog, reviewed=False):
+def configure(nest, *, owner_file, catalog, accounting_file=None, reviewed=False):
     from . import studio
     if reviewed is not True:
         raise PermissionError('Explicit owner route review required')
@@ -35,7 +36,28 @@ def configure(nest, *, owner_file, catalog, reviewed=False):
             raise PermissionError('Configure automatic cognition while Studio is in stasis')
         if db.execute("SELECT 1 FROM mind WHERE phase='AWAITING_MIND'").fetchone():
             raise PermissionError('Existing supervised preparation requires explicit recovery')
-        accounting=MindBudget(nest/'mind-accounting.sqlite',create=True)
+        # The default belongs to the owner configuration, not a newly born
+        # NEST. Explicit paths allow several owner files to share one account.
+        # Never silently discard historical per-NEST spending on upgrade.
+        previous_path=nest/'mind-route.json'
+        previous=c.loads(previous_path.read_text('utf8')) if previous_path.exists() else None
+        selected=accounting_file
+        if selected is None and previous and previous.get('schema')==SCHEMA:
+            selected=previous.get('accounting_file')
+        accounting_path=Path(selected) if selected is not None else Path(
+            str(owner.source)+'.studio-budget.sqlite')
+        accounting_path=accounting_path.absolute()
+        legacy_path=(nest/'mind-accounting.sqlite').absolute()
+        if legacy_path.exists() and accounting_path!=legacy_path:
+            raise PermissionError('Retain existing accounting with --accounting-file; spending cannot reset')
+        if previous and previous.get('schema')==SCHEMA:
+            if str(accounting_path)!=previous.get('accounting_file'):
+                raise PermissionError('Existing accounting cannot be replaced through route configuration')
+            accounting=MindBudget(accounting_path)
+            if accounting.identity()!=previous.get('accounting_identity'):
+                raise PermissionError('MIND accounting identity changed; recovery review required')
+        else:
+            accounting=MindBudget(accounting_path,create=True)
         pin=studio.controller_pin()
         policy=c.digest({'ordinary':'reply-proposal-only','actions':'existing-body-broker',
                          'release':'exact-committed-body-result','budget':'persistent-reservations'})
@@ -44,7 +66,8 @@ def configure(nest, *, owner_file, catalog, reviewed=False):
             free_models=catalog['free_models'],source_check=lambda:None)
         document={'schema':SCHEMA,'owner_file':str(owner.source),
                   'owner_sha256':owner.source_sha256,'controller_pin':pin,
-                  'policy_sha256':policy,'catalog':catalog,'revision':uuid.uuid4().hex}
+                  'policy_sha256':policy,'catalog':catalog,'revision':uuid.uuid4().hex,
+                  'accounting_file':str(accounting_path),'accounting_identity':accounting.identity()}
         atomic_bytes(nest/'mind-route.json',c.canonical(document).encode('utf8'),replace=True)
     return public_status(nest)
 
@@ -71,17 +94,30 @@ def _load(nest):
         raise PermissionError('Private owner configuration unavailable; review required') from None
     if owner.source_sha256!=route['owner_sha256']:
         raise PermissionError('Owner provider configuration changed; review required')
+    _accounting(route)
     return route,owner
+
+
+def _accounting(route):
+    """Opening a route never creates or substitutes its spending database."""
+    try:
+        accounting=MindBudget(route['accounting_file'])
+        if accounting.identity()!=route['accounting_identity']:
+            raise ValueError('Account identity changed')
+    except (OSError,ValueError,KeyError,TypeError,sqlite3.Error):
+        raise PermissionError('MIND accounting unavailable or changed; recovery review required') from None
+    return accounting
 
 
 def public_status(nest):
     if not (Path(nest)/'mind-route.json').exists():
         return {'route':'SUPERVISED_HOST_ONLY'}
     route,owner=_load(nest)
-    status=MindBudget(Path(nest)/'mind-accounting.sqlite').status(
+    status=_accounting(route).status(
         {'mind':owner.mind_budget_micro_usd,'limbs':owner.limbs_budget_micro_usd})
     return {'route':'OPENROUTER_OWNER_CONFIGURED','models':list(owner.models),
-            'budget':status,'provider_calls_on_status':0,'isolation':'SAME_OWNER_PROCESS_BOUNDARY_UNQUALIFIED'}
+            'budget':status,'accounting_scope':'OWNER_SELECTED_SHARED_DATABASE',
+            'provider_calls_on_status':0,'isolation':'SAME_OWNER_PROCESS_BOUNDARY_UNQUALIFIED'}
 
 
 def generate(nest, request_id, *, transport=None):
@@ -115,7 +151,7 @@ def generate(nest, request_id, *, transport=None):
     # attempt. Replaying the same pending frame never makes another API call.
     attempt_id=c.digest({'request_id':request_id,'frame':wrapper['frame']})
     catalog=route['catalog']
-    provider=StudioProvider(config=owner,accounting=MindBudget(nest/'mind-accounting.sqlite'),
+    provider=StudioProvider(config=owner,accounting=_accounting(route),
         source_sha256=route['controller_pin'],policy_sha256=route['policy_sha256'],
         allowed=catalog['allowed'],provider_slugs=catalog['provider_slugs'],
         free_models=catalog['free_models'],source_check=check_source,transport=transport)
@@ -131,7 +167,7 @@ def validate_result(nest, request_id, wrapper, proposal):
     if wrapper.get('mind_route_revision')!=route['revision']:
         raise PermissionError('Body cognition route changed')
     catalog=route['catalog']
-    accounting=MindBudget(Path(nest)/'mind-accounting.sqlite')
+    accounting=_accounting(route)
     provider=StudioProvider(config=owner,accounting=accounting,
         source_sha256=route['controller_pin'],policy_sha256=route['policy_sha256'],
         allowed=catalog['allowed'],provider_slugs=catalog['provider_slugs'],

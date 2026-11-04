@@ -5,6 +5,8 @@ import secrets
 import shutil
 import tempfile
 import unittest
+from mantleos.studio_mind_budget import MindBudget
+from tests.test_studio_mind_budget import bindings
 from mantleos import studio, specimens, journal, studio_auto_mind as auto
 from mantleos.limbs import LimbSet
 
@@ -63,6 +65,59 @@ class AutoMindTests(unittest.TestCase):
         self.assertEqual(status['budget']['accounts']['limbs']['cap_micro_usd'],500000)
         studio.phase(self.nest,True)
         with self.assertRaises(PermissionError):self.configure()
+
+    def test_new_nests_share_owner_budget_and_do_not_replenish_it(self):
+        self.configure()
+        route=json.loads((self.nest/'mind-route.json').read_text('utf8'))
+        accounting=MindBudget(route['accounting_file'])
+        accounting.reserve(purpose='mind',request_id='earlier-nest',binding=bindings(),
+                           maximum_micro_usd=600000,cap_micro_usd=1000000)
+        other=self.nest.parent/'another-nest'
+        studio.initialize_heart(other,b'Synthetic second Body')
+        status=auto.configure(other,owner_file=self.owner,catalog=self.catalog,reviewed=True)
+        another=json.loads((other/'mind-route.json').read_text('utf8'))
+        self.assertEqual(route['accounting_file'],another['accounting_file'])
+        self.assertEqual(route['accounting_identity'],another['accounting_identity'])
+        self.assertEqual(status['budget']['accounts']['mind']['remaining_micro_usd'],400000)
+        with self.assertRaises(PermissionError):
+            MindBudget(another['accounting_file']).reserve(purpose='mind',request_id='new-nest',
+                binding=bindings('b'),maximum_micro_usd=600000,cap_micro_usd=1000000)
+        self.assertEqual(self.calls,[])
+
+    def test_missing_or_substituted_account_fails_closed_even_on_reconfigure(self):
+        self.configure()
+        route=json.loads((self.nest/'mind-route.json').read_text('utf8'))
+        account=Path(route['accounting_file'])
+        backup=account.with_suffix('.preserved')
+        account.rename(backup)
+        with self.assertRaises(PermissionError):auto.public_status(self.nest)
+        with self.assertRaises(FileNotFoundError):self.configure()
+        self.assertFalse(account.exists())
+        replacement=MindBudget(account,create=True)
+        self.assertNotEqual(replacement.identity(),route['accounting_identity'])
+        with self.assertRaises(PermissionError):auto.public_status(self.nest)
+        with self.assertRaises(PermissionError):self.configure()
+        with self.assertRaises(PermissionError):
+            auto.configure(self.nest,owner_file=self.owner,catalog=self.catalog,
+                           accounting_file=self.nest/'another.sqlite',reviewed=True)
+        self.assertEqual(self.calls,[])
+
+    def test_legacy_exposure_must_be_retained_and_can_be_shared_explicitly(self):
+        path=self.nest/'mind-accounting.sqlite'
+        legacy=MindBudget(path,create=True)
+        legacy.reserve(purpose='mind',request_id='historical',binding=bindings(),
+                       maximum_micro_usd=900000,cap_micro_usd=1000000)
+        with self.assertRaisesRegex(PermissionError,'Retain existing'):
+            self.configure()
+        status=auto.configure(self.nest,owner_file=self.owner,catalog=self.catalog,
+                              accounting_file=path,reviewed=True)
+        self.assertEqual(status['budget']['accounts']['mind']['remaining_micro_usd'],100000)
+        self.assertEqual(self.configure()['budget'],status['budget'])
+        other=self.nest.parent/'new-nest'
+        studio.initialize_heart(other,b'Synthetic third Body')
+        shared=auto.configure(other,owner_file=self.owner,catalog=self.catalog,
+                             accounting_file=path,reviewed=True)
+        self.assertEqual(shared['budget'],status['budget'])
 
     def test_actual_journal_full_primer_commit_exact_replay_without_regeneration(self):
         wrapper=self.start()

@@ -80,6 +80,25 @@ cost telemetry cannot replenish a reservation. This conservative policy may stop
 below the nominal cap. It cannot prevent a provider billing error or an owner's
 full-system rollback.
 
+Accounting is shared by owner configuration rather than initialized anew for
+each NEST. The default database is `OWNER_FILE.studio-budget.sqlite`, beside the
+private owner file; `--accounting-file FILE` selects an existing shared location.
+All NESTs using that location share one MIND cap and one combined-limb cap.
+The route pins its opaque database identity. Missing, substituted or incompatible
+accounting fails closed; configuration and status make no inference calls.
+Reconfiguration retains the existing account and never switches it implicitly.
+Historical per-NEST accounting must be selected explicitly with
+`--accounting-file NEST/mind-accounting.sqlite`; other NESTs can select that same
+file. The reviewed schema upgrade retains every attempt and conservative hold.
+There is no automatic account merge, reset, refund or period rollover.
+
+This remains cooperating local accounting, not a provider-wide billing control.
+Different owner files must explicitly select the same account when sharing a
+cap. Copying or restoring the complete account/controller state, administrator
+tampering and independent applications using the key remain outside this guard.
+The accounting file can retain private provider proposals; keep it, its sidecars,
+owner files and route files outside Git and portable project exports.
+
 `studio mind-configure --nest NEST --owner-file FILE --catalog FILE --reviewed`
 requires stasis and a reviewed public model/provider catalog. The catalog contains
 `allowed` physical-model/provider-label mappings, `provider_slugs`, `free_models`,
