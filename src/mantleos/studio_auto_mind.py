@@ -6,6 +6,7 @@ PRIMER, change a route, authorize effects, or grant Baker acceptance.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import sqlite3
 import sys
@@ -18,6 +19,13 @@ from .studio_mind_budget import MindBudget
 from .studio_mind_provider import StudioProvider
 
 SCHEMA='studio.openrouter-route/2'
+
+
+def _account_location(path):
+    # Compare lexical owner path spellings consistently. Keep the original
+    # path for MindBudget's link/sidecar checks before opening storage; resolving
+    # symlinks here would hide a forbidden alias. Hard-link aliases stay distinct.
+    return os.path.normcase(os.path.abspath(path))
 
 
 def configure(nest, *, owner_file, catalog, accounting_file=None, reviewed=False):
@@ -48,10 +56,10 @@ def configure(nest, *, owner_file, catalog, accounting_file=None, reviewed=False
             str(owner.source)+'.studio-budget.sqlite')
         accounting_path=accounting_path.absolute()
         legacy_path=(nest/'mind-accounting.sqlite').absolute()
-        if legacy_path.exists() and accounting_path!=legacy_path:
+        if legacy_path.exists() and _account_location(accounting_path)!=_account_location(legacy_path):
             raise PermissionError('Retain existing accounting with --accounting-file; spending cannot reset')
         if previous and previous.get('schema')==SCHEMA:
-            if str(accounting_path)!=previous.get('accounting_file'):
+            if _account_location(accounting_path)!=_account_location(previous.get('accounting_file')):
                 raise PermissionError('Existing accounting cannot be replaced through route configuration')
             accounting=MindBudget(accounting_path)
             if accounting.identity()!=previous.get('accounting_identity'):

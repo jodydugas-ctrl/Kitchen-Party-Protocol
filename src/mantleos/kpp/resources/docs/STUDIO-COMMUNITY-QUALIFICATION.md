@@ -79,7 +79,7 @@ unqualified; these local guards do not control other clients using the same key.
 
 Focused accounting/automatic-bridge verification passed 17 tests. After the final
 reconfiguration-continuity assertion, the complete KPP suite passed **516 tests,
-five skips, 943.658 seconds**. No inference requests were made in this continuation.
+five skips, 943.658 seconds**. No inference requests were made during those tests.
 These are synthetic local checks, not a new live-provider or persona qualification.
 
 The isolated pinned n8n 2.46.4 reference also passed native SQLite and expression
@@ -100,6 +100,34 @@ Browser creation and reload preserved the URL identity in the private prototype.
 Deeper autosave exposed missing upstream checksum replies in that experimental
 adapter; its saved state and exported unsaved draft were retained. That adapter
 is not promoted as a working production editor by these storage checks.
+
+Equivalent relative account paths were subsequently found to be falsely rejected
+as account replacements. Location comparison now normalizes lexical spelling and
+Windows case while the original paths still pass the storage link checks.
+Focused accounting/bridge verification passed 18 tests; the complete KPP suite
+then passed **520 tests, five skips, 1018.825 seconds**. The stopped qualification
+instance retained its seven previous attempts and $0.071639 reservation through
+the reviewed schema and path changes.
+
+One subsequent live ordinary encounter on that synthetic instance used the
+configured primary model, committed the exact requested reply, and replayed it
+without another generation. Aggregate transport attempts became eight and the
+conservative MIND hold became $0.082846 against the unchanged $1 cap. Limb usage
+remained zero. Cold preparation took 24.619 seconds, generation 3.001 seconds,
+commit 49.5 ms, and exact replay 7.7 ms. This fresh-process encounter included
+first-open resident verification; it is not a warm-turn latency measurement.
+The cold delay requires investigation and is not presented as a speed improvement.
+The instance returned to stasis; no real resident founding material was changed.
+
+Further private official-editor experiments corrected literal and percent-encoded
+asset base paths, the health-response contract, separate WebSocket routing, and
+the asynchronous upstream workflow checksum. Actual numeric parameter edits,
+autosave, reload and a drawn graph edge survived through the maintained draft
+store and a fresh receiving process. Matched API checks rejected stale and
+cross-origin saves and admitted only one competing writer. Actual upstream IF
+execution on Node-RED also passed against the saved UI document's parameters.
+These remain staged experiments: full workflow execution in that UI is unavailable
+and returns 501, and resident AppAI integration has not been qualified.
 
 ## Remaining qualification and delivery
 

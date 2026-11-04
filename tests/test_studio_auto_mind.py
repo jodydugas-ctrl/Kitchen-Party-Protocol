@@ -1,5 +1,6 @@
 """Actual Journal encounters with a synthetic provider; not live LLM evidence."""
 import json
+import os
 from pathlib import Path
 import secrets
 import shutil
@@ -118,6 +119,19 @@ class AutoMindTests(unittest.TestCase):
         shared=auto.configure(other,owner_file=self.owner,catalog=self.catalog,
                              accounting_file=path,reviewed=True)
         self.assertEqual(shared['budget'],status['budget'])
+
+    def test_relative_account_path_spelling_retains_identity_and_exposure(self):
+        before=self.configure()
+        route=json.loads((self.nest/'mind-route.json').read_text('utf8'))
+        account=Path(route['accounting_file'])
+        nested=account.parent/'operator-path';nested.mkdir()
+        spelling=Path(os.path.relpath(nested/'..'/account.name,Path.cwd()))
+        status=auto.configure(self.nest,owner_file=self.owner,catalog=self.catalog,
+                              accounting_file=spelling,reviewed=True)
+        changed=json.loads((self.nest/'mind-route.json').read_text('utf8'))
+        self.assertEqual(changed['accounting_identity'],route['accounting_identity'])
+        self.assertEqual(status['budget'],before['budget'])
+        self.assertEqual(self.configure()['budget'],before['budget'])
 
     def test_actual_journal_full_primer_commit_exact_replay_without_regeneration(self):
         wrapper=self.start()

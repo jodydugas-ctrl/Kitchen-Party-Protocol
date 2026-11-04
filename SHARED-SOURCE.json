@@ -142,7 +142,7 @@
     "src/mantleos/kpp/resources/docs/SECURITY.md": "eb1a87cbc81a7b8882b2c5f8cc724089f3bb0caf2f5d7a03b2bb7aa518e79e4e",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "494e06079af5d5a44bea6af86b2714da6f998c953e787f30383479b916a838ba",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "87a59d648dac3b206c7392cc699a87f30f537731292719ad3cf4f6ebd822167d",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "f9234a39f2e54b8152184d3405ed1abdeada07807a82ddaef0f5bc2a901fc647",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -519,7 +519,7 @@
     "src/mantleos/specimens.py": "d3d75a6db6b2cdf2ecff12977234e185034078e736301c42906e66cd45ba0091",
     "src/mantleos/storage.py": "57ff2b4f7e3c7e7d3401f6b35cc07e1d8a224f8cb6c1fd64dbf3186f9d2703dd",
     "src/mantleos/studio.py": "b369b82a37f34fb6a177741714b6aa987d8a5510771e045d47853103681a8e47",
-    "src/mantleos/studio_auto_mind.py": "6d5ee36827e8790b731710da6249dbd9e37afeec7b5a08c238080fd72d24ecd0",
+    "src/mantleos/studio_auto_mind.py": "00e9a53b6c0751312d5c793420004c2cbfd2b963a5c01c053b903a2560a012af",
     "src/mantleos/studio_demo.py": "0862d97246310b5c0d9459fe316e74e432550cbf722047da9eff677dd7a36216",
     "src/mantleos/studio_handlers.py": "c1abf0bea4808d3c843424c0d5135b84858ddefd6c4b0d34aae47da825e14cbb",
     "src/mantleos/studio_mind_budget.py": "deffd6dbcc836bd2439340fd042609eae762bcbac8221b0b20ebbf8e13a45559",
@@ -537,5 +537,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "928e90c64d19ad287b1afd463a391d2fc6bf4f521b1f432c0b4ecd4dcc80903c"
+  "source_digest": "c11bda0e249eb707c2e87dfeaf25456c19e16507792cbf4dc502b7f55dd8aeb5"
 }
