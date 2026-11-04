@@ -37,6 +37,53 @@ class WorkflowTests(unittest.TestCase):
                 WorkflowStore(directory).get('missing')
             self.assertFalse(directory.exists())
 
+    def test_editor_allocated_id_survives_restart_and_replay(self):
+        with tempfile.TemporaryDirectory() as td:
+            store=WorkflowStore(td)
+            request={'action':'create','request_id':'draft-first-save',
+                     'id':'3FoW8HN8RzM9UgQR','value':{**workflow(),'id':'imported-id-is-data'}}
+            created=store.mutate(request,owner=True)
+            self.assertEqual(created['id'],request['id'])
+            self.assertEqual(WorkflowStore(td).get(request['id']),created)
+            self.assertEqual(WorkflowStore(td).mutate(request,owner=True),created)
+            with self.assertRaises(Conflict):
+                store.mutate({**request,'id':'different-id'},owner=True)
+            with self.assertRaises(Conflict):
+                store.mutate({**request,'request_id':'other-save'},owner=True)
+            # Legacy creation still allocates a fresh identity, even if imported
+            # document data has the same ID as a current workflow.
+            legacy=self.create(store,{**workflow(),'id':request['id']})
+            self.assertNotEqual(legacy['id'],request['id'])
+
+    def test_requested_id_never_resurrects_removed_workflow(self):
+        with tempfile.TemporaryDirectory() as td:
+            store=WorkflowStore(td)
+            request={'action':'create','request_id':'draft-save','id':'explicit-id','value':workflow()}
+            created=store.mutate(request,owner=True)
+            archived=self.mutate(store,'archive',created)
+            self.mutate(store,'delete',archived)
+            with self.assertRaises(KeyError):store.mutate(request,owner=True)
+            with self.assertRaises(Conflict):
+                store.mutate({**request,'request_id':'attempt-rebirth'},owner=True)
+            with self.assertRaises(KeyError):store.get(request['id'])
+            for bad in ('../escape','',None,True,'a'*129):
+                with self.subTest(bad=bad),self.assertRaises(ValueError):
+                    store.mutate({**request,'id':bad,'request_id':'invalid-id'},owner=True)
+
+    def test_competing_first_saves_cannot_replace_requested_identity(self):
+        with tempfile.TemporaryDirectory() as td:
+            self.create(WorkflowStore(td))  # Initialize before competing writers.
+            def save(name):
+                try:
+                    return WorkflowStore(td).mutate({'action':'create','request_id':'create-'+name,
+                        'id':'same-editor-draft','value':{**workflow(),'name':name}},owner=True)
+                except Conflict:
+                    return None
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results=list(pool.map(save,['Alice','Bob']))
+            self.assertEqual(sum(x is not None for x in results),1)
+            self.assertEqual(len(WorkflowStore(td).history('same-editor-draft')),1)
+
     def test_save_reload_replay_history_and_restoration_are_durable(self):
         with tempfile.TemporaryDirectory() as td:
             store = WorkflowStore(td)

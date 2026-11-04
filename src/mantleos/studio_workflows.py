@@ -220,7 +220,11 @@ class WorkflowStore:
                   'unarchive': {'id', 'revision'}, 'delete': {'id', 'revision'},
                   'restore': {'id', 'revision', 'versionId'}}
         c.require(action in fields, 'Unsupported workflow mutation; save is not deployment')
-        c.shape(request, {'action', 'request_id'} | fields[action])
+        expected = {'action', 'request_id'} | fields[action]
+        if action == 'create' and 'id' in request:
+            expected.add('id')
+            _id(request['id'])
+        c.shape(request, expected)
         binding = _digest(request, MAX_BYTES+65536)
         with self._db(write=True) as db:
             prior = db.execute('SELECT sha256,reply FROM requests WHERE id=?', (request['request_id'],)).fetchone()
@@ -236,7 +240,13 @@ class WorkflowStore:
                 c.require(type(request['value']) is dict, 'Workflow must be an object')
                 c.require(request['value'].get('active') is not True and not request['value'].get('activeVersionId'), 'Import cannot activate workflows')
                 payload = document(request['value'])
-                workflow_id, version, revision = 'w'+uuid.uuid4().hex, _token(), _token()
+                # Some editors allocate the URL identity before the first save.
+                # This is an explicit host request, not adoption of an imported
+                # document's identity. Existing and removed IDs are never reused.
+                workflow_id = request.get('id', 'w'+uuid.uuid4().hex)
+                if db.execute('SELECT 1 FROM workflows WHERE id=?', (workflow_id,)).fetchone():
+                    raise Conflict('Workflow identifier already exists')
+                version, revision = _token(), _token()
                 db.execute('INSERT INTO workflows(id,revision,version,created,updated) VALUES (?,?,?,?,?)', (workflow_id, revision, version, now, now))
                 db.execute('INSERT INTO versions VALUES (?,?,?,?,?,?)', (version, workflow_id, None, _encoded(payload), _digest(payload), now))
             else:

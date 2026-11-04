@@ -141,8 +141,8 @@
     "src/mantleos/kpp/resources/docs/RELEASE-VALIDATION.md": "6e2b6c396f48075f8d99fd98bdbcc2c65f02e0ce243c70fee24ec2f10891007a",
     "src/mantleos/kpp/resources/docs/SECURITY.md": "eb1a87cbc81a7b8882b2c5f8cc724089f3bb0caf2f5d7a03b2bb7aa518e79e4e",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "f716cefae3b813be218aa6688d0e6f6d14961b3738b5100dd6f30f7cfb00183a",
-    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "11a43aa70bdaad216c96ca2392e46f079d6059627bc3faa67428887bafff7c1d",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "494e06079af5d5a44bea6af86b2714da6f998c953e787f30383479b916a838ba",
+    "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "87a59d648dac3b206c7392cc699a87f30f537731292719ad3cf4f6ebd822167d",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -526,7 +526,7 @@
     "src/mantleos/studio_mind_config.py": "204e677ef91fe010f8301f6c1c522495407cf248be90250edd201aaedf4a89bd",
     "src/mantleos/studio_mind_provider.py": "3ec4a1eeddb2575932c6fc7580e5250abba782e640491971ac9d3aa8225cc48a",
     "src/mantleos/studio_project.py": "308704eaef96f1fd4bb48582097ad0e80e5feae1cd1c579151b62d4c15cc0129",
-    "src/mantleos/studio_workflows.py": "6d961e83b6fb94f85e335a9e7e5f53dc7b254a8f67b6e0be5d64c590ad1ab08c",
+    "src/mantleos/studio_workflows.py": "4830a730e86d3cca1cbad769da8649f1d5df6417b22b204e280cc2ac01cce78f",
     "src/mantleos/synchronization.py": "c893bc9e6c65664b71f013768e91c53542a1d633964231ab2e975de63b9e3403",
     "src/mantleos/systems.py": "1ed043c5bb733234de4958468f16d36e05f0e9174b431fff6322a086cf56d322",
     "src/mantleos/tissue.py": "e414a41bfd64287993c34a3a237877ec15f9d2f0024a1ad259fd04a956fbb6d3",
@@ -537,5 +537,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "d15118efe60de6b0f19447dfda730ef355d446f716d05a1dea00e9d486b34ad1"
+  "source_digest": "928e90c64d19ad287b1afd463a391d2fc6bf4f521b1f432c0b4ecd4dcc80903c"
 }

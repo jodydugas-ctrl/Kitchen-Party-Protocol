@@ -33,6 +33,13 @@ the saved version/head. Replays recheck host authority and return the original
 result without advancing a newer head. Initial setup survives a rejected first
 request; interrupted writes retain the prior committed version.
 
+Creation optionally accepts a separate host-supplied `id`, for editors that
+allocate a workflow URL before the first save. A current or removed ID cannot
+be reused. The ID participates in request replay binding and ordinary revision
+checks still apply. An `id` inside imported document data alone is not adopted;
+legacy creation continues to allocate a fresh identity. This option supplies no
+deployment authority and performs no node execution.
+
 Archive/unarchive advances the saved version. Permanent removal deletes the
 operational snapshots and discards their earlier replay payloads; replay cannot
 resurrect a removed workflow. This does not erase canonical Engram experience.

@@ -91,6 +91,16 @@ dependency-closure integrity, effect authority, execution persistence or all-nod
 compatibility. An official-editor compatibility experiment remains private staging,
 separate from the resident AppAI and from the maintained product implementation.
 
+The editor experiment exposed first-save URL identity loss. The maintained draft
+store now accepts an explicit host-supplied creation ID, rejects collisions with
+current or removed workflows, and binds it into replay. Imported document IDs
+alone retain the previous fresh-identity behavior. All 14 focused workflow tests
+passed, followed by **519 complete KPP tests, five skips, 916.600 seconds**.
+Browser creation and reload preserved the URL identity in the private prototype.
+Deeper autosave exposed missing upstream checksum replies in that experimental
+adapter; its saved state and exported unsaved draft were retained. That adapter
+is not promoted as a working production editor by these storage checks.
+
 ## Remaining qualification and delivery
 
 Full automation GUI/command depth, expression/runtime integration, executions,
