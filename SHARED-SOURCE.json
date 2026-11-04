@@ -143,6 +143,7 @@
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "38bccf2b8f5eeae41d026f4533416ee58a7c2fa1a3af2b7571436b024c513ed4",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "95cc5f94e44d26f29b09e54bb5ab896948ed7b8b498d0c9f98a0ae934bcd792a",
+    "src/mantleos/kpp/resources/docs/STUDIO-EDITOR-SOURCE.md": "f9a57d15e60d76409c3dfab3469e08fd4ab6aabea2669a11fc1c236f21aa307f",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -176,7 +177,7 @@
     "src/mantleos/kpp/resources/examples/anchor-design/simplepaint-contract.anchor.txt": "abc8b185acbe70042d2fd6ef8d9e852f5c6f9636964d93c8b5e2f94698717797",
     "src/mantleos/kpp/resources/examples/anchor-design/xp-notepad-contract.anchor.txt": "bf7947b45bcb0f5bc31477bd6f39f5f8b498eb65c11474aa135ae67cce36ff99",
     "src/mantleos/kpp/resources/examples/anchor-studio/Anchor-Studio-Demo.anchorstudio": "fe6802410e569d16586a381341c4b0e889e52a4ad988cdc4cda7016d9f81d9b2",
-    "src/mantleos/kpp/resources/examples/anchor-studio/README.md": "f6ada4b17266efc969046277d90981519e0755b25b423c707872ae3e45d4c04c",
+    "src/mantleos/kpp/resources/examples/anchor-studio/README.md": "05b84a092223bae597dd6c8bd27180a033c491c5b4234bc5b2ce969ace60e5ff",
     "src/mantleos/kpp/resources/examples/anchor-studio/committed-events.cjs": "a24993231aa7e2b0478312fada75af673a42f84d6d218015c3c996a13d89787b",
     "src/mantleos/kpp/resources/examples/anchor-studio/committed-events.test.cjs": "cff3f33e33cec1899ba24dbab1e0af8384679599b318e5de5549d3fb77e2e0d9",
     "src/mantleos/kpp/resources/examples/anchor-studio/community-command-discovery.json": "b3f978f19e495bfdbe7d6b1700df5cc29fc23232f309ee80c70958ed39e60c9d",
@@ -184,6 +185,8 @@
     "src/mantleos/kpp/resources/examples/anchor-studio/conditions-runtime-probe.cjs": "19da61ac5ef907478c0a9d268b8de8344bb9b9602a2045d6582173785438a5b6",
     "src/mantleos/kpp/resources/examples/anchor-studio/conditions.cjs": "130195a4732ba2b850f2f8237ea4dbc25505854e0f022d46612836ed64058ad5",
     "src/mantleos/kpp/resources/examples/anchor-studio/conditions.test.cjs": "d3f55dd15f5c502ac5b05ad6cb42173dd3a5db9632d06c049e7e7947ab550e87",
+    "src/mantleos/kpp/resources/examples/anchor-studio/editor-assets.cjs": "1d9c3886f751f322e5aa8b1bf9427bfa6add4058df451f0f0c14ca61dc33e8a2",
+    "src/mantleos/kpp/resources/examples/anchor-studio/editor-assets.test.cjs": "ad3f3beeefb748e90d54018a047efb487044ed264e8356c6f6c7124576fa4a87",
     "src/mantleos/kpp/resources/examples/anchor-studio/if-journey.json": "53d0a9d48b31e9907dc5d1cdb55d3e216f7d09457739b54169c97d5111e22c54",
     "src/mantleos/kpp/resources/examples/anchor-studio/journey-probe.cjs": "8f2417c651d58bec135a07fc3539b78209728f7e7d279ac7762c2215c5fa63a5",
     "src/mantleos/kpp/resources/examples/anchor-studio/json-worker.cjs": "0aab3688655cc05d0c0e7d7d8fe0f4dbaaa1c4c924573156d4f28fc114b55d16",
@@ -538,5 +541,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "f9af3626e7864cbaa4d91072d93d1d8c27506e0afcb5432448f7258e2142c289"
+  "source_digest": "85f2e051a4782c969202d26742e825106fef301475287f1c9c6da3a2c397646e"
 }
