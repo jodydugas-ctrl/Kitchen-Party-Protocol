@@ -222,6 +222,22 @@ copied into this index. Full credential management and use remain unfinished obl
 The index is application metadata, not Engram experience, a secret vault or a
 second requirements/acceptance database. It stays outside saved Studio projects.
 
+On Windows, add `--credential-editor` to the reviewed editor configuration
+while Studio is stopped in stasis. This enables local create, read, masked
+edit and delete for literal HTTP Basic, Digest, Bearer, Header and Query
+credentials. The Body seals the credential data with Windows DPAPI in the
+owner-local `editor-credentials.sqlite`, binding it to the Studio identity,
+credential and revision. The vault stays outside saved Studio projects.
+Only the authenticated local editor receives the masked edit projection.
+List responses omit credential data. Opening an edit pins its revision to
+the editor tab. Reopen after a revision conflict or reconnect.
+
+This vault requires Windows DPAPI. It supplies protection against disclosure
+from copied storage under a different Windows user. Same-user process
+isolation, Linux storage, credential testing, OAuth, sharing, and workflow
+use are separate qualifications. Disable the editor grant by reconfiguring
+without the flag in stasis. Vault data remains available for owner recovery.
+
 The pinned Community project setting is a structured quota,
 `enterprise.projects.team.limit = 0`; flattening it into a Boolean breaks the
 frontend project store. The host preserves that type. Its Community usage view

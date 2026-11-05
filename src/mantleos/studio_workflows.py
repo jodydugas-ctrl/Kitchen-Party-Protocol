@@ -593,7 +593,8 @@ class WorkflowStore:
             return result
 
 
-def serve(store, input_stream=None, output_stream=None, *, check_source=None, execution_source=None):
+def serve(store, input_stream=None, output_stream=None, *, check_source=None, execution_source=None,
+          credential_store=None):
     """Trusted foreground controller pipe, never a network/model RPC listener.
 
     Operational documents have a separate budget from cognition frames. The
@@ -630,6 +631,14 @@ def serve(store, input_stream=None, output_stream=None, *, check_source=None, ex
                 c.shape(args,{'collection'})
                 from .studio_inventory import EditorInventory
                 result=EditorInventory(store.directory.parent).list(args['collection'])
+            elif op in ('credential_list', 'credential_get', 'credential_save', 'credential_remove') and credential_store:
+                keys = {'credential_list': set(), 'credential_get': {'identifier', 'include_data'},
+                        'credential_save': {'value', 'identifier', 'revision'},
+                        'credential_remove': {'identifier', 'revision'}}[op]
+                c.shape(args, keys | {'configuration'})
+                with credential_store(args['configuration']) as vault:
+                    result = getattr(vault, op.removeprefix('credential_'))(
+                        **{key: args[key] for key in keys}, reviewed=True)
             elif op == 'execution_start' and execution_source:
                 result = store.execution_start(args, source_pin=execution_source, owner=True)
             elif op == 'execution_finish' and execution_source:
