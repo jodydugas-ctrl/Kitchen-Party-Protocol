@@ -161,8 +161,8 @@ The workflow's saved `executionTimeout` accepts 1 through 20 seconds, or
 deadline when the graph starts. A deadline reached during Wait commits a
 canceled run with the manual cancellation error observed on n8n 2.46.4
 and the completed node outputs. The separate 30-second child limit also
-covers runtime startup. Persistent waits, other Wait modes, and disabling
-manual execution history remain outside this execution profile.
+covers runtime startup. Persistent waits and other Wait modes remain
+outside this execution profile.
 
 The native editor runs the committed saved revision. Studio binds each
 execution to that graph and records node inputs through their source links,
@@ -193,6 +193,16 @@ alongside completed runs. Its cursor continues through completed runs in saved
 start order even when a newer run arrives. Summary pages omit node output,
 which remains available through the version-checked execution detail.
 Annotation, metadata and other unqualified filters remain explicit errors.
+
+Setting `saveManualExecutions` to false keeps a run visible while it is
+active and removes its terminal result from history, detail, and executed
+version lists. The Body records a source-bound terminal receipt with an
+output digest and releases node output to the captured editor connection
+only after commit. The output cannot be retrieved on reconnect. The saved
+version determines retention even if the setting changes during a run.
+The first completed run using this setting transactionally upgrades the
+workflow store. Existing retained results remain readable. Earlier builds
+reject that upgraded store.
 
 ## Initialization and connection contracts
 
