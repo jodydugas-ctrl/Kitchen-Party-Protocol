@@ -126,3 +126,24 @@ test('Stop observes a real child exit and removes its isolated runtime directory
  assert.equal(result.status,'canceled');
  assert.equal(fs.existsSync(path.join(root,created)),false);
 });
+
+test('Node-RED dispatches a checked HTTP node through the trusted observer once',
+ {skip:!process.env.STUDIO_MODULES?'Owner-provisioned Node-RED runtime absent':false,timeout:45000},async()=>{
+ const nodeRed=require.resolve(path.join(process.env.STUDIO_MODULES,'node-red'));
+ const saved=waitWorkflow();
+ saved.nodes[1]={id:'checked-http',name:'Wait',type:'n8n-nodes-base.httpRequest',typeVersion:4.5};
+ const calls=[];
+ const checked={stage:'VERIFIED',binding_sha256:'a'.repeat(64),json:{accepted:true,value:42}};
+ const runner=createManualRuntime({nodeRed,version:require(nodeRed).version(),checkActive:async()=>{},
+  effects:{async check(workflow,id){calls.push(['check',workflow.versionId,id]);},
+   async observe(run,id){calls.push(['observe',run.claim,id]);return checked;}}});
+ const operation=await runner.admit({workflow:saved,selection:full});
+ const outcome=await operation({workflow:saved,selection:full,claim:'fixture-private-claim'});
+ assert.deepEqual(calls,[['check','saved','checked-http'],['observe','fixture-private-claim','checked-http']]);
+ assert.equal(outcome.status,'success');
+ assert.deepEqual(outcome.data.resultData.runData.Wait[0].data.main,
+  [[{json:checked.json,pairedItem:{item:0}}]]);
+ assert.deepEqual(outcome.data.resultData.studioCheckedEffects,
+  [{nodeId:'checked-http',stage:'VERIFIED',binding_sha256:checked.binding_sha256}]);
+ assert.ok(!JSON.stringify(outcome).includes('fixture-private-claim'));
+});

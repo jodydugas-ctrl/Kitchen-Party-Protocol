@@ -151,10 +151,11 @@ per node. It accepts literal conditions and direct `$json.field` paths in
 left operands. Wait supports literal time intervals of 1 through 20 seconds
 and carries items forward with their input pairing. The worker
 limits graphs to 64 nodes and 256 KiB, runs at most two child runtimes at once,
-and bounds each child to 30 seconds. The profile has no credential, external
-effect, arbitrary script, pinned data, published trigger or general expression
-capability. Unqualified node options or graph shapes return an explicit error
-before dispatch.
+and bounds each child to 30 seconds. The base profile supports pure work.
+The separate checked HTTP profile below requires both reviewed capabilities
+and a per-node grant. Arbitrary script, pinned data, published triggers and
+general expressions remain unavailable. Unqualified node options or graph
+shapes return an explicit error before dispatch.
 
 The workflow's saved `executionTimeout` accepts 1 through 20 seconds, or
 `-1`, zero or omission for no workflow deadline. The worker starts the
@@ -215,10 +216,9 @@ routes can read this index but cannot register metadata, secrets or grants.
 An absent or damaged index fails explicitly instead of reporting an invented
 empty inventory. A newly initialized index genuinely has no entries.
 
-The usable-credential projection remains empty because this runtime has no
-qualified workflow credential-use grants. Registering a descriptor does not
-make it usable; the MIND's separately configured provider keys are not read or
-copied into this index. Full credential management and use remain unfinished obligations.
+The credential picker remains empty. A saved credential reference requires
+an independent checked-use grant. Registering a descriptor confers no grant.
+The MIND's separately configured provider keys are never copied into this index.
 The index is application metadata, not Engram experience, a secret vault or a
 second requirements/acceptance database. It stays outside saved Studio projects.
 
@@ -237,6 +237,24 @@ from copied storage under a different Windows user. Same-user process
 isolation, Linux storage, credential testing, OAuth, sharing, and workflow
 use are separate qualifications. Disable the editor grant by reconfiguring
 without the flag in stasis. Vault data remains available for owner recovery.
+
+The experimental `studio credential-grant` and `credential-revoke`
+commands prepare checked-use authority independently of credential storage.
+A grant requires `--reviewed`, a saved HTTP Request 4.5 node, a literal
+loopback GET endpoint, and an existing Basic Auth credential. It binds the
+saved workflow version, node, endpoint, credential revision, editor
+configuration, and controller source. Grants expire after at most ten
+minutes. The Body's checked HTTP adapter requires an active execution claim
+and makes at most one attempt per execution and node. It sends Basic Auth
+only to the reviewed local endpoint, follows no redirects, and accepts a
+bounded JSON object. The destination must be trusted with the credential.
+The audit records the effect stage and digests. A result that directly
+contains the password or encoded Basic authorization is rejected.
+The isolated Node-RED worker requests the observation over its private child
+channel and receives no credential or execution claim. The runtime admits
+one checked HTTP node per run and verifies its grant before dispatch.
+The credential picker, general HTTP Request profiles and external URLs
+are pending.
 
 The pinned Community project setting is a structured quota,
 `enterprise.projects.team.limit = 0`; flattening it into a Boolean breaks the
