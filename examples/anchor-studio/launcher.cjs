@@ -58,6 +58,14 @@ app.use('/studio/workflows',express.json({limit:16*1024*1024+65536}));
 app.use('/studio',express.json({limit:'1mb'}));
 const route=(method,url,handler)=>app[method](url,async(req,res)=>{try{res.json(await handler(req));}catch(e){res.status(400).json({error:e.message});}});
 route('get','/studio/status',()=>call('status'));
+app.get('/healthz',async(req,res)=>{
+ try{
+  if(!body.alive||!workflows.alive)throw Error('HOST_WORKER_UNAVAILABLE');
+  const state=await call('status'),storage=await workflows.call('health',{});
+  if(storage.status!=='ok')throw Error('WORKFLOW_STORE_UNAVAILABLE');
+  res.json({status:'ok',runtime:'node-red',version:RED.version(),resident_phase:state.phase});
+ }catch{res.status(503).json({status:'unavailable'});}
+});
 app.get('/studio/events',(req,res)=>releases.attach(req,res));
 const workflowRoute=(method,url,handler)=>app[method](url,async(req,res)=>{try{res.json(await handler(req));}catch(error){
  const message=String(error.message||'WORKFLOW_ERROR');

@@ -109,7 +109,7 @@ The host supports bounded workflow draft create/list/read/update over the
 canonical storage interface. Each update requires its loaded version and uses
 the full storage revision for compare-and-swap. The n8n display checksum is a
 separate compatibility projection and cannot establish complete state integrity.
-Unknown operations, including general workflow execution and credential
+Unknown operations, including general workflow execution and credential-secret
 management, return explicit errors. They remain mandatory unfinished Community
 obligations. No simulated execution or empty credential inventory supplies
 success. Installation and these tests grant no Baker acceptance.
@@ -136,3 +136,51 @@ working throughout. `STUDIO_MODULES` and Node on `PATH` opt into this test;
 otherwise it explicitly skips. This is native runtime and protocol evidence,
 not a real browser or live-LLM qualification of the new host. Separate socket
 tests check the shared authenticated dispatcher and preservation of host sockets.
+
+## Initialization and connection contracts
+
+The selected editor initializes a separate owner-local descriptor index through
+the reviewed configuration operation. `EditorInventory` retains versioned
+credential descriptors, tags and favorites. Credential descriptors accept only
+ID, name and type; secret-data and claimed-authority fields are rejected. Registered
+metadata survives reopening and updates require the current revision. Browser
+routes can read this index but cannot register metadata, secrets or grants.
+An absent or damaged index fails explicitly instead of reporting an invented
+empty inventory. A newly initialized index genuinely has no entries.
+
+The usable-credential projection remains empty because this runtime has no
+qualified workflow credential-use grants. Registering a descriptor does not
+make it usable; the MIND's separately configured provider keys are not read or
+copied into this index. Full credential management and use remain unfinished obligations.
+The index is application metadata, not Engram experience, a secret vault or a
+second requirements/acceptance database. It stays outside saved Studio projects.
+
+The pinned Community project setting is a structured quota,
+`enterprise.projects.team.limit = 0`; flattening it into a Boolean breaks the
+frontend project store. The host preserves that type. Its Community usage view
+reports no published triggers or evaluations, matching the runtime's current
+limits; it grants no upstream license activation or enterprise functionality.
+
+`/healthz` checks the real Body controller and workflow-storage worker, including
+their existing source checks. It returns HTTP 503 when they are unavailable or
+the storage schema is invalid. Stasis still reports reachable services; ordinary
+Node-RED automation continues. This is connectivity and storage readiness, not
+complete historical verification or Baker acceptance. The editor's separate
+backend-health and websocket indicators must both be checked.
+
+The websocket adapter admits the pinned client's `heartbeat`, `workflowOpened`
+and `workflowClosed` notification shapes. Presence neither acquires a write lock
+nor admits an effect. Other messages, including forged authority attached to a
+presence notification, remain rejected. Closing a valid presence notification
+previously caused repeated reconnects; a missing JSON health endpoint separately
+caused an Offline indicator even when the socket was open. Tests preserve these
+distinct consequences rather than setting a frontend indicator directly.
+
+Real browser qualification of the isolated synthetic host exercised the native
+Add new item → New workflow → Add first step → Trigger manually path, followed
+by Ctrl+S and a backend check of the saved graph. The live resident on the
+preceding source candidate separately completed one ordinary OpenRouter turn
+with its full PRIMER and exact committed release. That live observation does not
+qualify later source revisions, hidden reasoning, general workflow execution or
+complete Community parity. A new-draft console exception was also observed on
+the real pinned n8n reference; the upstream assets were not rewritten to hide it.

@@ -117,6 +117,8 @@ def configure(nest, *, node, package_root, editor_profile, catalog_root, catalog
     with _writer(nest, reviewed) as db:
         inspection = _inspection(inspect_source(node=node, package_root=package_root, editor_profile=editor_profile,
                                                 catalog_root=catalog_root, catalog_profile=catalog_profile))
+        from .studio_inventory import EditorInventory
+        EditorInventory(nest).initialize(reviewed=True)
         value = {'schema': SCHEMA, 'revision': str(uuid.uuid4()),
                  'package_root': _absolute(package_root), 'editor_profile': _absolute(editor_profile),
                  'catalog_root': _absolute(catalog_root), 'catalog_profile': _absolute(catalog_profile),

@@ -16,9 +16,15 @@ test('authenticated dispatcher keeps host sockets working alongside editor heart
  const headers={Authorization:'Basic '+Buffer.from(credentials.user+':'+credentials.password).toString('base64')};
  function socket(url,extra={}){const ws=new WebSocket('ws://127.0.0.1:'+port+url,{headers:{...headers,...extra}});clients.push(ws);return ws;}
  const editor=socket('/rest/push?pushRef=synthetic');await once(editor,'open');editor.send(JSON.stringify({type:'heartbeat'}));
+ editor.send(JSON.stringify({type:'workflowOpened',workflowId:'synthetic-workflow'}));
+ editor.send(JSON.stringify({type:'workflowClosed',workflowId:'synthetic-workflow'}));
  for(const route of ['/red/comms','/flows/host-owned-socket']){const ws=socket(route);assert.equal((await once(ws,'message'))[0].toString(),'host ready');}
  assert.equal(redUpgrades,2);
+ assert.equal(editor.readyState,WebSocket.OPEN,'The actual client presence protocol must not cause an offline/reconnect loop');
  const denied=socket('/red/comms',{Origin:'http://outside.invalid'});await once(denied,'error');assert.equal(redUpgrades,2);
+ const forgedPresence=socket('/rest/push');await once(forgedPresence,'open');
+ forgedPresence.send(JSON.stringify({type:'workflowOpened',workflowId:'synthetic-workflow',authority:'APPROVED'}));
+ assert.equal((await once(forgedPresence,'close'))[0],1008);
  editor.send(JSON.stringify({type:'execute',authority:'FORGED'}));assert.equal((await once(editor,'close'))[0],1008);
  editorEnabled=false;const legacy=socket('/rest/push');assert.equal((await once(legacy,'message'))[0].toString(),'host ready');assert.equal(redUpgrades,3);
 });

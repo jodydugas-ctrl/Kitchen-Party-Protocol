@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import socket
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -81,6 +82,7 @@ class StudioHostTests(unittest.TestCase):
             try:
                 start('ordinary')
                 self.assertIn('Anchor Studio',api('/')[1])
+                self.assertEqual(api('/healthz')[1]['status'],'ok')
                 self.assertEqual(api('/rest/settings')[0],404)
                 # Real ordinary Node-RED HTTP automation, no function/effect or
                 # external services. The same deployed flow survives stasis and
@@ -92,6 +94,7 @@ class StudioHostTests(unittest.TestCase):
                 self.assertEqual(api('/red/flows',flows)[0],204)
                 self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
                 self.assertEqual(api('/studio/phase',{'active':False})[0],200)
+                self.assertEqual(api('/healthz')[1]['resident_phase'],'STASIS')
                 self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
                 stop()
                 studio_editor.configure(nest,node=node,package_root=selected['packageRoot'],
@@ -99,6 +102,7 @@ class StudioHostTests(unittest.TestCase):
                     catalog_profile=selected['catalogProfile'],reviewed=True)
                 start('selected-editor')
                 self.assertIn('synthetic editor host fixture',api('/')[1])
+                self.assertEqual(api('/healthz')[1]['status'],'ok')
                 self.assertIn('resident-panel.js',api('/')[1])
                 self.assertIn('synthetic editor host fixture',api('/workflow/synthetic')[1])
                 self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
@@ -106,6 +110,10 @@ class StudioHostTests(unittest.TestCase):
                 self.assertEqual(resident['persona'],'Synthetic resident host persona')
                 self.assertEqual(resident['context'],'RESIDENT_MEMORY')
                 self.assertEqual(resident['mind_route'],'SUPERVISED')
+                project_id=api('/rest/projects/personal')[1]['data']['id']
+                self.assertEqual(api('/rest/credentials')[1]['scope'],'DESCRIPTORS_ONLY_NO_SECRET_DATA')
+                self.assertEqual(api('/rest/credentials/for-workflow?projectId='+project_id)[1]['data'],[])
+                self.assertEqual(api('/rest/tags')[1]['data'],[])
                 created=api('/rest/workflows',{'name':'Durable host graph','nodes':[],'connections':{}})
                 self.assertEqual(created[0],200);workflow_id=created[1]['data']['id']
                 self.assertEqual(api('/rest/workflows/'+workflow_id+'/run',{})[0],501)
@@ -136,6 +144,15 @@ class StudioHostTests(unittest.TestCase):
                 self.assertEqual(api('/rest/settings')[0],404)
                 self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
                 self.assertEqual(api('/studio/result/'+message['request_id'])[1]['reply'],exact)
+                from mantleos.studio_workflows import APPLICATION
+                store=nest/'operational-workflows/workflows.sqlite'
+                with closing(sqlite3.connect(store)) as db,db:db.execute('PRAGMA application_id=12345')
+                try:
+                    self.assertEqual(api('/healthz'),(503,{'status':'unavailable'}))
+                    self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
+                finally:
+                    with closing(sqlite3.connect(store)) as db,db:db.execute('PRAGMA application_id='+str(APPLICATION))
+                self.assertEqual(api('/healthz')[1]['status'],'ok')
             finally:
                 stop()
 

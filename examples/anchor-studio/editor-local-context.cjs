@@ -56,6 +56,9 @@ function project({identity,settingsTemplate,port}){
  settings.publicApi={enabled:false,latestVersion:1,path:'api',swaggerUi:{enabled:false}};
  settings.communityNodesEnabled=false;settings.unverifiedCommunityNodesEnabled=false;settings.communityNodesManagedByEnv=true;
  settings.enterprise=Object.fromEntries(Object.keys(settings.enterprise||{}).map(key=>[key,false]));
+ // In the pinned Community protocol this field is a structured quota, not a
+ // boolean feature flag. Flattening it breaks the editor's project store.
+ settings.enterprise.projects={team:{limit:0}};
  settings.aiAssistant={enabled:false,setup:false,cloudUbbEnabled:false};settings.aiBuilder={enabled:false,setup:false};settings.aiCredits={enabled:false,credits:0,setup:false};
  settings.askAi={enabled:false};settings.ai={allowSendingParameterValues:false};settings.easyAIWorkflowOnboarded=true;
  settings.activeModules=[];settings.allowedModules={};settings.inbox={enabled:false,availableTypes:[],failedTypes:[]};

@@ -30,6 +30,37 @@ function mountCommunityEditor(app,{express,workflows,installation,context,reside
  route('get','/rest/projects/:id',req=>{if(req.params.id!==personal.id)throw Error('KeyError: project');return {data:personal};});
  route('get','/rest/module-settings',()=>({data:{}}));
  route('get','/rest/roles',()=>({data:context.roles}));
+ async function inventory(req,collection){
+  const filter=req.query.filter?JSON.parse(req.query.filter):{};
+  if(!filter||typeof filter!=='object'||Array.isArray(filter)||Object.keys(filter).some(key=>!['name','projectId'].includes(key)))throw Error('Unsupported inventory filter');
+  if(filter.projectId!==undefined&&filter.projectId!==personal.id||req.query.projectId!==undefined&&req.query.projectId!==personal.id)throw Error('PermissionError: project');
+  if(filter.name!==undefined&&typeof filter.name!=='string')throw Error('Invalid inventory name');
+  const skip=Number(req.query.skip||0),take=Number(req.query.take||2048);
+  if(!Number.isSafeInteger(skip)||skip<0||!Number.isSafeInteger(take)||take<1||take>2048)throw Error('Invalid inventory pagination');
+  const values=await workflows.call('inventory',{collection});
+  const filtered=values.filter(value=>!filter.name||value.name.toLowerCase().includes(filter.name.toLowerCase()));
+  return {data:filtered.slice(skip,skip+take),count:filtered.length};
+ }
+ route('get','/rest/credentials',async req=>{
+  if(req.query.externalSecretsStore!==undefined||req.query.onlySharedWithMe==='true')throw Error('Unsupported credential sharing');
+  const value=await inventory(req,'credentials');
+  return {...value,data:value.data.map(item=>({...item,scopes:['credential:read']})),scope:'DESCRIPTORS_ONLY_NO_SECRET_DATA'};
+ });
+ route('get','/rest/credentials/for-workflow',async req=>{
+  if(req.query.forAgent!==undefined)throw Error('Unsupported agent credential use');
+  if(req.query.workflowId!==undefined)await workflows.call('get',{id:req.query.workflowId});
+  await inventory(req,'credentials');
+  // This runtime has no qualified workflow credential-use grants. A descriptor
+  // is not a capability, and the MIND's provider key is never a workflow key.
+  return {data:[],scope:'NO_QUALIFIED_WORKFLOW_CREDENTIAL_USE'};
+ });
+ route('get','/rest/tags',req=>inventory(req,'tags'));
+ route('get','/rest/favorites',async()=>({data:await workflows.call('inventory',{collection:'favorites'})}));
+ route('get','/rest/license',()=>({data:{license:{planId:'',planName:'Community'},
+  // No activation, evaluations or published triggers are supported by this
+  // host yet. This is the pinned free-edition UI contract, not an entitlement.
+  usage:{activeWorkflowTriggers:{value:0,limit:-1,warningThreshold:.8},workflowsHavingEvaluations:{value:0,limit:0}}},
+  authority:'NONE; no upstream license activation or workflow effects granted'}));
  route('get','/rest/active-workflows',()=>({data:[]}));
  route('get','/rest/workflows/active',()=>({data:[]}));
  route('get','/rest/workflows/new',()=>({data:{name:'My workflow',settings:{executionOrder:'v1',binaryMode:'separate'}}}));

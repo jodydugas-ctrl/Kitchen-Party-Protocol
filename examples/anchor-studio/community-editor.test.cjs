@@ -9,7 +9,7 @@ test('same-host adapter uses real durable workflow storage and a bounded Body vi
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'studio-community-'));
  const nodeRed=path.join(process.env.STUDIO_MODULES,'node-red');
  const express=createRequire(require.resolve(nodeRed))('express');
- const worker=new JsonWorker({python:process.env.STUDIO_PYTHON||'python',args:['-c','import sys; from mantleos.studio_workflows import WorkflowStore,serve; raise SystemExit(serve(WorkflowStore(sys.argv[1])))',path.join(root,'workflows')],label:'WORKFLOW',maxBytes:16*1024*1024+65536,maxPending:4});
+ const worker=new JsonWorker({python:process.env.STUDIO_PYTHON||'python',args:['-c','import sys; from pathlib import Path; from mantleos.studio_inventory import EditorInventory; from mantleos.studio_workflows import WorkflowStore,serve; i=EditorInventory(Path(sys.argv[1]).parent); i.initialize(reviewed=True); i.register("credentials",{"id":"synthetic-ref","name":"Synthetic descriptor","type":"httpBasicAuth"},reviewed=True); raise SystemExit(serve(WorkflowStore(sys.argv[1])))',path.join(root,'workflows')],label:'WORKFLOW',maxBytes:16*1024*1024+65536,maxPending:4});
  const app=express();let access;
  app.use((req,res,next)=>access.middleware(req,res,next));
  let encounters=0,reads=0;
@@ -57,7 +57,14 @@ test('same-host adapter uses real durable workflow storage and a bounded Body vi
  assert.deepEqual(competing.map(value=>value.status).sort(),[200,409]);
  assert.equal((await api('PATCH',route,{versionId:current.versionId,name:'forged'},{Origin:'http://outside.invalid'})).status,403);
  assert.equal((await api('POST',route+'/run',{})).status,501);
- assert.equal((await api('GET','/rest/credentials')).status,501);
+ const descriptors=await api('GET','/rest/credentials?includeData=true');
+ assert.equal(descriptors.status,200);assert.equal(descriptors.value.data[0].id,'synthetic-ref');
+ assert.equal(descriptors.value.scope,'DESCRIPTORS_ONLY_NO_SECRET_DATA');assert.equal(descriptors.value.data[0].data,undefined);
+ const usable=await api('GET','/rest/credentials/for-workflow?workflowId='+first.id);
+ assert.equal(usable.status,200);assert.deepEqual(usable.value.data,[]);assert.equal(usable.value.scope,'NO_QUALIFIED_WORKFLOW_CREDENTIAL_USE');
+ assert.equal((await api('GET','/rest/credentials/for-workflow?projectId=not-owned')).status,403);
+ assert.equal((await api('POST','/rest/credentials',{id:'FORGED',data:{password:'NEVER_ADMIT'}})).status,501);
+ assert.deepEqual((await api('GET','/rest/tags')).value.data,[]);
  assert.equal((await api('GET','/rest/workflows?filter='+encodeURIComponent(JSON.stringify({unsupported:true})))).status,400);
  const malformed=await fetch(base+'/rest/workflows',{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:'{"PRIVATE_TOKEN" malformed'});
  assert.equal(malformed.status,400);assert.equal((await malformed.text()).includes('PRIVATE_TOKEN'),false);

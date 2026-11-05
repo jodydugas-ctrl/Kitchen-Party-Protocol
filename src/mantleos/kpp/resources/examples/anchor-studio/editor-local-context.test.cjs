@@ -20,6 +20,7 @@ test('presentation records bind the fresh owner and advertise no execution grant
  assert.equal(value.user.id,identity.userId);assert.equal(value.personal.creatorId,identity.userId);assert.equal(value.personal.projectRelations[0].userId,identity.userId);
  assert.equal(value.projects[0].id,identity.projectId);assert.equal(value.settings.instanceId,identity.instanceId);
  assert.equal(value.settings.telemetry.enabled,false);assert.equal(value.settings.enterprise.sharing,false);
+ assert.deepEqual(value.settings.enterprise.projects,{team:{limit:0}});
  assert.equal(JSON.stringify(value).includes('reference-'),false);assert.equal(value.capabilities.authority,'NONE');
  assert.deepEqual(value.user.globalScopes,SCOPES);assert.equal(value.user.globalScopes.includes('workflow:execute'),false);
  assert.equal(value.settings.publicApi.enabled,false);assert.equal(value.settings.ai.allowSendingParameterValues,false);
