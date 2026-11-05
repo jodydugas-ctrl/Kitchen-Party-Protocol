@@ -48,8 +48,9 @@ boundary, not protection against an administrator or a compromised Node process.
 root-path placeholders are expanded in memory. The installed package is never
 rewritten. A host must apply its own navigation, origin, authorization, HTTP
 content-type, error and effect boundaries before serving these bytes. Importing
-this module or pinning a profile never activates an editor in the current
-launcher. The existing Studio and ordinary Node-RED editor remain unchanged.
+this module or pinning a profile never activates an editor. The default launcher
+continues to open the existing Studio; the optional host below requires a
+separate reviewed selection. Ordinary Node-RED remains available at `/red/`.
 
 The synthetic tests cover deterministic admission, required review, immutable
 snapshots, notices, same-length changes, missing/extra source, profile changes,
@@ -58,3 +59,80 @@ receiving processes. The fixtures contain synthetic notices and establish no
 upstream licensing or full n8n behavioral claim. Real browser editing, backend
 execution, expressions, triggers, credentials, settings and current-candidate
 cumulative verification still require their separate recipe evidence.
+
+## Optional resident editor host
+
+The foreground Studio launcher can serve the selected editor over its existing
+Node-RED Body. It consumes the existing `studio_workflows` storage worker and
+the same resident controller. It starts no n8n backend, secondary resident,
+HTTP courier to another NEST, provider route, or automatic fallback.
+
+`editor-catalog.cjs` admits a separately reviewed, data-only catalog paired to
+the exact editor digest. Its fixed inventory is `nodes.json`, `credentials.json`,
+`node-versions.json`, `public-settings.json`, and `PROVENANCE.json`. The catalog
+contains descriptions, not executable node implementations or stored credentials.
+Provenance binds the four data files and pinned upstream revision; reference
+owner/project identities must not be imported. Public settings require host
+placeholders and disabled telemetry. Limits are 24 MiB per file and 32 MiB in
+total. `pinCatalog` creates the reviewed profile; `loadCatalog` rechecks its
+complete contents and retains an immutable snapshot. The installation verifier
+binds both source profiles into `studio.editor-installation/1`.
+
+After provisioning and reviewing these local inputs, stop Studio in stasis and
+select them explicitly. Existing installations whose controller source changed
+also require the existing reviewed source rebind and provider-route review;
+retain their accounting database and exposure. Do not copy a route to reset a
+budget or bypass recovery of uncertain requests.
+
+```console
+python -m mantleos studio editor-configure --nest PRIVATE_NEST --node NODE_EXE --package-root LOCAL_PACKAGE --editor-profile EDITOR_PROFILE --catalog-root LOCAL_CATALOG --catalog-profile CATALOG_PROFILE --reviewed
+python -m mantleos studio editor-status --nest PRIVATE_NEST
+python -m mantleos studio run --nest PRIVATE_NEST --node NODE_EXE --modules NODE_MODULES
+```
+
+The selected editor opens at `/`; `/studio` retains the design/KPP workspace.
+No username/password prompt is introduced. Local navigation establishes the
+existing same-owner, loopback session; origin and websocket checks still apply.
+After a restart, `/?studio_connect=1` refreshes that session in another tab
+without navigating away from an existing draft. Browser preservation of an
+unsaved draft across that reconnect remains a separate qualification case.
+
+Fresh local presentation records describe the owner/project to the editor;
+they are not an AppAI identity, credential store, or authority grant. The AppAI
+panel uses the resident's verified persona metadata, status, conversation and
+committed-result operations. It receives no PRIMER, private frames, provider
+keys, approval operations, or intermediate model tokens. Result retrieval and
+replay invoke the Body's current release checks. A displayed commit digest
+establishes continuity within this trusted host, not independent authentication.
+
+The host supports bounded workflow draft create/list/read/update over the
+canonical storage interface. Each update requires its loaded version and uses
+the full storage revision for compare-and-swap. The n8n display checksum is a
+separate compatibility projection and cannot establish complete state integrity.
+Unknown operations, including general workflow execution and credential
+management, return explicit errors. They remain mandatory unfinished Community
+obligations. No simulated execution or empty credential inventory supplies
+success. Installation and these tests grant no Baker acceptance.
+
+Configuration is held in the existing controller database. Selection requires
+the controller to be stopped, stasis, no outstanding cognition and owner review.
+The launcher rechecks both snapshots on startup; warm requests reuse them.
+Controller source and selected configuration bind pending cognition, including
+observation-bound second frames. Changed bindings invalidate pending work.
+Withdraw the presentation after stopping in stasis with:
+
+```console
+python -m mantleos studio editor-disable --nest PRIVATE_NEST --reviewed
+```
+
+Withdrawal records an event and retains memories, source, workflows and native
+Node-RED flows. It is not an automatic rollback of uncertain effects.
+
+The optional `test_studio_host.py` uses a real owner-provisioned Node-RED runtime
+and a synthetic resident. It exercises normal embedding, selected presentation,
+full synthetic PRIMER delivery, supervised fixture commit/replay, fresh-process
+reload, stasis and withdrawal. A real deployed Node-RED HTTP flow must keep
+working throughout. `STUDIO_MODULES` and Node on `PATH` opt into this test;
+otherwise it explicitly skips. This is native runtime and protocol evidence,
+not a real browser or live-LLM qualification of the new host. Separate socket
+tests check the shared authenticated dispatcher and preservation of host sockets.
