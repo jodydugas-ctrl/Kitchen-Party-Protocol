@@ -156,7 +156,7 @@ and carries items forward with their input pairing. The worker
 limits graphs to 64 nodes and 256 KiB, runs at most two child runtimes at once,
 and bounds each child to 30 seconds. The base profile supports pure work.
 The separate checked HTTP profile below requires both reviewed capabilities
-and a per-node grant. Arbitrary script, pinned data, published triggers and
+and a per-node grant. Arbitrary script, published triggers and
 general expressions remain unavailable. Unqualified node options or graph
 shapes return an explicit error before dispatch.
 
@@ -207,6 +207,28 @@ version determines retention even if the setting changes during a run.
 The first completed run using this setting transactionally upgrades the
 workflow store. Existing retained results remain readable. Earlier builds
 reject that upgraded store.
+
+### Pinned data in manual runs
+
+The editor's Pin data, Edit Output and Unpin controls save test data in the
+workflow revision. During a manual execution, a pin replaces that node's
+computed output. Downstream nodes receive the pinned JSON items and their
+item links. An empty pin stops its path. A retry preserves the failed run's
+pin snapshot, including when using the current workflow version.
+
+The runtime accepts pins for supported single-output pure nodes, up to
+256 JSON items per pinned node within the existing graph budget. Binary
+items, multi-output nodes and checked-effect outputs cannot run with pins.
+An effect still requires its own grant and verified observation.
+
+Matched n8n 2.46.4 cases checked trigger and intermediate pins, default and
+explicit pairing, empty output, and the interaction with retry. The Windows
+browser saved an edited pin of 73, ran the workflow, unpinned, saved and ran
+again. The three committed histories reopened with distinct saved versions
+and output values of 1, 73 and 1. The provisioned QuickJS runtime also read
+the pinned items. This evidence covers part of the KPP workflow and execution
+lifecycle obligations. Binary pin execution, additional node profiles and
+Baker acceptance remain open.
 
 ### Failed execution retry
 

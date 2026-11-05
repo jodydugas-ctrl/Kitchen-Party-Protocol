@@ -92,7 +92,26 @@ function prepareWait(node){
  };
 }
 
-function compile(workflow,selection,allowEffects=false,native=false){
+function validatePins(pinData,names){
+ const index=value=>Number.isSafeInteger(value)&&value>=0;
+ const source=value=>only(value,['previousNode','previousNodeOutput','previousNodeRun'])&&
+  names.has(value.previousNode)&&['previousNodeOutput','previousNodeRun'].every(key=>!own(value,key)||index(value[key]));
+ const pair=value=>only(value,['item','input','sourceOverwrite'])&&index(value.item)&&
+  (!own(value,'input')||value.input===0)&&(!own(value,'sourceOverwrite')||source(value.sourceOverwrite));
+ demand(object(pinData),'pinned data must be keyed by node name');
+ for(const [name,items] of Object.entries(pinData)){
+  demand(names.has(name)&&Array.isArray(items)&&items.length<=256,'pinned node or item count');
+  for(const item of items){
+   demand(only(item,['json','pairedItem'])&&object(item.json),'pinned item must contain JSON output');
+   if(own(item,'pairedItem')){
+    const link=item.pairedItem;
+    demand(index(link)||pair(link)||(Array.isArray(link)&&link.every(pair)),'pinned item pairing');
+   }
+  }
+ }
+}
+
+function compile(workflow,selection,allowEffects=false,native=false,checkpoint=null){
  demand(Buffer.byteLength(JSON.stringify(workflow))<=MAX_INPUT&&
   Array.isArray(workflow.nodes)&&workflow.nodes.length>0&&workflow.nodes.length<=64&&
   object(workflow.connections),'graph size');
@@ -103,12 +122,16 @@ function compile(workflow,selection,allowEffects=false,native=false){
   (!own(settings,'saveManualExecutions')||[true,false,'DEFAULT'].includes(settings.saveManualExecutions))&&
   (!own(settings,'executionTimeout')||(Number.isInteger(settings.executionTimeout)&&
    settings.executionTimeout>=-1&&settings.executionTimeout<=MAX_WAIT_SECONDS))&&
-  (!workflow.pinData||only(workflow.pinData,[]))&&!workflow.staticData,'workflow settings or pinned data');
+  !workflow.staticData,'workflow settings or static data');
+ const savedPins=checkpoint?checkpoint.resultData?.pinData:workflow.pinData;
+ const pinData=savedPins===undefined?{}:savedPins;
+ validatePins(pinData,new Set(workflow.nodes.map(node=>node.name)));
  const steps=new Map();
  for(const [index,node] of workflow.nodes.entries()){
   demand(!steps.has(node.name)&&!node.disabled&&(node.type===httpType||!node.credentials||only(node.credentials,[]))&&
    !node.executeOnce&&!node.retryOnFail&&!node.alwaysOutputData&&(!node.onError||node.onError==='stopWorkflow'),'node configuration');
   let execute,outputs,effectNode;
+  const pinned=own(pinData,node.name);
   const expressions=native&&[editType,ifType].includes(node.type)&&hasExpression(node.parameters??{});
   if(node.type===triggerType){
    demand(node.name===selection.trigger&&(node.typeVersion??1)===1&&(!node.parameters||only(node.parameters,[])),'manual trigger');
@@ -130,7 +153,9 @@ function compile(workflow,selection,allowEffects=false,native=false){
    demand(node.type===ifType,'node type');
    execute=prepareIf(node,expressions);outputs=2;
   }
-  steps.set(node.name,{id:'studio-step-'+index,name:node.name,execute,outputs,effectNode,expressions,
+  demand(!pinned||(outputs===1&&!effectNode),'pinned node must have one output and no external effect');
+  steps.set(node.name,{id:'studio-step-'+index,name:node.name,execute,outputs,effectNode,pinned,
+   expressions:expressions&&!pinned,
    wires:Array.from({length:outputs},()=>[])});
  }
  const entry=steps.get(selection.trigger);
@@ -166,7 +191,7 @@ function compile(workflow,selection,allowEffects=false,native=false){
  }
  const effectNodes=Array.from(byId.values()).flatMap(step=>step.effectNode?[step.effectNode]:[]);
  demand(effectNodes.length<=1,'checked HTTP node count');
- return {entry,byId,effectNodes,expressionNodes:Array.from(byId.values()).filter(step=>step.expressions).map(step=>step.name),
+ return {entry,byId,effectNodes,pinData,expressionNodes:Array.from(byId.values()).filter(step=>step.expressions).map(step=>step.name),
   timeout:settings.executionTimeout};
 }
 
@@ -219,7 +244,7 @@ function resumePoint(plan,selection,observation){
 }
 
 async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects,native,retry}){
- const plan=compile(workflow,selection,allowEffects&&!retry,native),RED=require(nodeRed);
+ const plan=compile(workflow,selection,allowEffects&&!retry,native,retry),RED=require(nodeRed);
  const resume=retry?resumePoint(plan,selection,retry):null;
  demand(RED.version()===version,'Node-RED runtime version changed');
  const tab='studio-execution',flows=[{id:tab,type:'tab',label:'Studio manual execution'}];
@@ -230,6 +255,7 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
   getCredentials:async()=>({}),saveCredentials:async()=>{},getSettings:async()=>({}),saveSettings:async()=>{},
   getSessions:async()=>({}),saveSessions:async()=>{}};
  const resultData={runData:resume?.prefix??Object.create(null)};
+ if(Object.keys(plan.pinData).length)resultData.pinData=structuredClone(plan.pinData);
  let outstanding=1,sequence=resume?.index??0,resolveComplete,failed=false,uncertain=false,initialized=false,deadline;
  const complete=new Promise(resolve=>{resolveComplete=resolve;});
  async function observe(nodeId){
@@ -256,10 +282,17 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
      if(failed||deadline?.aborted)return;
      const evaluate=async(value,itemIndex)=>{
       const result=await requestHost('expression',{value,node:step.name,items:msg.items,itemIndex,
-       source:msg.source,runData:resultData.runData});
+       source:msg.source,runData:resultData.runData,pinData:resultData.pinData});
       return result.kind==='missing'?undefined:result.value;
      };
-     const ports=await step.execute(msg.items,deadline,observe,evaluate);
+     let ports;
+     if(step.pinned){
+      const items=resultData.pinData[step.name].map(item=>({...item,pairedItem:item.pairedItem??{item:0}}));
+      resultData.pinData[step.name]=items;
+      ports=[items];
+     }else{
+      ports=await step.execute(msg.items,deadline,observe,evaluate);
+     }
      if(failed||deadline?.aborted)return;
      resultData.lastNodeExecuted=step.name;
      resultData.runData[step.name]=[{startTime,executionIndex,source:msg.source,executionTime:Date.now()-startTime,
@@ -324,7 +357,7 @@ function runWorker(frame,signal,plan,observe,evaluate){
   child.on('message',message=>{
    const args=message?.args;
    const effect=message?.kind==='effect'&&only(args,['nodeId'])&&plan.effectNodes.includes(args.nodeId)&&!effectPending;
-   const expression=message?.kind==='expression'&&only(args,['value','node','items','itemIndex','source','runData'])&&
+   const expression=message?.kind==='expression'&&only(args,['value','node','items','itemIndex','source','runData','pinData'])&&
     plan.expressionNodes.includes(args.node)&&++evaluations<=512;
    if(busy||termination||signal?.aborted||!Number.isSafeInteger(message?.ticket)||(!effect&&!expression)){
     failed=true;terminate('execution protocol');return;
@@ -389,7 +422,7 @@ function createManualRuntime({nodeRed,version,checkActive,effects=null,expressio
  },
  async admit({workflow,selection,retry=null}){
   await checkActive();
-  const plan=compile(workflow,selection,Boolean(effects)&&!retry,Boolean(expression));
+  const plan=compile(workflow,selection,Boolean(effects)&&!retry,Boolean(expression),retry);
   if(retry)resumePoint(plan,selection,retry);
   if(plan.expressionNodes.length){
    try{await warm();}
