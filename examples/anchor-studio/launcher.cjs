@@ -159,6 +159,7 @@ call('boot').then(async receipt=>{
    capture:ref=>sockets?.capture(ref),
    runtime:require('./manual-node-red.cjs').createManualRuntime({
     nodeRed:require.resolve(process.env.STUDIO_MODULES+'/node-red'),version:RED.version(),
+    expression:selected.expression_runtime??null,
     checkActive:()=>call('editor_manual_authority',{sha256:selected.sha256}),
     effects:selected.credential_editor===true?{
      check:(workflow,nodeId)=>workflows.call('credential_effect_check',{workflow_id:workflow.id,
@@ -168,9 +169,12 @@ call('boot').then(async receipt=>{
     }:null,
    }),
   }:null;
+  execution?.runtime.warm()?.catch(()=>{});
   const credentials=selected.credential_editor===true?{configuration:selected.sha256,capture:ref=>sockets?.capture(ref)}:null;
   editorHost=require('./community-editor.cjs').mountCommunityEditor(app,{express,workflows,installation,context,resident,execution,credentials});
-  app.get('/studio/editor-status',(req,res)=>res.json(editorHost.inspection));
+  app.get('/studio/editor-status',(req,res)=>res.json({...editorHost.inspection,
+   ...(selected.expression_runtime?{expression_runtime:execution.runtime.expressionStatus()}:{}),
+  }));
   app.use((req,res,next)=>{
    if(req.method!=='GET'||/^\/(?:studio|red|flows|appai|types|assets|rest)(?:\/|$)/.test(req.path))return next();
    res.type('html').send(editorHost.index());

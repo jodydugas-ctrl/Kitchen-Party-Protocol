@@ -152,7 +152,7 @@ function mountExecutionRoutes(route,{workflows,runtime,capture,projectId}){
   return {data:{results:page.data.map(row=>({...presentation(row,false),scopes})),
    nextCursor:page.next_cursor,count:page.count,estimated:false,concurrentExecutionsCount:-1}};
  });
- return Object.freeze({async close(){closing=true;await Promise.allSettled(pending);}});
+ return Object.freeze({async close(){closing=true;await Promise.allSettled(pending);await runtime.close?.();}});
 }
 
 module.exports={mountExecutionRoutes,encodeRunData};

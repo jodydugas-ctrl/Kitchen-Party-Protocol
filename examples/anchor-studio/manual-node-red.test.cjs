@@ -192,3 +192,65 @@ test('Edit Fields feeds typed input to both saved IF operands',
  assert.equal(failure.status,'error');
  assert.deepEqual(Object.keys(failure.data.resultData.runData),['Manual','Seed']);
 });
+
+test('the pinned n8n QuickJS engine evaluates real Node-RED items and previous-node data',
+ {skip:!process.env.STUDIO_MODULES||!process.env.STUDIO_EXPRESSION_ROOT?'Owner-provisioned expression runtime absent':false,
+  timeout:240000},async()=>{
+ const moduleRoot=process.env.STUDIO_MODULES;
+ const root=process.env.STUDIO_EXPRESSION_ROOT;
+ const nodeRed=require.resolve(path.join(moduleRoot,'node-red'));
+ const expression={root,...require('./expression-runtime.cjs').inspect(root)};
+ const runner=createManualRuntime({nodeRed,version:require(nodeRed).version(),expression,checkActive:async()=>{}});
+ const saved=workflow();
+ saved.id='synthetic-workflow';
+ const seed={id:'seed',name:'Seed',position:[240,0],type:'n8n-nodes-base.set',typeVersion:3.5,parameters:{
+  assignments:{assignments:[{name:'value',type:'number',value:40}]},
+ }};
+ const edit={id:'edit',name:'Project',position:[480,0],type:'n8n-nodes-base.set',typeVersion:3.5,parameters:{
+  assignments:{assignments:[
+   {name:'value',type:'number',value:'={{ $json.value + 2 }}'},
+   {name:'fromSeed',type:'number',value:'={{ $("Seed").first().json.value }}'},
+   {name:'label',type:'string',value:'=total {{ $input.first().json.value }}'},
+   {name:'private',type:'string',value:'={{ process.env.STUDIO_EXPRESSION_TEST_CANARY }}'},
+  ]},
+ }};
+ saved.nodes.splice(1,0,seed,edit);
+ const edge=node=>({main:[[{node,type:'main',index:0}]]});
+ saved.connections.Manual=edge('Seed');
+ saved.connections.Seed=edge('Project');
+ saved.connections.Project=edge('If');
+ const filter=saved.nodes[3].parameters.conditions.conditions[0];
+ filter.leftValue='={{ $json.value }}';
+ filter.rightValue='={{ $json.fromSeed + 2 }}';
+ process.env.STUDIO_EXPRESSION_TEST_CANARY='owner-private-test-value';
+ try{
+  const operation=await runner.admit({workflow:saved,selection:full});
+  const result=await operation({id:'synthetic-run',workflow:saved,selection:full});
+  assert.equal(result.status,'success',JSON.stringify(result));
+  assert.deepEqual(result.data.resultData.runData.If[0].data.main,[[{
+   json:{value:42,fromSeed:40,label:'total 40',private:null},pairedItem:{item:0},
+  }],[]]);
+ }finally{delete process.env.STUDIO_EXPRESSION_TEST_CANARY;await runner.close();}
+});
+
+test('expression source drift fails admission before Node-RED can start',
+ {skip:!process.allowedNodeEnvironmentFlags.has('--permission')?'Node file permissions unavailable':false},async()=>{
+ const parent=fs.realpathSync(os.tmpdir());
+ const root=fs.mkdtempSync(path.join(parent,'studio-expression-drift-'));
+ const packageDir=path.join(root,'node_modules','n8n-workflow');
+ const lock={lockfileVersion:3,packages:{'node_modules/n8n-workflow':{version:'2.46.4'}}};
+ fs.mkdirSync(packageDir,{recursive:true});
+ fs.writeFileSync(path.join(root,'package-lock.json'),JSON.stringify(lock));
+ fs.writeFileSync(path.join(packageDir,'package.json'),JSON.stringify({name:'n8n-workflow',version:'2.46.4'}));
+ const selected={root,...require('./expression-runtime.cjs').inspect(root)};
+ fs.writeFileSync(path.join(packageDir,'index.js'),'throw Error("unreviewed code");');
+ const runner=createManualRuntime({expression:selected,checkActive:async()=>{}});
+ try{
+  await assert.rejects(runner.admit({workflow:workflow('={{ $json.score + 1 }}'),selection:full}),
+   /reviewed expression runtime unavailable/);
+  assert.equal(runner.expressionStatus(),'UNAVAILABLE');
+ }finally{
+  await runner.close();
+  if(path.dirname(fs.realpathSync(root))===parent)fs.rmSync(root,{recursive:true,force:true});
+ }
+});

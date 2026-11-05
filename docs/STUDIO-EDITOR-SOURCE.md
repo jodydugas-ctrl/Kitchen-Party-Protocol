@@ -208,6 +208,25 @@ The first completed run using this setting transactionally upgrades the
 workflow store. Existing retained results remain readable. Earlier builds
 reject that upgraded store.
 
+## Reviewed native expressions
+
+With reviewed manual execution enabled, `studio editor-configure
+--expression-root LOCAL_RUNTIME` selects an owner-provisioned npm install
+of `n8n-workflow@2.46.4` with its package lock and complete `node_modules`
+tree. The controller binds the installation digest. On launch a separate
+QuickJS process verifies and copies the tree once. The editor status reports
+`STARTING`, `READY`, or `UNAVAILABLE`. The verified snapshot is reused by
+warm runs and removed when the process exits. A source change requires a
+reviewed configuration update. Source packages retain their upstream licenses.
+
+Edit Fields and IF evaluate expressions using saved workflow structure,
+current items, previous output, and the execution ID. Expressions can return
+finite JSON or a missing value. The worker runs with a limited environment,
+Node file permissions for the provisioned source and its scratch directory,
+and no child-process permission. This is a local execution profile.
+Expression previews, additional node parameters, binary data, and independent
+OS process isolation remain separate qualifications.
+
 ## Initialization and connection contracts
 
 The selected editor initializes a separate owner-local descriptor index through
