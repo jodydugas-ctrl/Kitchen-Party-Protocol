@@ -31,8 +31,12 @@ function setup({rejectCommit=false,stopAware=false,discard=false}={}){
   workflows:{async call(op,args){
    calls.push([op,args]);
    if(op==='get')return saved;
-   if(op==='execution_start')return {...result,claim:'private-claim',
-    selection:{trigger:args.trigger,destination:args.destination}};
+   if(op==='execution_retry_prepare')return {workflow:saved,revision:saved.revision,
+    selection:{trigger:'Manual',destination:null},observation:{checkpoint:'committed'},binding:'verified'};
+   if(op==='execution_start'){
+    if(args.retry_of)result={...result,mode:'retry',retryOf:args.retry_of};
+    return {...result,claim:'private-claim',selection:{trigger:args.trigger,destination:args.destination}};
+   }
    if(op==='execution_finish'){
     if(rejectCommit)throw Error('WORKFLOW_UNAVAILABLE');
     result={...result,status:args.status,data:args.result,stoppedAt:'2026-11-05T12:00:01Z'};
@@ -57,8 +61,31 @@ function setup({rejectCommit=false,stopAware=false,discard=false}={}){
  });
  const versions=()=>handlers.get('get /rest/executions/versions/:id')({params:{id:'w1'}});
  const stop=body=>handlers.get('post /rest/executions/:id/stop')({params:{id:'e1'},body});
- return {run,detail,listing,versions,stop,calls,frames};
+ const retry=body=>handlers.get('post /rest/executions/:id/retry')({
+  headers:{'push-ref':'origin'},params:{id:'e0'},body,
+ });
+ return {run,retry,detail,listing,versions,stop,calls,frames};
 }
+
+test('retry accepts only a version choice and releases the distinct committed execution',async()=>{
+ const server=setup();
+ await assert.rejects(server.retry({loadWorkflow:true,runData:{}}),/retry payload/);
+ const reply=await server.retry({loadWorkflow:true});
+ assert.equal(reply.data.status,'success');
+ assert.equal(reply.data.mode,'retry');
+ assert.equal(reply.data.retryOf,'e0');
+ assert.equal(reply.data.id,'e1');
+ assert.ok(reply.data.data.resultData.runData.Manual);
+ assert.deepEqual(server.calls.map(([op])=>op),
+  ['execution_retry_prepare','admit','execution_start','dispatch','execution_finish']);
+ assert.deepEqual(server.calls[0][1],{run_id:'e0',load_workflow:true});
+ assert.deepEqual(server.calls[1][1].retry,{checkpoint:'committed'});
+ assert.equal(server.calls[2][1].retry_binding,'verified');
+ assert.equal(server.frames.at(-1).type,'executionFinished');
+ const unavailable=setup({rejectCommit:true});
+ await assert.rejects(unavailable.retry({loadWorkflow:false}),/WORKFLOW_UNAVAILABLE/);
+ assert.ok(unavailable.frames.every(frame=>frame.type!=='executionFinished'));
+});
 
 test('native run transport binds selected saved version and publishes only a committed finish',async()=>{
  const server=setup();

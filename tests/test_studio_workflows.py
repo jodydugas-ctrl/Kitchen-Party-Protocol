@@ -107,6 +107,50 @@ class WorkflowTests(unittest.TestCase):
             with self.assertRaises(Conflict):
                 store.execution_start(self.execution_request(other), owner=True, source_pin='1'*64)
 
+    def test_retry_binds_retained_failure_revision_and_single_dispatch(self):
+        with tempfile.TemporaryDirectory() as td:
+            store = WorkflowStore(td)
+            saved = self.create(store)
+            authority = {'owner': True, 'source_pin': '1'*64}
+            selection = {'trigger': 'Input', 'destination': None}
+            request = {**self.execution_request(saved), **selection}
+            failed = store.execution_start(request, **authority)
+            observation = {'startData': {'studioSelection': selection},
+                           'resultData': {'runData': {}, 'error': {'name': 'NodeOperationError'}}}
+            store.execution_finish(failed['id'], claim=failed['claim'], status='error',
+                                   result=observation, **authority)
+            with self.assertRaises(PermissionError):
+                store.execution_retry_prepare(run_id=failed['id'], load_workflow=True, source_pin='1'*64)
+            with self.assertRaises(Conflict):
+                store.execution_retry_prepare(run_id=failed['id'], load_workflow=True,
+                                              **{**authority, 'source_pin': '2'*64})
+
+            def retry_request(current):
+                prepared = store.execution_retry_prepare(run_id=failed['id'], load_workflow=current, **authority)
+                return {**request, 'request_id': 'retry-'+str(current), 'retry_of': failed['id'],
+                        'retry_current': current, 'retry_binding': prepared['binding'],
+                        'revision': prepared['revision'], 'version_id': prepared['workflow']['versionId']}
+
+            stale = retry_request(True)
+            newer = self.mutate(store, 'update', saved, value={**saved, 'name': 'Repaired'})
+            with self.assertRaises(Conflict):
+                store.execution_start(stale, **authority)
+            for load_workflow, version in ((False, saved), (True, newer)):
+                prepared = retry_request(load_workflow)
+                retried = store.execution_start(prepared, **authority)
+                self.assertEqual(retried['retryOf'], failed['id'])
+                self.assertEqual(retried['workflowVersionId'], version['versionId'])
+                self.assertNotEqual(retried['id'], failed['id'])
+                reopened = WorkflowStore(td)
+                self.assertNotIn('claim', reopened.execution_start(prepared, **authority))
+                done = reopened.execution_finish(retried['id'], claim=retried['claim'], status='success',
+                                                 result={}, **authority)
+                self.assertEqual(reopened.execution_get(retried['id']), done)
+                with self.assertRaises(Conflict):
+                    reopened.execution_retry_prepare(run_id=retried['id'], load_workflow=False, **authority)
+            self.assertEqual(store.execution_page(query={'mode': 'retry'})['count'], 2)
+            self.assertEqual(store.execution_page(query={'mode': 'manual'})['count'], 1)
+
     def test_manual_history_off_keeps_only_a_receipt_after_live_execution(self):
         with tempfile.TemporaryDirectory() as td:
             store = WorkflowStore(td)

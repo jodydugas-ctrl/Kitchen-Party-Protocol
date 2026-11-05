@@ -23,6 +23,8 @@ function mountCommunityEditor(app,{express,workflows,installation,context,reside
   catch(error){const message=String(error.message),code=message.startsWith('Unsupported execution:')?501:message.startsWith('Conflict:')?409:message.startsWith('KeyError:')?404:message.startsWith('PermissionError:')?403:/WORKFLOW_(BUSY|TIMEOUT|UNAVAILABLE)/.test(message)?503:400;
    res.status(code).json({code,message:message==='Conflict: execution stop requires review'?'Execution stop could not be verified. Review its stored state.':
     message==='Conflict: execution already finished'?'The execution finished before it could be stopped.':
+    message==='Conflict: Retry requires a retained failed execution'?'Only a retained failed execution can be retried.':
+    message==='Conflict: Retry checkpoint was produced by a different runtime'?'This execution predates the current runtime and cannot be resumed.':
     code===409?(url.startsWith('/rest/credentials')?'Credential changed. Reopen it before saving.':'Workflow changed or its loaded version is missing. Retain the draft and reconcile.'):code===404?'Resource not found':code===503?'Workflow storage is unavailable':code===501?'This execution selection is unavailable.':'Editor request rejected'});}
  });
  route('get','/rest/settings',()=>({data:context.settings}));

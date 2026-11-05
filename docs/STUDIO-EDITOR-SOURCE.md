@@ -208,6 +208,31 @@ The first completed run using this setting transactionally upgrades the
 workflow store. Existing retained results remain readable. Earlier builds
 reject that upgraded store.
 
+### Failed execution retry
+
+Retry with the original workflow uses the failed run's saved version. Retry
+with the current workflow uses the latest saved version. Both start at the
+failed node with the committed upstream output. Each creates a new execution
+linked to the failed run. For example, if the upstream node produced 42 and
+was later edited to produce 999, a retry downstream still receives 42.
+
+This profile covers retained, full manual executions on a single path of
+supported nodes without external effects. A retry requires a checkpoint
+created by the current reviewed runtime and an unchanged path to the failed
+node. Partial executions, external effects, and canceled or uncertain results
+cannot be retried through this profile. The selected version must retain
+execution history. The first admitted retry upgrades the workflow store
+transactionally. Earlier builds reject the upgraded schema.
+
+The matched n8n Community 2.46.4 and Windows Studio cases observed the same
+failed original retry and successful current retry with stored input 42.
+The Studio browser exercised both execution-menu items and displayed distinct
+history entries linked to the initial failure. The HTTP test checked
+cross-origin refusal and rejection of successful executions. This is scoped
+evidence for the KPP Chase obligations `reference-command-10` and
+`reference-command-11`. Command-palette coverage, broader checkpoints,
+and Baker acceptance are pending.
+
 ## Reviewed native expressions
 
 With reviewed manual execution enabled, `studio editor-configure

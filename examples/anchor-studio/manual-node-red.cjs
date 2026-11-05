@@ -185,8 +185,42 @@ function requestHost(kind,args){
  return result;
 }
 
-async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects,native}){
- const plan=compile(workflow,selection,allowEffects,native),RED=require(nodeRed);
+// The reviewed retry subset resumes a single pure path. Prior outputs become
+// context for expressions but never generate new Node-RED messages.
+function resumePoint(plan,selection,observation){
+ const prior=observation?.resultData;
+ const history=prior?.runData;
+ demand(selection.destination===null&&observation?.version===1&&object(history)&&
+  prior.error?.name==='NodeOperationError'&&!prior.studioCheckedEffects&&
+  observation.startData?.studioSelection?.trigger===selection.trigger&&
+  observation.startData.studioSelection.destination===null,'retry has no eligible checkpoint');
+ for(const step of plan.byId.values())demand(step.wires.flat().length<=1,'retry requires a single path');
+ const prefix=Object.create(null);
+ let step=plan.entry,source=[],items=[],index=0;
+ while(step){
+  const attempts=own(history,step.name)?history[step.name]:null;
+  const task=attempts?.[0];
+  demand(Array.isArray(attempts)&&attempts.length===1&&task?.executionIndex===index&&
+   JSON.stringify(task.source)===JSON.stringify(source),'retry checkpoint path changed');
+  if(step.name===prior.lastNodeExecuted){
+   demand(index>0&&task.executionStatus==='error'&&Object.keys(history).length===index+1,
+    'retry checkpoint is incomplete');
+   return {entry:step,prefix,source,items,index};
+  }
+  const port=step.wires.findIndex(edges=>edges.length);
+  items=task.data?.main?.[port];
+  demand(task.executionStatus==='success'&&Array.isArray(items)&&items.length>0,'retry input is unavailable');
+  prefix[step.name]=attempts;
+  source=[{previousNode:step.name,previousNodeOutput:port,previousNodeRun:0}];
+  index++;
+  step=plan.byId.get(step.wires[port][0]);
+ }
+ throw Error('Unsupported execution: retry checkpoint is unreachable');
+}
+
+async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects,native,retry}){
+ const plan=compile(workflow,selection,allowEffects&&!retry,native),RED=require(nodeRed);
+ const resume=retry?resumePoint(plan,selection,retry):null;
  demand(RED.version()===version,'Node-RED runtime version changed');
  const tab='studio-execution',flows=[{id:tab,type:'tab',label:'Studio manual execution'}];
  for(const [index,step] of Array.from(plan.byId.values()).entries()){
@@ -195,8 +229,8 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
  const storage={init:async()=>{},getFlows:async()=>flows,saveFlows:async()=>{throw Error('Read-only graph');},
   getCredentials:async()=>({}),saveCredentials:async()=>{},getSettings:async()=>({}),saveSettings:async()=>{},
   getSessions:async()=>({}),saveSessions:async()=>{}};
- const resultData={runData:Object.create(null)};
- let outstanding=1,sequence=0,resolveComplete,failed=false,uncertain=false,initialized=false,deadline;
+ const resultData={runData:resume?.prefix??Object.create(null)};
+ let outstanding=1,sequence=resume?.index??0,resolveComplete,failed=false,uncertain=false,initialized=false,deadline;
  const complete=new Promise(resolve=>{resolveComplete=resolve;});
  async function observe(nodeId){
   let observed;
@@ -248,18 +282,19 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
    });
   });
   await RED.start();
-  for(let attempt=0;attempt<500&&!RED.nodes.getNode(plan.entry.id);attempt++)await delay(20);
-  const entry=RED.nodes.getNode(plan.entry.id);
+  const entryId=(resume?.entry??plan.entry).id;
+  for(let attempt=0;attempt<500&&!RED.nodes.getNode(entryId);attempt++)await delay(20);
+  const entry=RED.nodes.getNode(entryId);
   if(!entry)throw Error('Node-RED startup timed out');
   if(plan.timeout>0)deadline=AbortSignal.timeout(plan.timeout*1000);
-  entry.receive({items:[],source:[]});
+  entry.receive({items:resume?.items??[],source:resume?.source??[]});
   await complete;
   if(uncertain)return {status:'needs_review',data:{version:1,resultData}};
   if(deadline?.aborted){
    resultData.error={name:'ManualExecutionCancelledError',message:'The execution was cancelled manually'};
    return {status:'canceled',data:{version:1,resultData}};
   }
-  return {status:failed?'error':'success',data:{version:1,startData:{},resultData,executionData:{
+  return {status:failed?'error':'success',data:{version:1,startData:{studioSelection:selection},resultData,executionData:{
    contextData:{},nodeExecutionStack:[],metadata:{},waitingExecution:{},waitingExecutionSource:{},
   }}};
  }finally{
@@ -352,9 +387,10 @@ function createManualRuntime({nodeRed,version,checkActive,effects=null,expressio
    service.worker.process.kill();await closed;
   }
  },
- async admit({workflow,selection}){
+ async admit({workflow,selection,retry=null}){
   await checkActive();
-  const plan=compile(workflow,selection,Boolean(effects),Boolean(expression));
+  const plan=compile(workflow,selection,Boolean(effects)&&!retry,Boolean(expression));
+  if(retry)resumePoint(plan,selection,retry);
   if(plan.expressionNodes.length){
    try{await warm();}
    catch{throw Error('Unsupported execution: reviewed expression runtime unavailable');}
@@ -376,7 +412,7 @@ function createManualRuntime({nodeRed,version,checkActive,effects=null,expressio
     const graph={id,name,nodes:nodes.map(({id,name,type,typeVersion,position,parameters})=>({id,name,type,typeVersion,position,parameters})),
      connections,settings,active:false};
     return await runWorker({nodeRed,version,workflow:input.workflow,selection:input.selection,userDir,
-     allowEffects:Boolean(effects),native:Boolean(expression)},input.signal,plan,nodeId=>effects.observe(input,nodeId),
+     allowEffects:Boolean(effects),native:Boolean(expression),retry},input.signal,plan,nodeId=>effects.observe(input,nodeId),
      args=>service.worker.call('evaluate',{...args,workflow:graph,executionId:input.id},5000));
    }finally{
     running--;
@@ -391,7 +427,7 @@ async function main(){
  let size=0;
  for await(const bytes of process.stdin){
   size+=bytes.length;
-  if(size>MAX_INPUT+65536)throw Error('Manual worker input too large');
+  if(size>MAX_INPUT+65536+4*1024*1024)throw Error('Manual worker input too large');
   chunks.push(bytes);
  }
  const result=await dispatch(JSON.parse(Buffer.concat(chunks).toString('utf8')));

@@ -21,6 +21,41 @@ function workflow(value=42){
 }
 const full={trigger:'Manual',destination:null};
 
+test('Node-RED retries the failed step with the committed prefix and rejects changed checkpoint paths',
+ {skip:!process.env.STUDIO_MODULES?'Owner-provisioned Node-RED runtime absent':false,timeout:45000},async()=>{
+ const nodeRed=require.resolve(path.join(process.env.STUDIO_MODULES,'node-red'));
+ const runner=createManualRuntime({nodeRed,version:require(nodeRed).version(),checkActive:async()=>{}});
+ const edit=(name,value)=>({name,type:'n8n-nodes-base.set',typeVersion:3.5,parameters:{
+  assignments:{assignments:[{name:'value',type:'number',value}]},options:{},
+ }});
+ const saved=workflow();
+ saved.nodes.splice(1,2,edit('Seed',42),edit('Project','invalid'));
+ saved.connections={Manual:{main:[[{node:'Seed',type:'main',index:0}]]},
+  Seed:{main:[[{node:'Project',type:'main',index:0}]]}};
+ async function run(workflow,retry){
+  const operation=await runner.admit({workflow,selection:full,retry});
+  return operation({workflow,selection:full});
+ }
+ const failed=await run(saved);
+ assert.equal(failed.status,'error');
+ const checkpoint=JSON.parse(JSON.stringify(failed.data));
+ assert.equal((await run(saved,checkpoint)).status,'error');
+ const current=structuredClone(saved);
+ current.nodes.splice(1,2,edit('Seed',999),edit('Project','={{ $json.value }}'));
+ const retried=await run(current,checkpoint);
+ assert.equal(retried.status,'success');
+ const traces=retried.data.resultData.runData;
+ assert.deepEqual(traces.Seed,checkpoint.resultData.runData.Seed);
+ assert.equal(traces.Project[0].data.main[0][0].json.value,42);
+ const renamed=structuredClone(current);
+ renamed.nodes[2].name='Renamed';
+ renamed.connections.Seed.main[0][0].node='Renamed';
+ await assert.rejects(runner.admit({workflow:renamed,selection:full,retry:checkpoint}),/retry checkpoint/);
+ const effect=structuredClone(current);
+ effect.nodes[1].type='n8n-nodes-base.httpRequest';
+ await assert.rejects(runner.admit({workflow:effect,selection:full,retry:checkpoint}),/checked HTTP profile/);
+});
+
 function waitWorkflow(amount=1){
  const saved=workflow();
  saved.nodes[1]={name:'Wait',type:'n8n-nodes-base.wait',typeVersion:1.1,
