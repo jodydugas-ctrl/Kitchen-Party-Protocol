@@ -46,6 +46,8 @@ function presentation(run,includeData){
 
 function mountExecutionRoutes(route,{workflows,runtime,capture}){
  if(typeof runtime?.admit!=='function'||typeof capture!=='function')throw Error('TRUSTED_EXECUTION_HOST_REQUIRED');
+ const pending=new Set();
+ let closing=false;
  async function finish(started,operation,push){
   const {id:executionId,workflowId,workflowData,startedAt,claim}=started;
   push({type:'executionStarted',data:{executionId,workflowId,workflowName:workflowData.name,
@@ -69,17 +71,26 @@ function mountExecutionRoutes(route,{workflows,runtime,capture}){
   push({type:'executionFinished',data:{executionId,workflowId,status:presentation(committed,false).status}});
  }
  route('post','/rest/workflows/:id/run',async req=>{
-  const push=capture(req.headers['push-ref']);
-  if(!push)throw Error('Conflict: execution editor connection');
-  const saved=await workflows.call('get',{id:req.params.id});
-  const selected=selection(req.body,saved);
-  const operation=await runtime.admit({workflow:saved,selection:selected});
-  if(typeof operation!=='function')throw Error('Unsupported execution: runtime capability');
-  const run=await workflows.call('execution_start',{request_id:'run-'+randomUUID(),
-   workflow_id:saved.id,version_id:saved.versionId,revision:saved.revision,...selected});
-  if(!run.claim)throw Error('Conflict: execution already dispatched');
-  setImmediate(()=>finish(run,operation,push).catch(()=>{}));
-  return {data:{executionId:run.id}};
+  if(closing)throw Error('PermissionError: execution intake stopped');
+  let release,dispatched=false;
+  const lifecycle=new Promise(resolve=>{release=resolve;});
+  const done=()=>{pending.delete(lifecycle);release();};
+  pending.add(lifecycle);
+  try{
+   const push=capture(req.headers['push-ref']);
+   if(!push)throw Error('Conflict: execution editor connection');
+   const saved=await workflows.call('get',{id:req.params.id});
+   const selected=selection(req.body,saved);
+   const operation=await runtime.admit({workflow:saved,selection:selected});
+   if(typeof operation!=='function')throw Error('Unsupported execution: runtime capability');
+   if(closing)throw Error('PermissionError: execution intake stopped');
+   const run=await workflows.call('execution_start',{request_id:'run-'+randomUUID(),
+    workflow_id:saved.id,version_id:saved.versionId,revision:saved.revision,...selected});
+   if(!run.claim)throw Error('Conflict: execution already dispatched');
+   setImmediate(()=>finish(run,operation,push).catch(()=>{}).finally(done));
+   dispatched=true;
+   return {data:{executionId:run.id}};
+  }finally{if(!dispatched)done();}
  });
  route('get','/rest/executions/:id',async req=>{
   const run=await workflows.call('execution_get',{run_id:req.params.id});
@@ -97,6 +108,7 @@ function mountExecutionRoutes(route,{workflows,runtime,capture}){
   return {data:{results:page.data.map(row=>presentation(row,false)),
    nextCursor:next<page.count?String(next):null,count:page.count,estimated:false,concurrentExecutionsCount:-1}};
  });
+ return Object.freeze({async close(){closing=true;await Promise.allSettled(pending);}});
 }
 
 module.exports={mountExecutionRoutes,encodeRunData};

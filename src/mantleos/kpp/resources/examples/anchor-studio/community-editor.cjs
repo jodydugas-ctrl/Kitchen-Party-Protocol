@@ -88,7 +88,7 @@ function mountCommunityEditor(app,{express,workflows,installation,context,reside
   if(req.body.expectedChecksum!==undefined&&req.body.expectedChecksum!==await calculateWorkflowChecksum(current))throw Error('Conflict: checksum');
   return {data:await dto(await workflows.call('mutate',{request_id:'http-'+crypto.randomUUID(),action:'update',id:current.id,revision:current.revision,value:{...current,...req.body}}))};
  });
- if(execution)mountExecutionRoutes(route,{workflows,runtime:execution.runtime,capture:execution.capture});
+ const executionRoutes=execution?mountExecutionRoutes(route,{workflows,runtime:execution.runtime,capture:execution.capture}):null;
  app.use('/rest',(req,res)=>res.status(501).json({code:501,message:'This operation is not yet implemented in this BUILDING editor.'}));
  app.use('/rest',(error,req,res,next)=>{if(res.headersSent)return next(error);res.status(error.type==='entity.too.large'?413:400).json({code:error.type==='entity.too.large'?413:400,message:'Invalid or oversized workflow JSON'});});
  for(const name of ['nodes.json','credentials.json','node-versions.json'])app.get('/types/'+name,(req,res)=>{res.setHeader('X-Content-Type-Options','nosniff');res.type('json').send(catalog.asset(name));});
@@ -99,6 +99,7 @@ function mountCommunityEditor(app,{express,workflows,installation,context,reside
  app.get('/favicon.ico',(req,res)=>{const value=editor.asset('favicon.ico');if(value===null)return res.sendStatus(404);res.type('ico').send(value);});
  mountResidentView(app,resident,{jsonParser:express.json({limit:'128kb'})});
  return Object.freeze({index(){return editor.index().replace('</body>','<script defer src="/studio/resident-panel.js"></script></body>');},
+  async close(){await executionRoutes?.close();},
   inspection:{...installation.inspection,status:'BUILDING_NOT_ACCEPTED',workflow_execution:execution?'HOST_ADMITTED_MANUAL':'UNAVAILABLE',context:'RESIDENT_MEMORY'}});
 }
 module.exports={mountCommunityEditor};
