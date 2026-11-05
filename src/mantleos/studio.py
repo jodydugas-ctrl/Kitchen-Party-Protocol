@@ -38,7 +38,7 @@ def controller_pin():
     root=Path(__file__).parent
     names=('studio.py','studio_editor.py','studio_inventory.py','studio_handlers.py','studio_project.py','studio_workflows.py','studio_auto_mind.py','studio_mind_config.py','studio_mind_budget.py','studio_mind_provider.py','studio_demo.py','limbs.py','journal.py','anchors.py','anchor_design.py','anchor_language.py','effects.py','json_contract.py','transactions.py','primer.py','cartridge.py')
     resources=('launcher.cjs','json-worker.cjs','committed-events.cjs','local-access.cjs','workspace.html','workspace.css','workspace.js','conditions.cjs','palette/nodes.js','palette/nodes.html',
-               'editor-assets.cjs','editor-catalog.cjs','editor-installation.cjs','editor-local-context.cjs','editor-sockets.cjs','community-editor.cjs','workflow-checksum.cjs','resident-view.cjs','resident-panel.js')
+               'editor-assets.cjs','editor-catalog.cjs','editor-installation.cjs','editor-local-context.cjs','editor-sockets.cjs','community-editor.cjs','editor-executions.cjs','workflow-checksum.cjs','resident-view.cjs','resident-panel.js')
     names+=tuple('kpp/resources/examples/anchor-studio/'+name for name in resources)
     return c.digest({name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in names})
 

@@ -335,16 +335,22 @@ class WorkflowStore:
         with self._db() as db:
             return self._execution_view(db, self._execution_row(db, run_id), detail=True)
 
-    def execution_list(self, *, workflow_id, limit=50, offset=0):
+    def execution_list(self, *, workflow_id=None, limit=50, offset=0):
         c.require(type(limit) is int and 1 <= limit <= 200 and type(offset) is int and offset >= 0,
                   'Invalid execution pagination')
         with self._db() as db:
-            self._row(db, workflow_id)
+            if workflow_id is not None:
+                self._row(db, workflow_id)
             if not _execution_table(db):
                 return {'data': [], 'count': 0}
-            rows = db.execute('SELECT * FROM workflow_executions WHERE workflow=? ORDER BY rowid DESC LIMIT ? OFFSET ?',
-                              (workflow_id, limit, offset)).fetchall()
-            count = db.execute('SELECT count(*) FROM workflow_executions WHERE workflow=?', (workflow_id,)).fetchone()[0]
+            where = ' WHERE version IS NOT NULL'
+            values = ()
+            if workflow_id is not None:
+                where += ' AND workflow=?'
+                values = (workflow_id,)
+            rows = db.execute('SELECT * FROM workflow_executions' + where + ' ORDER BY rowid DESC LIMIT ? OFFSET ?',
+                              (*values, limit, offset)).fetchall()
+            count = db.execute('SELECT count(*) FROM workflow_executions' + where, values).fetchone()[0]
             return {'data': [self._execution_view(db, row) for row in rows], 'count': count}
 
     def mutate(self, request, *, owner=False):
