@@ -20,7 +20,9 @@ function mountCommunityEditor(app,{express,workflows,installation,context,reside
  const route=(method,url,handler)=>app[method](url,async(req,res)=>{
   try{res.json(await handler(req));}
   catch(error){const message=String(error.message),code=message.startsWith('Unsupported execution:')?501:message.startsWith('Conflict:')?409:message.startsWith('KeyError:')?404:message.startsWith('PermissionError:')?403:/WORKFLOW_(BUSY|TIMEOUT|UNAVAILABLE)/.test(message)?503:400;
-   res.status(code).json({code,message:code===409?'Workflow changed or its loaded version is missing. Retain the draft and reconcile.':code===404?'Workflow or execution not found':code===503?'Workflow storage is unavailable':code===501?'This execution selection is unavailable.':'Workflow request rejected'});}
+   res.status(code).json({code,message:message==='Conflict: execution stop requires review'?'Execution stop could not be verified. Review its stored state.':
+    message==='Conflict: execution already finished'?'The execution finished before it could be stopped.':
+    code===409?'Workflow changed or its loaded version is missing. Retain the draft and reconcile.':code===404?'Workflow or execution not found':code===503?'Workflow storage is unavailable':code===501?'This execution selection is unavailable.':'Workflow request rejected'});}
  });
  route('get','/rest/settings',()=>({data:context.settings}));
  route('get','/rest/login',()=>({data:context.user}));

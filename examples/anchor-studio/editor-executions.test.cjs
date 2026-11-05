@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const {setImmediate:turn}=require('node:timers/promises');
 const {mountExecutionRoutes,encodeRunData}=require('./editor-executions.cjs');
 
-function setup({rejectCommit=false}={}){
+function setup({rejectCommit=false,stopAware=false}={}){
  const handlers=new Map(),calls=[],frames=[];
  const saved={id:'w1',name:'Workflow',versionId:'saved',revision:'rev',
   nodes:[{name:'Manual',type:'n8n-nodes-base.manualTrigger'}]};
@@ -16,6 +16,10 @@ function setup({rejectCommit=false}={}){
    calls.push(['admit',value]);
    return async input=>{
     calls.push(['dispatch',input]);
+    if(stopAware){
+     if(!input.signal.aborted)await new Promise(resolve=>input.signal.addEventListener('abort',resolve,{once:true}));
+     return {status:'canceled',data:{version:1,resultData:{runData:{}}}};
+    }
     return {status:'success',data:{version:1,resultData:{runData:{},lastNodeExecuted:'Manual'}}};
    };
   }},
@@ -26,7 +30,7 @@ function setup({rejectCommit=false}={}){
     selection:{trigger:args.trigger,destination:args.destination}};
    if(op==='execution_finish'){
     if(rejectCommit)throw Error('WORKFLOW_UNAVAILABLE');
-    result={...result,status:args.status,data:args.result};
+    result={...result,status:args.status,data:args.result,stoppedAt:'2026-11-05T12:00:01Z'};
     return result;
    }
    if(op==='execution_get')return result;
@@ -39,7 +43,8 @@ function setup({rejectCommit=false}={}){
  });
  const detail=()=>handlers.get('get /rest/executions/:id')({params:{id:'e1'},query:{}});
  const listing=()=>handlers.get('get /rest/executions')({query:{filter:'{"workflowId":"w1"}'}});
- return {run,detail,listing,calls,frames};
+ const stop=body=>handlers.get('post /rest/executions/:id/stop')({params:{id:'e1'},body});
+ return {run,detail,listing,stop,calls,frames};
 }
 
 test('native run transport binds selected saved version and publishes only a committed finish',async()=>{
@@ -73,6 +78,32 @@ test('unsupported or detached requests never reserve work and failed commit neve
  await turn();
  assert.deepEqual(server.frames.map(frame=>frame.type),['executionStarted']);
  assert.equal((await server.detail()).data.status,'running');
+});
+
+test('Stop waits for the committed cancellation and repeated Stop reads the same record',async()=>{
+ const server=setup({stopAware:true});
+ await server.run({triggerToStartFrom:{name:'Manual'}});
+ await turn();
+ await assert.rejects(server.stop({state:'canceled'}),/Unsupported execution/);
+ const first=await server.stop({});
+ assert.deepEqual(first.data,{status:'canceled',mode:'manual',finished:false,
+  startedAt:'2026-11-05T12:00:00Z',stoppedAt:'2026-11-05T12:00:01Z'});
+ assert.deepEqual(await server.stop(),first);
+ assert.equal(server.calls.filter(([op])=>op==='execution_finish').length,1);
+ assert.equal(server.frames.at(-1).data.status,'canceled');
+});
+
+test('Stop preserves a run that finishes first and a failed cancellation commit stays unresolved',async()=>{
+ const intent={triggerToStartFrom:{name:'Manual'}};
+ const completed=setup();
+ await completed.run(intent);
+ await assert.rejects(completed.stop(),/already finished/);
+ assert.equal((await completed.detail()).data.status,'success');
+ const unresolved=setup({rejectCommit:true,stopAware:true});
+ await unresolved.run(intent);
+ await assert.rejects(unresolved.stop(),/stop requires review/);
+ assert.equal((await unresolved.detail()).data.status,'running');
+ assert.deepEqual(unresolved.frames.map(frame=>frame.type),['executionStarted']);
 });
 
 test('run-data encoding retains numeric text and nested item shape for Flatted consumers',()=>{

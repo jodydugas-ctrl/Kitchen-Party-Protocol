@@ -159,8 +159,15 @@ execution to that graph and records node inputs through their source links,
 outputs, and terminal state. The initiating editor receives a completion
 notification after the result commits, and the native Executions view reads
 the retained snapshot. Shutdown closes execution intake and waits for
-admitted work to finish recording. Cancellation after dispatch, recovery of
-interrupted processes, and per-node streaming remain open.
+admitted work to finish recording.
+
+The editor's Stop request targets the current run. Studio records cancellation
+after the owned child exits in response to Stop, or when it confirms that no
+child was started. If the run finishes first, its existing result wins. A
+repeated Stop reads the committed cancellation without creating another run.
+The Windows browser qualification observed a canceled run and a separate
+successful run of the same saved revision. Crash recovery and retention of
+partial node output from canceled runs remain open.
 
 The Windows qualification used the normal launcher and a synthetic workflow.
 Changing a numeric IF operand from 42 to 60 through the editor moved the item

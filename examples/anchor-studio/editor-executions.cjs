@@ -47,14 +47,15 @@ function presentation(run,includeData){
 function mountExecutionRoutes(route,{workflows,runtime,capture}){
  if(typeof runtime?.admit!=='function'||typeof capture!=='function')throw Error('TRUSTED_EXECUTION_HOST_REQUIRED');
  const pending=new Set();
+ const active=new Map();
  let closing=false;
- async function finish(started,operation,push){
+ async function finish(started,operation,push,signal){
   const {id:executionId,workflowId,workflowData,startedAt,claim}=started;
   push({type:'executionStarted',data:{executionId,workflowId,workflowName:workflowData.name,
    mode:'manual',startedAt,flattedRunData:'[{}]'}});
   let observation;
   try{
-   observation=await operation({id:executionId,workflow:workflowData,selection:started.selection});
+   observation=await operation({id:executionId,workflow:workflowData,selection:started.selection,signal});
    if(!observation||!['success','error','canceled'].includes(observation.status)||!observation.data||
       typeof observation.data!=='object'||Array.isArray(observation.data))throw Error('Unverified observation');
   }catch{
@@ -87,10 +88,26 @@ function mountExecutionRoutes(route,{workflows,runtime,capture}){
    const run=await workflows.call('execution_start',{request_id:'run-'+randomUUID(),
     workflow_id:saved.id,version_id:saved.versionId,revision:saved.revision,...selected});
    if(!run.claim)throw Error('Conflict: execution already dispatched');
-   setImmediate(()=>finish(run,operation,push).catch(()=>{}).finally(done));
+   const controller=new AbortController();
+   active.set(run.id,{controller,lifecycle});
+   setImmediate(()=>finish(run,operation,push,controller.signal).catch(()=>{}).finally(()=>{
+    active.delete(run.id);done();
+   }));
    dispatched=true;
    return {data:{executionId:run.id}};
   }finally{if(!dispatched)done();}
+ });
+ route('post','/rest/executions/:id/stop',async req=>{
+  if(req.body!==undefined&&(!req.body||Array.isArray(req.body)||
+     typeof req.body!=='object'||Object.keys(req.body).length))throw Error('Unsupported execution: stop payload');
+  const live=active.get(req.params.id);
+  if(live){live.controller.abort();await live.lifecycle;}
+  const run=await workflows.call('execution_get',{run_id:req.params.id});
+  if(run.status!=='canceled'){
+   if(run.status==='running'||run.status==='needs_review')throw Error('Conflict: execution stop requires review');
+   throw Error('Conflict: execution already finished');
+  }
+  return {data:{mode:run.mode,startedAt:run.startedAt,stoppedAt:run.stoppedAt,finished:false,status:'canceled'}};
  });
  route('get','/rest/executions/:id',async req=>{
   const run=await workflows.call('execution_get',{run_id:req.params.id});

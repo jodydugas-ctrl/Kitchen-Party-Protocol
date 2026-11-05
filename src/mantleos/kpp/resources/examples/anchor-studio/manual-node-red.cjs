@@ -1,7 +1,7 @@
 /* Reviewed pure manual execution on an isolated Node-RED runtime. */
 'use strict';
 const fs=require('node:fs'),http=require('node:http'),os=require('node:os'),path=require('node:path');
-const {execFile}=require('node:child_process');
+const {spawn}=require('node:child_process');
 const {setTimeout:delay}=require('node:timers/promises');
 const conditions=require('./conditions.cjs');
 const MAX_INPUT=256*1024;
@@ -103,10 +103,9 @@ function compile(workflow,selection){
  return {entry,byId};
 }
 
-async function dispatch({nodeRed,version,workflow,selection}){
+async function dispatch({nodeRed,version,workflow,selection,userDir}){
  const plan=compile(workflow,selection),RED=require(nodeRed);
  demand(RED.version()===version,'Node-RED runtime version changed');
- const parent=fs.realpathSync(os.tmpdir()),userDir=fs.mkdtempSync(path.join(parent,'mantle-studio-manual-'));
  const tab='studio-execution',flows=[{id:tab,type:'tab',label:'Studio manual execution'}];
  for(const [index,step] of Array.from(plan.byId.values()).entries()){
   flows.push({id:step.id,z:tab,type:'studio-execution-step',x:120+index*80,y:120,wires:step.wires});
@@ -160,8 +159,42 @@ async function dispatch({nodeRed,version,workflow,selection}){
   }}};
  }finally{
   if(initialized)await RED.stop();
-  if(path.dirname(fs.realpathSync(userDir))===parent)fs.rmSync(userDir,{recursive:true,force:true});
  }
+}
+
+function canceled(){
+ return {status:'canceled',data:{version:1,resultData:{runData:{}}}};
+}
+
+function runWorker(frame,signal){
+ return new Promise((resolve,reject)=>{
+  const child=spawn(process.execPath,[__filename,'--worker'],{windowsHide:true,stdio:['pipe','pipe','ignore']});
+  const output=[];
+  let bytes=0,termination=null,failed=false;
+  const terminate=reason=>{
+   if(termination||child.exitCode!==null||child.signalCode!==null)return;
+   try{if(child.kill('SIGTERM'))termination=reason;}catch{failed=true;}
+  };
+  const stop=()=>terminate('stop');
+  const timeout=setTimeout(()=>terminate('timeout'),30000);
+  child.on('error',()=>{failed=true;});
+  child.stdin.on('error',()=>{});
+  child.stdout.on('data',chunk=>{
+   bytes+=chunk.length;
+   if(bytes>4*1024*1024){failed=true;terminate('output limit');}
+   else output.push(chunk);
+  });
+  child.once('close',(code,exitSignal)=>{
+   clearTimeout(timeout);
+   signal?.removeEventListener('abort',stop);
+   if(termination==='stop'&&exitSignal==='SIGTERM')return resolve(canceled());
+   if(failed||code!==0||termination)return reject(Error('Node-RED manual worker unavailable'));
+   try{resolve(JSON.parse(Buffer.concat(output).toString('utf8')));}
+   catch{reject(Error('Invalid manual worker result'));}
+  });
+  signal?.addEventListener('abort',stop,{once:true});
+  child.stdin.end(JSON.stringify(frame));
+ });
 }
 
 function createManualRuntime({nodeRed,version,checkActive}){
@@ -170,20 +203,21 @@ function createManualRuntime({nodeRed,version,checkActive}){
   await checkActive();
   compile(workflow,selection);
   return async input=>{
+   if(input.signal?.aborted)return canceled();
    await checkActive();
+   if(input.signal?.aborted)return canceled();
    if(running>=2)return {status:'error',data:{version:1,resultData:{runData:{},
     error:{name:'ExecutionCapacity',message:'Manual execution capacity reached.'}}}};
+   const parent=fs.realpathSync(os.tmpdir());
    running++;
+   let userDir;
    try{
-    return await new Promise((resolve,reject)=>{
-     const child=execFile(process.execPath,[__filename,'--worker'],{windowsHide:true,timeout:30000,maxBuffer:4*1024*1024},(error,stdout)=>{
-      if(error)return reject(Error('Node-RED manual worker unavailable'));
-      try{resolve(JSON.parse(stdout));}catch{reject(Error('Invalid manual worker result'));}
-     });
-     child.stdin.on('error',()=>{});
-     child.stdin.end(JSON.stringify({nodeRed,version,workflow:input.workflow,selection:input.selection}));
-    });
-   }finally{running--;}
+    userDir=fs.mkdtempSync(path.join(parent,'mantle-studio-manual-'));
+    return await runWorker({nodeRed,version,workflow:input.workflow,selection:input.selection,userDir},input.signal);
+   }finally{
+    running--;
+    if(userDir&&path.dirname(fs.realpathSync(userDir))===parent)fs.rmSync(userDir,{recursive:true,force:true});
+   }
   };
  }};
 }

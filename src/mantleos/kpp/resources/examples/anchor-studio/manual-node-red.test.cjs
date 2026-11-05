@@ -2,6 +2,9 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const path=require('node:path');
+const fs=require('node:fs');
+const os=require('node:os');
+const {setTimeout:delay}=require('node:timers/promises');
 const {createManualRuntime}=require('./manual-node-red.cjs');
 
 function workflow(value=42){
@@ -52,4 +55,25 @@ test('actual Node-RED worker dispatches the selected saved branch and records no
  const partial=await run('={{ $json.score }}',{...full,destination:'If'});
  assert.deepEqual(Object.keys(partial),['Manual','If']);
  assert.deepEqual(partial.If[0].data.main.map(port=>port.length),[0,1]);
+});
+
+test('Stop observes a real child exit and removes its isolated runtime directory',
+ {skip:!process.env.STUDIO_MODULES?'Owner-provisioned Node-RED runtime absent':false,timeout:45000},async()=>{
+ const nodeRed=require.resolve(path.join(process.env.STUDIO_MODULES,'node-red'));
+ const runner=createManualRuntime({nodeRed,version:require(nodeRed).version(),checkActive:async()=>{}});
+ const controller=new AbortController(),saved=workflow();
+ const dispatch=await runner.admit({workflow:saved,selection:full});
+ const root=os.tmpdir();
+ const before=new Set(fs.readdirSync(root));
+ const outcome=dispatch({workflow:saved,selection:full,signal:controller.signal});
+ let created;
+ for(let attempts=0;attempts<50&&!created;attempts++){
+  created=fs.readdirSync(root).find(name=>name.startsWith('mantle-studio-manual-')&&!before.has(name));
+  if(!created)await delay(5);
+ }
+ try{assert.ok(created,'A worker must start before cancellation');}
+ finally{controller.abort();}
+ const result=await outcome;
+ assert.equal(result.status,'canceled');
+ assert.equal(fs.existsSync(path.join(root,created)),false);
 });
