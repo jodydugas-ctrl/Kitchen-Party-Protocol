@@ -895,7 +895,7 @@
     "tests/test_studio_demo.py": "4b12a42741048c45df78ce5fd0db99ccf796dbaf89b5e3697ed5451957791938",
     "tests/test_studio_editor.py": "bf1aa7618281892610737485a506687ff91e352609df81056f87a4c85fa9e2b7",
     "tests/test_studio_editor_config.py": "df9c5b048ee8be76576affd7cd9303be14136cd8700fffe4be5dfe8e688045f8",
-    "tests/test_studio_host.py": "db71dfe52e2fbb26e64e517d48f4e3ac9efc9c9c3f842e86d025d1499b1f7ba4",
+    "tests/test_studio_host.py": "4655051797de80fd41e31f2c8203f7ff78f10ad3d2759959670f505f39660515",
     "tests/test_studio_inventory.py": "3a7fcd532c242a210b370cdbb2c54a6406d544709e590aec64b1a6b3fa2c05ce",
     "tests/test_studio_local_access.py": "4d6c5f5f14515ebce7e184e4dd6516984752fe9c489ccdf7e31c9e0ebe6fc2b1",
     "tests/test_studio_mind_budget.py": "ba95f20a177630764f566004b921dac80666cff4b978e36a1b5b0efae8f8e676",

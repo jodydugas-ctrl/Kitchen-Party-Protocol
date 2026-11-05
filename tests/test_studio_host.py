@@ -92,7 +92,14 @@ class StudioHostTests(unittest.TestCase):
                     {'id':'host-value','z':'host-tab','type':'change','rules':[{'t':'set','p':'payload','pt':'msg','to':'native Body alive','tot':'str'}],'wires':[['host-out']]},
                     {'id':'host-out','z':'host-tab','type':'http response','statusCode':'200','headers':{},'wires':[]}]
                 self.assertEqual(api('/red/flows',flows)[0],204)
-                self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
+                # Node-RED acknowledges the saved revision before its
+                # asynchronous runtime deployment registers the HTTP node.
+                deadline=time.monotonic()+15
+                ping=api('/flows/qualification-ping')
+                while ping[0]==404 and time.monotonic()<deadline:
+                    time.sleep(.1)
+                    ping=api('/flows/qualification-ping')
+                self.assertEqual(ping,(200,'native Body alive'))
                 self.assertEqual(api('/studio/phase',{'active':False})[0],200)
                 self.assertEqual(api('/healthz')[1]['resident_phase'],'STASIS')
                 self.assertEqual(api('/flows/qualification-ping'),(200,'native Body alive'))
