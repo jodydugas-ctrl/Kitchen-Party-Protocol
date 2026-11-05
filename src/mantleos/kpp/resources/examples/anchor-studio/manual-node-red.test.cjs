@@ -57,6 +57,8 @@ test('Wait and execution timeout require the reviewed bounded settings',async()=
  const saved=waitWorkflow();
  saved.settings.saveManualExecutions=false;
  await assert.rejects(runner.admit({workflow:saved,selection:full}),/workflow settings/);
+ saved.settings.saveManualExecutions='DEFAULT';
+ assert.equal(typeof await runner.admit({workflow:saved,selection:full}),'function');
 });
 
 test('Node-RED completes a bounded Wait and reports a timed-out manual run as canceled',

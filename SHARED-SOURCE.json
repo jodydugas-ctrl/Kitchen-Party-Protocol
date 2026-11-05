@@ -207,8 +207,8 @@
     "src/mantleos/kpp/resources/examples/anchor-studio/launcher.cjs": "fca6079e21c4cfff8f7db12f9de56240845faa6a97909934191ae73bad5e63d9",
     "src/mantleos/kpp/resources/examples/anchor-studio/local-access.cjs": "2b6d5f7591db54176e31aa032c0833f29b2f296d1025ffdbd005dc9592c82db9",
     "src/mantleos/kpp/resources/examples/anchor-studio/local-access.test.cjs": "63241dff16bf08557a7f5eaacd6a9e886b3460f0bdbf85871a53ab1fa4b363c1",
-    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.cjs": "f12c0263318472c1a60f21c765ab5697c3ca30c0bacb12ab8e3f16cfd4d40af3",
-    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.test.cjs": "6c463715286b6e712a243b83cbcab1a750a9fc97f25a18d7900880d00b1a4959",
+    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.cjs": "ede187ce403e5f5e7daba696f0f994d870208a23f6314aae8d1ce0e8a7710b30",
+    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.test.cjs": "a0aad8431f01657aa9c2a29b5783d1560b29556cbfd07d1af82be4c76a35ac4c",
     "src/mantleos/kpp/resources/examples/anchor-studio/package-lock.json": "8835de3ce02d44bcb7ee5569c81bf34e52ed8600c67d613389c198ac7a883f62",
     "src/mantleos/kpp/resources/examples/anchor-studio/package.json": "92b5757b09f62720d8490f02568965ae811d759dc95c4e3491e37badd90df99f",
     "src/mantleos/kpp/resources/examples/anchor-studio/palette/nodes.html": "6b793be58d62d981defea0e4b5984a9e7d43f873dff1cfd770e896665abd9669",
@@ -565,5 +565,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "826d40b5adf150e8804bb1b226398a9c5e627495ed9df45084011efee47112e7"
+  "source_digest": "1254dd2f534b80a9ceb8bf64bd97526110efe723e63a2a4be1597de7b561d4fc"
 }
