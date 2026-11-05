@@ -176,6 +176,14 @@ original saved revisions. This qualifies those journeys within the manual
 profile. Full execution and expression parity and Baker acceptance remain
 separate gates.
 
+Execution history supports the personal project, workflow, executed version,
+status, mode and inclusive timestamp filters. The version selector reads only
+versions with retained executions. The first unfiltered page shows active runs
+alongside completed runs. Its cursor continues through completed runs in saved
+start order even when a newer run arrives. Summary pages omit node output,
+which remains available through the version-checked execution detail.
+Annotation, metadata and other unqualified filters remain explicit errors.
+
 ## Initialization and connection contracts
 
 The selected editor initializes a separate owner-local descriptor index through
