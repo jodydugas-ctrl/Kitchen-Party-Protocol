@@ -485,7 +485,8 @@ def main(argv=None):
         def check_source():
             with database(args.nest):pass  # Pinned controller, founding source and established Heart.
         check_source()
-        return serve(WorkflowStore(args.nest/'operational-workflows'),check_source=check_source)
+        return serve(WorkflowStore(args.nest/'operational-workflows'),
+                     check_source=check_source,execution_source=controller_pin())
     if args.command=='serve':
         from concurrent.futures import ProcessPoolExecutor
         from multiprocessing import get_context
