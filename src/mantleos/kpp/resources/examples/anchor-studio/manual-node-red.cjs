@@ -4,9 +4,11 @@ const fs=require('node:fs'),http=require('node:http'),os=require('node:os'),path
 const {spawn}=require('node:child_process');
 const {setTimeout:delay}=require('node:timers/promises');
 const conditions=require('./conditions.cjs');
+const {prepareEditFields}=require('./edit-fields.cjs');
 const MAX_INPUT=256*1024;
 const triggerType='n8n-nodes-base.manualTrigger',ifType='n8n-nodes-base.if',waitType='n8n-nodes-base.wait';
 const httpType='n8n-nodes-base.httpRequest';
+const editType='n8n-nodes-base.set';
 const MAX_WAIT_SECONDS=20;
 const own=(value,key)=>value!=null&&Object.hasOwn(value,key);
 const object=value=>value&&typeof value==='object'&&!Array.isArray(value);
@@ -15,9 +17,23 @@ function demand(ok,message){if(!ok)throw Error('Unsupported execution: '+message
 
 function operand(value){
  if(typeof value!=='string'||!value.startsWith('='))return ()=>value;
+ if(/^=\{\{\s*\$json\s*\}\}$/.test(value))return item=>item;
  const match=/^=\{\{\s*\$json\.([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s*\}\}$/.exec(value);
  demand(match&&match[1].split('.').every(key=>!['constructor','prototype','__proto__'].includes(key)),'expression');
  return item=>match[1].split('.').reduce((current,key)=>own(current,key)?current[key]:undefined,item);
+}
+
+function assignmentValue(value,depth=0){
+ demand(depth<=32,'assignment nesting');
+ if(Array.isArray(value)){
+  const parts=value.map(entry=>assignmentValue(entry,depth+1));
+  return item=>parts.map(read=>read(item)??null);
+ }
+ if(object(value)){
+  const parts=Object.entries(value).map(([key,entry])=>[key,assignmentValue(entry,depth+1)]);
+  return item=>Object.fromEntries(parts.map(([key,read])=>[key,read(item)??null]));
+ }
+ return operand(value);
 }
 
 function prepareIf(node){
@@ -29,11 +45,11 @@ function prepareIf(node){
   typeof options.caseSensitive==='boolean'&&options.typeValidation==='strict'&&options.version===4&&
   (!own(options,'leftValue')||options.leftValue==='')&&Array.isArray(filter.conditions),'IF filter options');
  const clauses=filter.conditions.map((clause,index)=>{
-  demand(only(clause,['id','leftValue','rightValue','operator'])&&only(clause.operator,['type','operation','singleValue'])&&
-   !(typeof clause.rightValue==='string'&&clause.rightValue.startsWith('=')),'IF operand');
+  demand(only(clause,['id','leftValue','rightValue','operator'])&&only(clause.operator,['type','operation','singleValue']),'IF operand');
   const {type,operation}=clause.operator;
-  return {read:operand(clause.leftValue),comparison:{field:'value'+index,type,operation,
-   ...(own(clause,'rightValue')?{value:clause.rightValue}:{})}};
+  const readRight=typeof clause.rightValue==='string'&&clause.rightValue.startsWith('=')?operand(clause.rightValue):null;
+  return {read:operand(clause.leftValue),readRight,comparison:{field:'value'+index,type,operation,
+   ...(own(clause,'rightValue')?{value:readRight?null:clause.rightValue}:{})}};
  });
  const spec={schema:'studio.if/1',combinator:filter.combinator,caseSensitive:options.caseSensitive,
   continueOnFail:node.continueOnFail===true,conditions:clauses.map(clause=>clause.comparison)};
@@ -43,6 +59,18 @@ function prepareIf(node){
    json:Object.fromEntries(clauses.map(({read,comparison})=>[comparison.field,read(item.json)]).filter(([,value])=>value!==undefined)),
    pairedItem:{item:index},
   }));
+  if(clauses.some(clause=>clause.readRight)){
+   const ports=[[],[]];
+   for(const [index,item] of items.entries()){
+    const comparisons=clauses.map(({readRight,comparison})=>readRight?
+     {...comparison,value:readRight(item.json)??null}:comparison);
+    let pass=false;
+    try{pass=conditions.partition({...spec,conditions:comparisons},[projected[index]]).true.length===1;}
+    catch(error){if(!spec.continueOnFail)throw error;}
+    ports[pass?0:1].push({...item,pairedItem:{item:index}});
+   }
+   return ports;
+  }
   const output=conditions.partition(spec,projected);
   return [output.true,output.false].map(port=>port.map(({pairedItem})=>({...items[pairedItem.item],pairedItem})));
  };
@@ -82,6 +110,8 @@ function compile(workflow,selection,allowEffects=false){
   }else if(node.type===waitType){
    demand(!node.continueOnFail,'Wait error policy');
    execute=prepareWait(node);outputs=1;
+  }else if(node.type===editType){
+   execute=prepareEditFields(node,assignmentValue);outputs=1;
   }else if(node.type===httpType){
    demand(allowEffects&&node.typeVersion===4.5&&typeof node.id==='string'&&!node.continueOnFail,'checked HTTP profile');
    effectNode=node.id;outputs=1;
@@ -194,7 +224,7 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
      failed=true;
      resultData.lastNodeExecuted=step.name;
      resultData.error={name:'NodeOperationError',message:step.effectNode?
-      'The checked HTTP request did not return a verified response.':'The admitted IF condition rejected an input item.'};
+      'The checked HTTP request did not return a verified response.':'The admitted node rejected an input item.'};
      resultData.runData[step.name]=[{startTime,executionIndex,source:msg.source,executionTime:Date.now()-startTime,
       executionStatus:'error',error:resultData.error}];
     }finally{done();if(--outstanding===0)resolveComplete();}

@@ -145,10 +145,13 @@ grant alongside the editor source. Studio checks the configuration and active
 Body before admitting and dispatching each run. Reconfigure in stasis with the
 flag omitted to withdraw the execution grant.
 
-The current profile accepts one Manual Trigger, strict IF 2.4 nodes, and
-Wait 1.1 nodes on connected, acyclic main-port graphs with a single input
-per node. It accepts literal conditions and direct `$json.field` paths in
-left operands. Wait supports literal time intervals of 1 through 20 seconds
+The current profile accepts one Manual Trigger, strict IF 2.4 nodes, manual
+Edit Fields 3.5 nodes, and Wait 1.1 nodes on connected, acyclic main-port
+graphs with a single input per node. It accepts literal conditions and
+direct `$json.field` paths on either side of an IF condition. Edit Fields
+can assign strings, numbers, booleans, arrays and JSON objects from
+literals or direct input references, with nested field names and optional
+input field retention. Wait supports literal time intervals of 1 through 20 seconds
 and carries items forward with their input pairing. The worker
 limits graphs to 64 nodes and 256 KiB, runs at most two child runtimes at once,
 and bounds each child to 30 seconds. The base profile supports pure work.

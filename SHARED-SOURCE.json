@@ -143,7 +143,7 @@
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "38bccf2b8f5eeae41d026f4533416ee58a7c2fa1a3af2b7571436b024c513ed4",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "95cc5f94e44d26f29b09e54bb5ab896948ed7b8b498d0c9f98a0ae934bcd792a",
-    "src/mantleos/kpp/resources/docs/STUDIO-EDITOR-SOURCE.md": "a0098fb0fe26e8c9514d48c9e731297239135831883839364730ff295160c251",
+    "src/mantleos/kpp/resources/docs/STUDIO-EDITOR-SOURCE.md": "a1a7bd03366f9b4c3f3af0a02e878177f68eac45f969ad61f33c403df05e9633",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -187,6 +187,7 @@
     "src/mantleos/kpp/resources/examples/anchor-studio/conditions-runtime-probe.cjs": "19da61ac5ef907478c0a9d268b8de8344bb9b9602a2045d6582173785438a5b6",
     "src/mantleos/kpp/resources/examples/anchor-studio/conditions.cjs": "130195a4732ba2b850f2f8237ea4dbc25505854e0f022d46612836ed64058ad5",
     "src/mantleos/kpp/resources/examples/anchor-studio/conditions.test.cjs": "d3f55dd15f5c502ac5b05ad6cb42173dd3a5db9632d06c049e7e7947ab550e87",
+    "src/mantleos/kpp/resources/examples/anchor-studio/edit-fields.cjs": "2072fc7f078f4997cb1cc934b4cd4e12755756ae6884317d05afe2e7c2c32fa7",
     "src/mantleos/kpp/resources/examples/anchor-studio/editor-assets.cjs": "1d9c3886f751f322e5aa8b1bf9427bfa6add4058df451f0f0c14ca61dc33e8a2",
     "src/mantleos/kpp/resources/examples/anchor-studio/editor-assets.test.cjs": "ad3f3beeefb748e90d54018a047efb487044ed264e8356c6f6c7124576fa4a87",
     "src/mantleos/kpp/resources/examples/anchor-studio/editor-catalog.cjs": "1d31422bc66a8a3d87d2005753cc17b791d19cfb62d2926c49f1724a4c49058b",
@@ -208,8 +209,8 @@
     "src/mantleos/kpp/resources/examples/anchor-studio/launcher.cjs": "60b2a32c6cc6573d758a7ca358dc7413822f959b7e2d923c0e547048293472e2",
     "src/mantleos/kpp/resources/examples/anchor-studio/local-access.cjs": "2b6d5f7591db54176e31aa032c0833f29b2f296d1025ffdbd005dc9592c82db9",
     "src/mantleos/kpp/resources/examples/anchor-studio/local-access.test.cjs": "63241dff16bf08557a7f5eaacd6a9e886b3460f0bdbf85871a53ab1fa4b363c1",
-    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.cjs": "2e148712c7157fdb1fd7ac2ad8d2e76efe860541927401c045820d36ee70fc5a",
-    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.test.cjs": "9e1c628bcebcedf777f6fae3a6ae66d3bbef9ff381ed0fe14b9bc789368ef0a4",
+    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.cjs": "16f7497f8f1995637ad33f1a8e4dd56024460d6f512dd4231cb9ec17ec5f2afd",
+    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.test.cjs": "072f3650343c4fe225fab3060b0195e86302f258ee1582bd3e2a30255ebe118e",
     "src/mantleos/kpp/resources/examples/anchor-studio/package-lock.json": "8835de3ce02d44bcb7ee5569c81bf34e52ed8600c67d613389c198ac7a883f62",
     "src/mantleos/kpp/resources/examples/anchor-studio/package.json": "92b5757b09f62720d8490f02568965ae811d759dc95c4e3491e37badd90df99f",
     "src/mantleos/kpp/resources/examples/anchor-studio/palette/nodes.html": "6b793be58d62d981defea0e4b5984a9e7d43f873dff1cfd770e896665abd9669",
@@ -545,7 +546,7 @@
     "src/mantleos/skin_cli.py": "82290542d4a22108485659226d2c2f3bd627750fe32139d9368b72d5ac0a5359",
     "src/mantleos/specimens.py": "d3d75a6db6b2cdf2ecff12977234e185034078e736301c42906e66cd45ba0091",
     "src/mantleos/storage.py": "57ff2b4f7e3c7e7d3401f6b35cc07e1d8a224f8cb6c1fd64dbf3186f9d2703dd",
-    "src/mantleos/studio.py": "8a38627e26e70ff0babc150b145370301f448c7db4a3b3cc82e23a7ae805d07f",
+    "src/mantleos/studio.py": "65a5535b601f0fd3877fd228695a34ce6fd5e8bdcf8a5cf80f528068d9a46031",
     "src/mantleos/studio_auto_mind.py": "f935994fc9b287404bb61f7527350f8a4cafb49a2942ac52eb2534a23d71d6ab",
     "src/mantleos/studio_credential_use.py": "710092e7e25b99be879cb58beffc972a923eb3e49575d724d16a9a4e721bbd89",
     "src/mantleos/studio_credentials.py": "4a09c00b13a0d29d3551a5bbcff90465df98c6ab66b2d2954f09f8824d6e7b49",
@@ -568,5 +569,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "6cb1e3086abdc729ad8405905c99201c5a6ec3641930ec95db66732fb47a120a"
+  "source_digest": "1c342f9de15b9edf73198f5c724004151b9bfb1f3e6d80d4141622cdb0a34119"
 }
