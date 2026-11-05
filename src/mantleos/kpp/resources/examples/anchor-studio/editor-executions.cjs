@@ -62,7 +62,7 @@ function pushTransientNodes(push,executionId,runData){
  }
 }
 
-function mountExecutionRoutes(route,{workflows,runtime,capture,projectId}){
+function mountExecutionRoutes(route,{workflows,runtime,capture,projectId,configuration}){
  if(typeof runtime?.admit!=='function'||typeof capture!=='function')throw Error('TRUSTED_EXECUTION_HOST_REQUIRED');
  const pending=new Set();
  const active=new Map();
@@ -167,14 +167,30 @@ function mountExecutionRoutes(route,{workflows,runtime,capture,projectId}){
  route('get','/rest/executions/versions/:id',async req=>({
   data:await workflows.call('execution_versions',{workflow_id:req.params.id}),
  }));
- route('get','/rest/executions',async req=>{
-  const filter=req.query.filter?JSON.parse(req.query.filter):{};
+ function personalQuery(filter){
   if(!filter||typeof filter!=='object'||Array.isArray(filter))throw Error('Unsupported execution: history filter');
   const {projectId:requestedProject,...query}=filter;
   if(requestedProject!==undefined&&requestedProject!==projectId)throw Error('PermissionError: execution project');
+  return query;
+ }
+ if(configuration)route('post','/rest/executions/delete',async req=>{
+  if(closing)throw Error('PermissionError: execution intake stopped');
+  const body=req.body;
+  if(!body||typeof body!=='object'||Array.isArray(body)||
+     Object.keys(body).some(key=>!['ids','deleteBefore','filters'].includes(key))||
+     Object.hasOwn(body,'ids')===Object.hasOwn(body,'deleteBefore'))
+   throw Error('Unsupported execution: deletion selection');
+  const query=personalQuery(body.filters===undefined?{}:body.filters);
+  await workflows.call('execution_delete',{ids:body.ids??null,before:body.deleteBefore??null,query,configuration});
+  return {};
+ });
+ route('get','/rest/executions',async req=>{
+  const filter=req.query.filter?JSON.parse(req.query.filter):{};
+  const query=personalQuery(filter);
   const limit=Number(req.query.limit??50),cursor=req.query.cursor??null;
   const page=await workflows.call('execution_page',{query,cursor,limit});
   const scopes=['execution:list','execution:read','workflow:read','workflow:execute'];
+  if(configuration)scopes.push('execution:delete');
   return {data:{results:page.data.map(row=>({...presentation(row,false),scopes})),
    nextCursor:page.next_cursor,count:page.count,estimated:false,concurrentExecutionsCount:-1}};
  });

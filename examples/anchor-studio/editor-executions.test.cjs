@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const {setImmediate:turn}=require('node:timers/promises');
 const {mountExecutionRoutes,encodeRunData}=require('./editor-executions.cjs');
 
-function setup({rejectCommit=false,stopAware=false,discard=false}={}){
+function setup({rejectCommit=false,stopAware=false,discard=false,configuration}={}){
  const handlers=new Map(),calls=[],frames=[];
  const saved={id:'w1',name:'Workflow',versionId:'saved',revision:'rev',
   nodes:[{name:'Manual',type:'n8n-nodes-base.manualTrigger'}],
@@ -14,6 +14,7 @@ function setup({rejectCommit=false,stopAware=false,discard=false}={}){
  mountExecutionRoutes((method,path,handler)=>handlers.set(method+' '+path,handler),{
   capture:ref=>ref==='origin'?frame=>frames.push(frame):null,
   projectId:'personal',
+  configuration,
   runtime:{async admit(value){
    calls.push(['admit',value]);
    return async input=>{
@@ -49,6 +50,7 @@ function setup({rejectCommit=false,stopAware=false,discard=false}={}){
    }
    if(op==='execution_page')return discard?{count:0,data:[],next_cursor:null}:{count:1,data:[result],next_cursor:null};
    if(op==='execution_versions')return [{versionId:'saved',name:null,createdAt:result.startedAt}];
+   if(op==='execution_delete')return null;
    throw Error('unexpected call');
   }},
  });
@@ -64,8 +66,23 @@ function setup({rejectCommit=false,stopAware=false,discard=false}={}){
  const retry=body=>handlers.get('post /rest/executions/:id/retry')({
   headers:{'push-ref':'origin'},params:{id:'e0'},body,
  });
- return {run,retry,detail,listing,versions,stop,calls,frames};
+ const remove=handlers.get('post /rest/executions/delete');
+ return {run,retry,detail,listing,versions,stop,remove:remove&&((body)=>remove({body})),calls,frames};
 }
+
+test('history deletion binds local project and host configuration without accepting browser grants',async()=>{
+ assert.equal(setup().remove,undefined);
+ const server=setup({configuration:'approved'});
+ await assert.rejects(server.remove({ids:['e1'],configuration:'forged'}),/deletion selection/);
+ await assert.rejects(server.remove({ids:['e1'],filters:{projectId:'another-project'}}),/execution project/);
+ await assert.rejects(server.remove({ids:['e1'],deleteBefore:'2040-01-01T00:00:00Z'}),/deletion selection/);
+ assert.deepEqual(server.calls,[]);
+ assert.deepEqual(await server.remove({ids:['e1'],filters:{projectId:'personal',status:['success']}}),{});
+ assert.deepEqual(server.calls,[['execution_delete',{
+  ids:['e1'],before:null,query:{status:['success']},configuration:'approved',
+ }]]);
+ assert.ok((await server.listing()).data.results[0].scopes.includes('execution:delete'));
+});
 
 test('retry accepts only a version choice and releases the distinct committed execution',async()=>{
  const server=setup();

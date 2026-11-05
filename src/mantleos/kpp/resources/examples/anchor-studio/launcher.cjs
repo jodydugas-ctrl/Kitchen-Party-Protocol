@@ -157,6 +157,7 @@ call('boot').then(async receipt=>{
   const resident=require('./resident-view.cjs').createResidentView({body:(op,args)=>op==='result'?resultFor(args.request_id):call(op,args),conversation:encounter});
   const execution=selected.manual_execution===true?{
    capture:ref=>sockets?.capture(ref),
+   configuration:selected.sha256,
    runtime:require('./manual-node-red.cjs').createManualRuntime({
     nodeRed:require.resolve(process.env.STUDIO_MODULES+'/node-red'),version:RED.version(),
     expression:selected.expression_runtime??null,

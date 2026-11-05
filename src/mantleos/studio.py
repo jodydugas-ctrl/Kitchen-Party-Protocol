@@ -515,17 +515,22 @@ def main(argv=None):
         def check_source():
             with database(args.nest):pass  # Pinned controller, founding source and established Heart.
         @contextmanager
-        def credentials(expected):
+        def active_editor(expected, capability):
             with database(args.nest) as db:
                 db.execute('BEGIN IMMEDIATE')
                 config = from_database(db)
-                if (not config or config.get('credential_editor') is not True or config['sha256'] != expected
+                if (not config or config.get(capability) is not True or config['sha256'] != expected
                         or _setting(db, 'phase') != 'ACTIVE'):
-                    raise PermissionError('Reviewed credentials require the active selected Body')
+                    raise PermissionError('The operation requires the active reviewed editor')
+                yield db
+        @contextmanager
+        def credentials(expected):
+            with active_editor(expected, 'credential_editor') as db:
                 yield CredentialStore(args.nest, _setting(db, 'identity'))
         check_source()
         return serve(WorkflowStore(args.nest/'operational-workflows'),
                      check_source=check_source,execution_source=controller_pin(),credential_store=credentials,
+                     execution_history_authority=lambda expected: active_editor(expected, 'manual_execution'),
                      credential_use=CredentialUse(args.nest))
     if args.command=='serve':
         from concurrent.futures import ProcessPoolExecutor

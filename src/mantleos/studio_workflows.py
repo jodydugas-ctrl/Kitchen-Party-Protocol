@@ -99,6 +99,34 @@ def _execution_time(value):
     return datetime.fromisoformat(value).astimezone(timezone.utc).isoformat(timespec='microseconds')
 
 
+def _execution_filter(query, *, retry):
+    c.require(type(query) is dict and query.keys() <= {
+        'workflowId', 'workflowVersionId', 'status', 'startedAfter', 'startedBefore', 'mode',
+    }, 'Unsupported execution history filter')
+    conditions, values = [], []
+    for key, column in (('workflowId', 'workflow'), ('workflowVersionId', 'version')):
+        if key in query:
+            conditions.append(column+'=?')
+            values.append(_id(query[key]))
+    for key, operator in (('startedAfter', '>='), ('startedBefore', '<=')):
+        if key in query:
+            conditions.append('started'+operator+'?')
+            values.append(_execution_time(query[key]))
+    if 'mode' in query:
+        mode = c.text(query['mode'], maximum=64)
+        modes = {'manual': 'retry_of IS NULL', 'retry': 'retry_of IS NOT NULL'} if retry else {'manual': '1'}
+        conditions.append(modes.get(mode, '0'))
+    statuses = query.get('status', [])
+    c.require(type(statuses) is list and len(statuses) <= len(HISTORY_STATUSES)
+              and all(type(status) is str and status in HISTORY_STATUSES for status in statuses),
+              'Invalid execution status filter')
+    if statuses:
+        matches = sorted({HISTORY_STATUSES[status] for status in statuses} - {None})
+        conditions.append('status IN (' + ','.join('?' for _ in matches) + ')' if matches else '0')
+        values.extend(matches)
+    return conditions, values
+
+
 def _history_cursor(value):
     if value is None:
         return None
@@ -374,6 +402,8 @@ class WorkflowStore:
                 if prior:
                     if prior['request_sha256'] != binding:
                         raise Conflict('Duplicate execution request changed')
+                    if prior['version'] is None:
+                        raise Conflict('Execution history was removed')
                     return self._execution_view(db, prior)
             target = current['version']
             if retry:
@@ -501,31 +531,7 @@ class WorkflowStore:
     def execution_page(self, *, query, limit=50, cursor=None):
         """Read a stable page of owner-local execution summaries."""
         c.require(type(limit) is int and 1 <= limit <= 200, 'Invalid execution history limit')
-        c.require(type(query) is dict and query.keys() <= {
-            'workflowId', 'workflowVersionId', 'status', 'startedAfter', 'startedBefore', 'mode',
-        }, 'Unsupported execution history filter')
         position = _history_cursor(cursor)
-        conditions = ['version IS NOT NULL']
-        values = []
-        for key, column in (('workflowId', 'workflow'), ('workflowVersionId', 'version')):
-            if key in query:
-                conditions.append(column+'=?')
-                values.append(_id(query[key]))
-        for key, operator in (('startedAfter', '>='), ('startedBefore', '<=')):
-            if key in query:
-                conditions.append('started'+operator+'?')
-                values.append(_execution_time(query[key]))
-        mode = c.text(query['mode'], maximum=64) if 'mode' in query else None
-        statuses = query.get('status', [])
-        c.require(type(statuses) is list and len(statuses) <= len(HISTORY_STATUSES)
-                  and all(type(status) is str and status in HISTORY_STATUSES for status in statuses),
-                  'Invalid execution status filter')
-        if statuses:
-            matches = sorted({HISTORY_STATUSES[status] for status in statuses} - {None})
-            conditions.append('status IN (' + ','.join('?' for _ in matches) + ')' if matches else '0')
-            values.extend(matches)
-        else:
-            conditions.append("status<>'running'")
 
         def fetch(db, where, arguments, *, after=None):
             if after is not None:
@@ -542,12 +548,12 @@ class WorkflowStore:
                               (*arguments, limit)).fetchall()
 
         with self._db() as db:
+            filtered, values = _execution_filter(query, retry=db is not None and _has_retry(db))
             if not _execution_table(db):
                 return {'data': [], 'count': 0, 'next_cursor': None}
-            conditions.insert(0, _retained_condition(db))
-            if mode is not None:
-                mode_condition = {'manual': 'retry_of IS NULL', 'retry': 'retry_of IS NOT NULL'}
-                conditions.insert(0, mode_condition.get(mode, '0') if _has_retry(db) else str(int(mode == 'manual')))
+            statuses = query.get('status')
+            base = ['version IS NOT NULL', _retained_condition(db), *filtered]
+            conditions = base if statuses else [*base, "status<>'running'"]
             rows = fetch(db, conditions, values, after=position)
             count = db.execute('SELECT count(*) FROM workflow_executions WHERE ' +
                                ' AND '.join(conditions), values).fetchone()[0]
@@ -559,7 +565,7 @@ class WorkflowStore:
                 }})
                 next_cursor = base64.urlsafe_b64encode(packet.encode('utf-8')).decode('ascii').rstrip('=')
             if not statuses and position is None:
-                rows = fetch(db, [*conditions[:-1], "status='running'"], values) + rows
+                rows = fetch(db, [*base, "status='running'"], values) + rows
             names = {}
             summaries = []
             for row in rows:
@@ -571,6 +577,38 @@ class WorkflowStore:
                                   'jsonSizeBytes': row['result_size'] or 0,
                                   'binaryDataSizeBytes': 0})
             return {'data': summaries, 'count': count, 'next_cursor': next_cursor}
+
+    def execution_delete(self, *, ids, before, query, owner=False):
+        """Remove selected settled history, keeping dispatch tombstones."""
+        if owner is not True:
+            raise PermissionError('Independent owner execution-history authority required')
+        c.require((ids is None) != (before is None), 'Select execution IDs or a cutoff')
+        if ids is not None:
+            c.require(type(ids) is list and len(ids) <= 500, 'Invalid execution deletion selection')
+            selected = list(dict.fromkeys(_id(identifier) for identifier in ids))
+        else:
+            cutoff = _execution_time(before)
+        with self._db(write=True) as db:
+            filtered, values = _execution_filter(query, retry=_has_retry(db))
+            if not _execution_table(db):
+                return
+            conditions = ['version IS NOT NULL', _retained_condition(db), "status IN ('success','error','canceled')"]
+            if ids is not None:
+                if not selected:
+                    return
+                # The pinned client treats explicitly selected IDs as authoritative.
+                selector = 'id IN ('+','.join('?' for _ in selected)+')'
+                if db.execute("SELECT 1 FROM workflow_executions WHERE status IN ('running','needs_review') AND "+
+                              selector+' LIMIT 1', selected).fetchone():
+                    raise Conflict('Resolve selected executions before deleting their history')
+                conditions.append(selector)
+                values = selected
+            else:
+                conditions += [*filtered, 'started<?']
+                values.append(cutoff)
+            db.execute("""UPDATE workflow_executions SET version=NULL,graph_sha256=NULL,source_pin=NULL,
+                       claim=NULL,status='removed',result=NULL,result_sha256=NULL WHERE """ +
+                       ' AND '.join(conditions), values)
 
     def execution_versions(self, workflow_id):
         _id(workflow_id)
@@ -682,6 +720,7 @@ class WorkflowStore:
 
 
 def serve(store, input_stream=None, output_stream=None, *, check_source=None, execution_source=None,
+          execution_history_authority=None,
           credential_store=None, credential_use=None):
     """Trusted foreground controller pipe, never a network/model RPC listener.
 
@@ -751,6 +790,11 @@ def serve(store, input_stream=None, output_stream=None, *, check_source=None, ex
                 result = store.execution_list(**args)
             elif op == 'execution_page' and execution_source:
                 result = store.execution_page(**args)
+            elif op == 'execution_delete' and execution_history_authority:
+                c.shape(args, {'ids', 'before', 'query', 'configuration'})
+                with execution_history_authority(args['configuration']):
+                    result = store.execution_delete(ids=args['ids'], before=args['before'],
+                                                    query=args['query'], owner=True)
             elif op == 'execution_versions' and execution_source:
                 c.shape(args, {'workflow_id'})
                 result = store.execution_versions(**args)

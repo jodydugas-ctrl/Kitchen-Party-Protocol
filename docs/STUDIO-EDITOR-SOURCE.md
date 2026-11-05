@@ -233,6 +233,29 @@ evidence for the KPP Chase obligations `reference-command-10` and
 `reference-command-11`. Command-palette coverage, broader checkpoints,
 and Baker acceptance are pending.
 
+### Execution history deletion
+
+The reviewed owner editor enables Delete from the execution row, workflow
+execution detail, and command palette. The storage operation accepts either
+explicit IDs or an exclusive cutoff with the supported history filters.
+Explicit IDs take precedence over filters, matching n8n Community 2.46.4.
+Project and source authority are verified independently of the request.
+Delete is unavailable in stasis.
+
+Deletion removes settled runs and their stored output from history, detail,
+and executed-version lists. It preserves saved workflows and version history.
+A minimal dispatch tombstone prevents an old request from running again.
+Running executions and those requiring review stay available for resolution.
+Selecting one by ID rejects the whole batch. Cutoff deletion skips them. This
+differs from the upstream direct API, which was observed hiding an active
+execution. The operation does not erase backups or storage remnants.
+
+The Windows browser exercised the row action, command-palette cancellation,
+and detail confirmation with two disposable runs. Matched HTTP checks
+covered single deletion, selected batches, repeat requests, filtered cutoff,
+and out-of-scope refusal. This provides scoped evidence for KPP
+`reference-command-9`. Browser select-all and Baker acceptance remain open.
+
 ## Reviewed native expressions
 
 With reviewed manual execution enabled, `studio editor-configure
