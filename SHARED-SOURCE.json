@@ -143,7 +143,7 @@
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-CHASE.md": "74f5ba8b1852ee975cfb7bfd7f08507a5d3f5d8c38e964ad81be619cd74d3307",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-IMPLEMENTATION.md": "38bccf2b8f5eeae41d026f4533416ee58a7c2fa1a3af2b7571436b024c513ed4",
     "src/mantleos/kpp/resources/docs/STUDIO-COMMUNITY-QUALIFICATION.md": "95cc5f94e44d26f29b09e54bb5ab896948ed7b8b498d0c9f98a0ae934bcd792a",
-    "src/mantleos/kpp/resources/docs/STUDIO-EDITOR-SOURCE.md": "a04c5ffc0788b51ae4a9e4dc06792a86917548790ffef3647a28c28d808bba32",
+    "src/mantleos/kpp/resources/docs/STUDIO-EDITOR-SOURCE.md": "91e12bef165ed4aa8691bd88889e2f92f7e3bb54c596e9827ef3480bd3ff2da3",
     "src/mantleos/kpp/resources/docs/STUDIO-QUALIFICATION.md": "f0f0de339990460c2c99a4c00d173a8fa366e695d616d77dfd043cd555815bc9",
     "src/mantleos/kpp/resources/docs/STUDIO-VISUAL-CHASE.md": "c373304ee920a24292470c0a0cb02334344db7fa621dc4b7e0ac0ab67e9c83ab",
     "src/mantleos/kpp/resources/docs/TRANSFORMATION.md": "11cc8cd2859cadff90dac907f644aa36d96c9392fc989ca4df4577ffc84d0985",
@@ -207,8 +207,8 @@
     "src/mantleos/kpp/resources/examples/anchor-studio/launcher.cjs": "fca6079e21c4cfff8f7db12f9de56240845faa6a97909934191ae73bad5e63d9",
     "src/mantleos/kpp/resources/examples/anchor-studio/local-access.cjs": "2b6d5f7591db54176e31aa032c0833f29b2f296d1025ffdbd005dc9592c82db9",
     "src/mantleos/kpp/resources/examples/anchor-studio/local-access.test.cjs": "63241dff16bf08557a7f5eaacd6a9e886b3460f0bdbf85871a53ab1fa4b363c1",
-    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.cjs": "7da38f62782ec5dd400b39798dc44f4a3fc11d8455d627d721ac14055dcceb80",
-    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.test.cjs": "78c1092c202dc90828f79470ec5f78fb5913795793db53fc00d694449bcd4cc3",
+    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.cjs": "f12c0263318472c1a60f21c765ab5697c3ca30c0bacb12ab8e3f16cfd4d40af3",
+    "src/mantleos/kpp/resources/examples/anchor-studio/manual-node-red.test.cjs": "6c463715286b6e712a243b83cbcab1a750a9fc97f25a18d7900880d00b1a4959",
     "src/mantleos/kpp/resources/examples/anchor-studio/package-lock.json": "8835de3ce02d44bcb7ee5569c81bf34e52ed8600c67d613389c198ac7a883f62",
     "src/mantleos/kpp/resources/examples/anchor-studio/package.json": "92b5757b09f62720d8490f02568965ae811d759dc95c4e3491e37badd90df99f",
     "src/mantleos/kpp/resources/examples/anchor-studio/palette/nodes.html": "6b793be58d62d981defea0e4b5984a9e7d43f873dff1cfd770e896665abd9669",
@@ -565,5 +565,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "442d4e9ae1caad6cc91648142e5713a4192423ea08335bdbd67aa373605263e9"
+  "source_digest": "826d40b5adf150e8804bb1b226398a9c5e627495ed9df45084011efee47112e7"
 }
