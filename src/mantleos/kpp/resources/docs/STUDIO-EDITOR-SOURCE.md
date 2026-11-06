@@ -230,6 +230,19 @@ the pinned items. This evidence covers part of the KPP workflow and execution
 lifecycle obligations. Binary pin execution, additional node profiles and
 Baker acceptance remain open.
 
+### Execute Step
+
+Execute Step runs through the selected node and stops there. On a repeat run,
+Studio can reuse a contiguous prefix from the same saved workflow revision and
+runtime. The server compares the editor's cache hints with up to sixteen retained
+successful executions and takes reused values from verified history. A dirty or
+unmatched ancestor ends the reusable prefix. Changed revisions run from their
+saved inputs. The execution receipt identifies the checkpoint and reused nodes.
+
+Step execution inherits the manual runtime's supported node and graph limits.
+Cached requests that would repeat a checked HTTP ancestor are rejected. A checked
+HTTP destination still requires a grant bound to that saved version and node.
+
 ### Failed execution retry
 
 Retry with the original workflow uses the failed run's saved version. Retry

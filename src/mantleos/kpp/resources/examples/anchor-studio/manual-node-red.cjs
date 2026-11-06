@@ -243,9 +243,31 @@ function resumePoint(plan,selection,observation){
  throw Error('Unsupported execution: retry checkpoint is unreachable');
 }
 
-async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects,native,retry}){
+function partialPoint(plan,partial){
+ const checkpoint=partial?.checkpoint;
+ if(!checkpoint)return null;
+ const prefix=Object.create(null);
+ let entry=plan.entry,source=[],items=[],index=0;
+ while(own(checkpoint.prefix,entry.name)){
+  const task=checkpoint.prefix[entry.name][0];
+  const port=entry.wires.findIndex(edges=>edges.length);
+  demand(port>=0&&JSON.stringify(task.source)===JSON.stringify(source)&&
+   Number.isSafeInteger(task.executionIndex)&&task.executionIndex>=index,'partial execution checkpoint changed');
+  const output=task.data?.main?.[port];
+  if(!Array.isArray(output)||!output.length)break;
+  prefix[entry.name]=[task];
+  source=[{previousNode:entry.name,previousNodeOutput:port,previousNodeRun:0}];
+  items=output;
+  index=task.executionIndex+1;
+  entry=plan.byId.get(entry.wires[port][0]);
+ }
+ return {entry,prefix,source,items,index};
+}
+
+async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects,native,retry,partial}){
  const plan=compile(workflow,selection,allowEffects&&!retry,native,retry),RED=require(nodeRed);
- const resume=retry?resumePoint(plan,selection,retry):null;
+ const resume=retry?resumePoint(plan,selection,retry):partialPoint(plan,partial);
+ const reused=partial&&resume?Object.keys(resume.prefix):[];
  demand(RED.version()===version,'Node-RED runtime version changed');
  const tab='studio-execution',flows=[{id:tab,type:'tab',label:'Studio manual execution'}];
  for(const [index,step] of Array.from(plan.byId.values()).entries()){
@@ -255,7 +277,14 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
   getCredentials:async()=>({}),saveCredentials:async()=>{},getSettings:async()=>({}),saveSettings:async()=>{},
   getSessions:async()=>({}),saveSessions:async()=>{}};
  const resultData={runData:resume?.prefix??Object.create(null)};
- if(Object.keys(plan.pinData).length)resultData.pinData=structuredClone(plan.pinData);
+ if(Object.keys(plan.pinData).length){
+  resultData.pinData=structuredClone(plan.pinData);
+  if(partial&&resume){
+   for(const [name,tasks] of Object.entries(resume.prefix)){
+    if(own(resultData.pinData,name))resultData.pinData[name]=tasks[0].data.main[0];
+   }
+  }
+ }
  let outstanding=1,sequence=resume?.index??0,resolveComplete,failed=false,uncertain=false,initialized=false,deadline;
  const complete=new Promise(resolve=>{resolveComplete=resolve;});
  async function observe(nodeId){
@@ -327,7 +356,10 @@ async function dispatch({nodeRed,version,workflow,selection,userDir,allowEffects
    resultData.error={name:'ManualExecutionCancelledError',message:'The execution was cancelled manually'};
    return {status:'canceled',data:{version:1,resultData}};
   }
-  return {status:failed?'error':'success',data:{version:1,startData:{studioSelection:selection},resultData,executionData:{
+  const startData={studioSelection:selection,...(reused.length?{
+   studioPartial:{checkpoint:partial.checkpoint.run_id,reused},
+  }:{})};
+  return {status:failed?'error':'success',data:{version:1,startData,resultData,executionData:{
    contextData:{},nodeExecutionStack:[],metadata:{},waitingExecution:{},waitingExecutionSource:{},
   }}};
  }finally{
@@ -420,10 +452,15 @@ function createManualRuntime({nodeRed,version,checkActive,effects=null,expressio
    service.worker.process.kill();await closed;
   }
  },
- async admit({workflow,selection,retry=null}){
+ async admit({workflow,selection,retry=null,partial=null}){
   await checkActive();
   const plan=compile(workflow,selection,Boolean(effects)&&!retry,Boolean(expression),retry);
   if(retry)resumePoint(plan,selection,retry);
+  if(partial){
+   demand([...plan.byId.values()].every(step=>!step.effectNode||step.name===selection.destination),
+    'cached execution cannot repeat a checked ancestor');
+   partialPoint(plan,partial);
+  }
   if(plan.expressionNodes.length){
    try{await warm();}
    catch{throw Error('Unsupported execution: reviewed expression runtime unavailable');}
@@ -445,7 +482,7 @@ function createManualRuntime({nodeRed,version,checkActive,effects=null,expressio
     const graph={id,name,nodes:nodes.map(({id,name,type,typeVersion,position,parameters})=>({id,name,type,typeVersion,position,parameters})),
      connections,settings,active:false};
     return await runWorker({nodeRed,version,workflow:input.workflow,selection:input.selection,userDir,
-     allowEffects:Boolean(effects),native:Boolean(expression),retry},input.signal,plan,nodeId=>effects.observe(input,nodeId),
+     allowEffects:Boolean(effects),native:Boolean(expression),retry,partial},input.signal,plan,nodeId=>effects.observe(input,nodeId),
      args=>service.worker.call('evaluate',{...args,workflow:graph,executionId:input.id},5000));
    }finally{
     running--;

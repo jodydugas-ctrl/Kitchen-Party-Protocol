@@ -21,6 +21,31 @@ function workflow(value=42){
 }
 const full={trigger:'Manual',destination:null};
 
+test('Execute Step reuses the retained path and stops at the selected node',
+ {skip:!process.env.STUDIO_MODULES?'Owner-provisioned Node-RED runtime absent':false,timeout:90000},async()=>{
+ const nodeRed=require.resolve(path.join(process.env.STUDIO_MODULES,'node-red'));
+ const runtime=createManualRuntime({nodeRed,version:require(nodeRed).version(),checkActive:async()=>{}});
+ const saved=workflow();
+ const selection={trigger:'Manual',destination:'If'};
+ async function run(selected,partial){
+  const operation=await runtime.admit({workflow:saved,selection:selected,partial});
+  return operation({workflow:saved,selection:selected});
+ }
+ const completed=await run(full);
+ assert.equal(completed.status,'success');
+ const previous=completed.data.resultData.runData;
+ const checkpoint={run_id:'prior',prefix:{Manual:previous.Manual}};
+ const warm=await run(selection,{checkpoint});
+ assert.equal(warm.status,'success');
+ assert.deepEqual(warm.data.resultData.runData.Manual,previous.Manual);
+ assert.deepEqual(Object.keys(warm.data.resultData.runData),['Manual','If']);
+ assert.deepEqual(warm.data.startData.studioPartial,{checkpoint:'prior',reused:['Manual']});
+ const dirty=await run(selection,{checkpoint:null});
+ assert.equal(dirty.status,'success');
+ assert.ok(dirty.data.resultData.runData.Manual[0].startTime>previous.Manual[0].startTime);
+ assert.equal(dirty.data.startData.studioPartial,undefined);
+});
+
 test('saved pins replace manual output, preserve pairing, stop empty paths, and survive a retry',
  {skip:!process.env.STUDIO_MODULES?'Owner-provisioned Node-RED runtime absent':false,timeout:90000},async()=>{
  const nodeRed=require.resolve(path.join(process.env.STUDIO_MODULES,'node-red'));
