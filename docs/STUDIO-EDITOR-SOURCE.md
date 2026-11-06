@@ -308,11 +308,12 @@ routes can read this index but cannot register metadata, secrets or grants.
 An absent or damaged index fails explicitly instead of reporting an invented
 empty inventory. A newly initialized index genuinely has no entries.
 
-The credential picker remains empty. A saved credential reference requires
-an independent checked-use grant. Registering a descriptor confers no grant.
-The MIND's separately configured provider keys are never copied into this index.
-The index is application metadata, not Engram experience, a secret vault or a
-second requirements/acceptance database. It stays outside saved Studio projects.
+The credential picker lists owned vault entries when the local credential editor
+is enabled. It supports the personal project and saved workflows in that
+project. It returns the ID, display name, type, and owner metadata. A node saves
+only the selected reference. The picker excludes values, vault revisions,
+grants, and MIND provider keys. Registered inventory descriptors stay separate
+from vault entries. The index stays outside saved Studio projects.
 
 On Windows, add `--credential-editor` to the reviewed editor configuration
 while Studio is stopped in stasis. This enables local create, read, masked
@@ -345,8 +346,13 @@ contains the password or encoded Basic authorization is rejected.
 The isolated Node-RED worker requests the observation over its private child
 channel and receives no credential or execution claim. The runtime admits
 one checked HTTP node per run and verifies its grant before dispatch.
-The credential picker, general HTTP Request profiles and external URLs
-are pending.
+The Windows browser selected a disposable Basic Auth credential and saved
+its reference. The authenticated workflow API exercised that saved revision.
+The checked request committed a verified loopback response under a reviewed
+grant. After revocation the same request returned 403. These checks cover
+the picker and the supported use profile within the KPP credential lifecycle
+obligation. General HTTP Request profiles, external URLs, credential tests
+and OAuth remain open.
 
 The pinned Community project setting is a structured quota,
 `enterprise.projects.team.limit = 0`; flattening it into a Boolean breaks the
