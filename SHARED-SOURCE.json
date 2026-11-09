@@ -102,7 +102,7 @@
     "src/mantleos/kpp/resources/CONTRIBUTING.md": "aed809ddb580a11510a24aa4f1b2dc168195312d751dab1f0349b67dcbe93b8f",
     "src/mantleos/kpp/resources/KPP-BOOT.md": "286ccc50de47280eb4577e7cc49d0d4626f2b6a016fdb6e938c6ffba68fe4332",
     "src/mantleos/kpp/resources/KPP-MANIFEST.json": "fc9190072a0989fcd6f9c3df686babdd9419c4209e36bf67aeb1b8ad2d35680d",
-    "src/mantleos/kpp/resources/KPP.md": "6acd387eb5ded069f680070155aa0a5aa5218b40548fb70301282366d4c1c62e",
+    "src/mantleos/kpp/resources/KPP.md": "08237811e1ed885ec81190975fe3f862e44e682fced72af09159af0dd8a70fa0",
     "src/mantleos/kpp/resources/LICENSE": "5f82ec0daa51896b13158a5978d0aaaa2db17d2a502fcc4a7498b714e6d20a07",
     "src/mantleos/kpp/resources/NEXT-LLM-HANDOFF.md": "286ccc50de47280eb4577e7cc49d0d4626f2b6a016fdb6e938c6ffba68fe4332",
     "src/mantleos/kpp/resources/README.md": "583d8f7a9ab962bef056f54ab4fc0f4db6370dbf9b1b0532104778eaf8c9f51e",
@@ -113,7 +113,7 @@
     "src/mantleos/kpp/resources/docs/ADAPTIVE-INTEGRATION.md": "beb65178ea04a7860397b8832c6597c179214efc06c9d7817739787152025a87",
     "src/mantleos/kpp/resources/docs/ANCHOR-DESIGN-VERIFICATION.md": "0475e43623521ba53b432f059784ef40018494de43fb07e13bd807a5bfe5658a",
     "src/mantleos/kpp/resources/docs/ANCHOR-DESIGN.md": "7de3e619714e031d6b6ff87a75d26435e5431165af22e08e8c13673c7475c624",
-    "src/mantleos/kpp/resources/docs/ANCHOR-SATISFACTION.md": "b3218032ac7721a0670b1bdd450ef88194f28d2f7fbd2291ac3c33af5f1b3dfc",
+    "src/mantleos/kpp/resources/docs/ANCHOR-SATISFACTION.md": "71337f5d2c403223364ee87dc49bb5fc72269f471a14b0c603142db027b560b5",
     "src/mantleos/kpp/resources/docs/ANCHOR-STUDIO.md": "92d6daa6e1b7eed35699727d095ec9d6c07e86af8384fcf986bf55e6aa65633a",
     "src/mantleos/kpp/resources/docs/APPAI-ANTICIPATION.md": "fb92b67f186197d4438775c3303b7a0c54c1a3aec5a27944c96c602cf4d2e7d4",
     "src/mantleos/kpp/resources/docs/APPai-HEART-TRIAL.md": "1279d96296d05cbfb8fe0eb023e4dd5aee972a69d15dd6ef136ee7f2f98024da",
@@ -409,7 +409,7 @@
     "src/mantleos/kpp/resources/tools/validate_release.py": "59fcb221c4fb36cda07841f558ec7077dac99a09617b79330e56e7fea3b180f4",
     "src/mantleos/kpp/resources/tools/verify_release.py": "24050ee8b643ccc131cefdf0b504e1ca4fdd74c876977d13ff83c1f8d1d3621b",
     "src/mantleos/kpp/resources/tools/verify_shared.py": "4f438c9362c386130efde49f89d4771328320ff1a420cf888a031ee0fd6c3cf3",
-    "src/mantleos/kpp/satisfaction.py": "07bd2c205176def557b6d1a1c68f249f372649805bb3ab17ddf18c4d0c2a1754",
+    "src/mantleos/kpp/satisfaction.py": "acff6614b50e6502c1b4f4a288e18112e7a246bc74de1b371c76ec30c6b63168",
     "src/mantleos/kpp/scanner.py": "93778e7531711c00dde9ac9c5ee5da5c9fa77b6392dd0d8c5e8f031e252684be",
     "src/mantleos/kpp/server.py": "40bdb674b73ebbb8f03670d5e6df57ec4a0d5312da5f19f66d4d6ce2955e4f46",
     "src/mantleos/kpp/sleep_memory.py": "a3834928d25e571588910ca5bf0a57f521714eff4185ffc62bc00b19a3f91311",
@@ -594,5 +594,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "87bab5c09c338b98cf82512b2ed7db6309f9ec3d138006fa15e42d213067fe92"
+  "source_digest": "0c2af6954df3906a8779405728a7c80b393b2a7e08f42a05a467511b1ada13e2"
 }
