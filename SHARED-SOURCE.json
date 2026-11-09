@@ -61,7 +61,7 @@
     "src/mantleos/examples.py": "a261263f1a29b1c6b7c984e81b788f45c4fa987ddfe1bc680e692af5e757a543",
     "src/mantleos/harness_adapter.py": "62c4347d1a19578678f1daf58e13ba3c5782e03bbfd3ca5a52aca46177a36aa5",
     "src/mantleos/heart.py": "f3c1e51690d25ad5b782ef78aef87db6d92161b7b0213197d1ad5ce6e092b1c3",
-    "src/mantleos/heart_trial.py": "b0f98153c75df0af7a17ec2ef513bb3bf446210f3487abbb3a10ce116b026525",
+    "src/mantleos/heart_trial.py": "3c88c80521aea975b1a29b3af7f1e7ab33d0dc47c6c1209efb03c75fde0bc835",
     "src/mantleos/heart_trial_checks.py": "515f6ce8a70043cf64eba3271d0d6b8ea4a6b0d59e9398dbdb9e50e6ddc5e29a",
     "src/mantleos/hosted.py": "277f195362aaae79d99fad5ccaefc6d443c86c8bf69259ae05b21523d5b32f06",
     "src/mantleos/immune.py": "b167fe233dfaf112ac9c1cdb642e6c447775de886f04bf83393228a8e89b4ce1",
@@ -293,7 +293,7 @@
     "src/mantleos/kpp/resources/examples/reflex_book/qualify.py": "9680ab6ce8fffb5c034427c5f3c96a9469ea57aa4d1329a73b305dcb9dae04b5",
     "src/mantleos/kpp/resources/pantry/anchor-satisfaction-engine.json": "adb3158ba48f3185850ac6d7a7ec485151657d6088c0f44e013d29ebb4daf264",
     "src/mantleos/kpp/resources/pantry/anchor-tissue.json": "b22a500b5e454eaa276fbf8ad83262b2babf671f2c58b07953e8cabd2e418d3a",
-    "src/mantleos/kpp/resources/pantry/appai-heart.json": "dec498ca32c2dfa88186a93c1620d45685b617bd9fdeab7220259e3db27b5ff1",
+    "src/mantleos/kpp/resources/pantry/appai-heart.json": "7339b7f4599618b8b30aa9774c357bbf6acf38d494795d2a9b8de9cfda0c6d8b",
     "src/mantleos/kpp/resources/pantry/browser-file-io.json": "e09d14818d2945979cd07f7492f687b2aef1c8b899f63056adb4f850b46d02e7",
     "src/mantleos/kpp/resources/pantry/chase-gate.json": "d3dd7341d7f089f29884537d500875746df49cd6cbc7b99ba1bc7b5bbc655db4",
     "src/mantleos/kpp/resources/pantry/checked-body-effects.json": "34436b56cb8bf54c7e31024ba466fa7e798559cb932d8320e875cfb6aecb81c4",
@@ -594,5 +594,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "fb4d1f8ec566f5591215c69932298a443234593b9d2597cb2917a6b0c501f73c"
+  "source_digest": "87bab5c09c338b98cf82512b2ed7db6309f9ec3d138006fa15e42d213067fe92"
 }

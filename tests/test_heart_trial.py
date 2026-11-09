@@ -1,5 +1,7 @@
 import json
+import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -8,26 +10,57 @@ from mantleos import heart, heart_trial as trial
 from mantleos.heart_trial_checks import Clock
 
 
-def plant_with_path_diagnostics(nest):
-    try:
-        return trial.plant(nest)
-    except ValueError:
-        absolute = nest.absolute()
-        print("HEART_PATH", repr(str(nest)), repr(str(absolute)), repr(str(nest.resolve())), flush=True)
-        for part in (absolute, *absolute.parents):
-            try:
-                stat = part.lstat()
-            except FileNotFoundError:
-                print("HEART_COMPONENT", repr(str(part)), "missing", flush=True)
-            else:
-                print("HEART_COMPONENT", repr(str(part)), repr(str(part.resolve())),
-                      part.is_symlink(), getattr(part, "is_junction", lambda: False)(),
-                      getattr(stat, "st_file_attributes", 0),
-                      getattr(stat, "st_reparse_tag", 0), flush=True)
-        raise
-
-
 class HeartTrialTests(unittest.TestCase):
+    def test_owned_accepts_ordinary_path_and_rejects_traversal(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work).resolve()
+            self.assertEqual(trial.owned(root / "notes"), root / "notes")
+            with self.assertRaisesRegex(ValueError, "Traversal"):
+                trial.owned(root / ".." / "notes")
+
+    @unittest.skipUnless(os.name == "nt", "Windows DOS short names")
+    def test_owned_accepts_windows_short_name_for_same_directory(self):
+        import ctypes
+
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work).resolve() / "Heart trial specimen folder"
+            root.mkdir()
+            short_name = ctypes.WinDLL("kernel32", use_last_error=True).GetShortPathNameW
+            buffer = ctypes.create_unicode_buffer(32768)
+            size = short_name(str(root), buffer, len(buffer))
+            if not 0 < size < len(buffer) or Path(buffer.value) == root:
+                self.skipTest("DOS short names unavailable for this volume")
+            self.assertEqual(trial.owned(Path(buffer.value) / "notes"), root / "notes")
+
+    def test_owned_rejects_linked_specimen_and_descendant(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work).resolve()
+            target = root / "target"
+            target.mkdir()
+            link = root / "linked"
+            try:
+                link.symlink_to(target, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("Directory symlink creation unavailable")
+            for path in (link, link / "notes"):
+                with self.subTest(path=path), self.assertRaisesRegex(ValueError, "Linked specimen"):
+                    trial.owned(path)
+
+    @unittest.skipUnless(os.name == "nt", "Windows junctions")
+    def test_owned_rejects_junction_and_missing_descendant(self):
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work).resolve()
+            target = root / "target"
+            target.mkdir()
+            link = root / "junction"
+            result = subprocess.run(["cmd", "/d", "/c", "mklink", "/J", str(link), str(target)],
+                                    capture_output=True)
+            if result.returncode:
+                self.skipTest("Directory junction creation unavailable")
+            for path in (link, link / "notes"):
+                with self.subTest(path=path), self.assertRaisesRegex(ValueError, "Linked specimen"):
+                    trial.owned(path)
+
     def test_checked_candidate_rollback_and_synthetic_birth(self):
         with tempfile.TemporaryDirectory() as work:
             nest = Path(work) / "notes"
@@ -35,7 +68,7 @@ class HeartTrialTests(unittest.TestCase):
             plant = heart.plant
             with patch.object(heart, "plant", side_effect=lambda root, primer, binding:
                               plant(root, primer, binding, wall=clock.wall)):
-                plant_with_path_diagnostics(nest)
+                trial.plant(nest)
             root = nest / ".heart"
             rhythm = heart.Rhythm(root, clock=clock.monotonic, wall=clock.wall)
             clock.tick = 600
@@ -98,7 +131,7 @@ class HeartTrialTests(unittest.TestCase):
     def test_failed_candidate_retained_without_review(self):
         with tempfile.TemporaryDirectory() as work:
             nest = Path(work) / "notes"
-            plant_with_path_diagnostics(nest)
+            trial.plant(nest)
             run_checks = trial.run_checks
 
             def break_candidate(work, candidate, contract, cases):
