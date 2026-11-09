@@ -926,7 +926,7 @@
     "tests/test_graph_economy.py": "26cebe6b3ee37d46b501445c9bdf8ce5ca35b8fc52515bde9206cf6f739117e0",
     "tests/test_gui.py": "6f82382fdf68d3f96ee270058322e06cbb2e9d7cb0d27c543ad43179cc9e6761",
     "tests/test_gui_matrix.py": "37f059e0e7932889671b586278473acaafe27c90604755d973fbefa70c3d1c28",
-    "tests/test_heart_trial.py": "8015739d25c191f2e73f60c6ddafb5a40751b2694354dbd15076727740cfb472",
+    "tests/test_heart_trial.py": "96d383931adfb6a716548e58078e57996a1e813e24a007c11509db90d16bada6",
     "tests/test_ingest.py": "006529a8dbacd3b3cc35854537f5808c7cbbc730ad4463d034595fc873c69e39",
     "tests/test_journal.py": "0eac660bda23372864c0fa6448e031403f3b92d6e900c8b07955af9445ac2d33",
     "tests/test_journal_upload.py": "4ccb70dc21fcf082cf60ad526e1619f45d884825bdcb75d024b58cc21e271c08",

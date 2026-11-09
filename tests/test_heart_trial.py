@@ -8,6 +8,25 @@ from mantleos import heart, heart_trial as trial
 from mantleos.heart_trial_checks import Clock
 
 
+def plant_with_path_diagnostics(nest):
+    try:
+        return trial.plant(nest)
+    except ValueError:
+        absolute = nest.absolute()
+        print("HEART_PATH", repr(str(nest)), repr(str(absolute)), repr(str(nest.resolve())), flush=True)
+        for part in (absolute, *absolute.parents):
+            try:
+                stat = part.lstat()
+            except FileNotFoundError:
+                print("HEART_COMPONENT", repr(str(part)), "missing", flush=True)
+            else:
+                print("HEART_COMPONENT", repr(str(part)), repr(str(part.resolve())),
+                      part.is_symlink(), getattr(part, "is_junction", lambda: False)(),
+                      getattr(stat, "st_file_attributes", 0),
+                      getattr(stat, "st_reparse_tag", 0), flush=True)
+        raise
+
+
 class HeartTrialTests(unittest.TestCase):
     def test_checked_candidate_rollback_and_synthetic_birth(self):
         with tempfile.TemporaryDirectory() as work:
@@ -16,7 +35,7 @@ class HeartTrialTests(unittest.TestCase):
             plant = heart.plant
             with patch.object(heart, "plant", side_effect=lambda root, primer, binding:
                               plant(root, primer, binding, wall=clock.wall)):
-                trial.plant(nest)
+                plant_with_path_diagnostics(nest)
             root = nest / ".heart"
             rhythm = heart.Rhythm(root, clock=clock.monotonic, wall=clock.wall)
             clock.tick = 600
@@ -79,7 +98,7 @@ class HeartTrialTests(unittest.TestCase):
     def test_failed_candidate_retained_without_review(self):
         with tempfile.TemporaryDirectory() as work:
             nest = Path(work) / "notes"
-            trial.plant(nest)
+            plant_with_path_diagnostics(nest)
             run_checks = trial.run_checks
 
             def break_candidate(work, candidate, contract, cases):
