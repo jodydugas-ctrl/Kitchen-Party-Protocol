@@ -938,7 +938,7 @@
     "tests/test_pantry_labels.py": "4a19fd784ba33aad2f98d60e8a2b586db4c7c6420eaf97b6e0adc1ad4554dfe6",
     "tests/test_portability.py": "4775887492868f3f16229f41b9ee6e6392ac0de5f8c1a95522dff7c63bdaf120",
     "tests/test_preview_recovery.py": "f4b7f72bab8e6c5f8fde1e16e0c4c5f44de1382a6f91f27a0da1ea84cdf25898",
-    "tests/test_private_skin.py": "fd043fcfa883e71e925f837598bb1bfd8e0507a1f602ab182742fa1537dc9197",
+    "tests/test_private_skin.py": "9c94c90c55838e23b8446d2ac2a89bf1e64a2b66e369f43cc9393affebf30f9a",
     "tests/test_progressive_web.py": "b2313484a08cc349c0809254c4897afe887aee5079c075c64fd38bbcd26fbc47",
     "tests/test_project_export.py": "b1480a62a059ce722433bcde34ed476b5928b91ab9ec77d08f328d91e9debed3",
     "tests/test_reflex_book_compatibility.py": "35f28c530edd1056c8daa9d7fd6cfb22b69f4fa8dc2d1947e036ebcfac12bad1",
