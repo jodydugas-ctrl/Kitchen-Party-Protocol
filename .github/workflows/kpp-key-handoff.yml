@@ -1,0 +1,22 @@
+name: KPP encrypted NoKey key-handoff recipient
+on:
+  push:
+    branches:
+      - kpp-nokey-free-llm-20261110
+    paths:
+      - .github/workflows/kpp-key-handoff.yml
+      - experiments/nokey_free_llm/handshake.py
+permissions:
+  contents: read
+jobs:
+  make-public-key:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install vetted cryptographic package
+        run: python3 -m pip install --quiet 'cryptography>=42,<50'
+      - name: Generate and protect ephemeral recipient key
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/nokey_free_llm/handshake.py
