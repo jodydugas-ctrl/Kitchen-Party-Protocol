@@ -1,0 +1,23 @@
+name: KPP NoKey Sealed Credential - Actual OpenRouter Free LLM
+on:
+  push:
+    branches:
+      - kpp-nokey-free-llm-20261110
+    paths:
+      - .github/workflows/kpp-sealed-nokey-live.yml
+      - experiments/nokey_free_llm/sealed_worker.py
+      - experiments/nokey_free_llm/sealed_request.json
+permissions:
+  contents: read
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install crypto package
+        run: python3 -m pip install --quiet 'cryptography>=42,<50'
+      - name: Decrypt privately and call OpenRouter using NoKey-origin credential
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/nokey_free_llm/sealed_worker.py
