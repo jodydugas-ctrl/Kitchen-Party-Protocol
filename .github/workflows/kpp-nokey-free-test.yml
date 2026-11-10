@@ -1,0 +1,20 @@
+name: KPP NoKey Encrypted Credential - Free LLM Test
+on:
+  push:
+    branches:
+      - kpp-nokey-free-llm-20261110
+    paths:
+      - .github/workflows/kpp-nokey-free-test.yml
+      - experiments/nokey_free_llm/worker.py
+permissions:
+  contents: read
+jobs:
+  live-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match already-encrypted NoKey credential and call OpenRouter if identical
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/nokey_free_llm/worker.py
