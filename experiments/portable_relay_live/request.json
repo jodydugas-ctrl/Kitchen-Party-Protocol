@@ -1,0 +1,16 @@
+{
+  "schema": "kpp.exchange-request/1",
+  "request_id": "b40b4d7e216e40aabb26711bc7c29dfa",
+  "service": "arithmetic.sum",
+  "route": "host-courier",
+  "payload": {
+    "values": [
+      47,
+      58,
+      2026
+    ],
+    "challenge": "8b2aeef69893c1031699f4d4"
+  },
+  "max_reply_bytes": 65536,
+  "authority": "NONE"
+}
