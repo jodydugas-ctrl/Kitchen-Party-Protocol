@@ -1,0 +1,22 @@
+name: NEST OpenRouter authenticated smoke test
+on:
+  push:
+    branches:
+      - nest-openrouter-probe-20261110
+    paths:
+      - .github/workflows/nest-openrouter-live.yml
+      - experiments/nest_transport/nest_live_test.py
+      - experiments/nest_transport/request.json
+permissions:
+  contents: read
+jobs:
+  completion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout public Hello-only request
+        uses: actions/checkout@v4
+      - name: Attempt authenticated OpenRouter completion
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/nest_transport/nest_live_test.py experiments/nest_transport/request.json

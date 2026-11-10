@@ -1,0 +1,17 @@
+{
+  "authorized_context": {
+    "messages": [
+      {
+        "content": "Hello there!",
+        "role": "user"
+      }
+    ]
+  },
+  "engram_identity_label": "transport-test-not-a-loaded-engram",
+  "proposal_requires_real_engram_approval": true,
+  "protocol": "nest-mind-transport/v1",
+  "request_id": "2f3e76c1f4be4db888e6e96d900ecbd4",
+  "requested_model": "google/gemma-4-31b-it:free",
+  "stream": false,
+  "user_authorized_external_send": true
+}
