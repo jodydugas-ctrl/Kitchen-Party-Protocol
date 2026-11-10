@@ -1,0 +1,16 @@
+{
+  "protocol": "nest-mind-transport/2",
+  "request_id": "b76d74cfecc744c890f3e686839b9c80",
+  "route": "host-assisted",
+  "requested_model": "openrouter/free",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello there!"
+    }
+  ],
+  "stream": false,
+  "authorized_external_send": true,
+  "identity": "synthetic-transport-test-not-real-engram",
+  "requires_engram_approval": true
+}

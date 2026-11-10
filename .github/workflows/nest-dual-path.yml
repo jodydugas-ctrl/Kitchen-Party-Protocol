@@ -1,0 +1,20 @@
+name: NEST Dual Path Host Courier (Hello only)
+on:
+  push:
+    branches:
+      - nest-openrouter-probe-20261110
+    paths:
+      - .github/workflows/nest-dual-path.yml
+      - experiments/nest_dual_path/**
+permissions:
+  contents: read
+jobs:
+  openrouter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute bounded authorized MIND test
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/nest_dual_path/github_worker.py
