@@ -1,0 +1,17 @@
+{
+  "protocol": "nest-mind-request/3",
+  "request_id": "1d76860726cd4a5cb5da1b02789635ad",
+  "route": "host-courier",
+  "model": "openrouter/free",
+  "messages": [
+    {
+      "role": "user",
+      "content": "An Engram is testing an external MIND. Reply to the greeting \"Hello there!\". Return ONLY valid JSON with exactly these three keys: \"kind\":\"reply\", \"reply\": a short friendly greeting, \"observation_sha256\":null. No Markdown, no additional keys."
+    }
+  ],
+  "stream": false,
+  "max_tokens": 192,
+  "scope": "trusted-host-authorized-context",
+  "engram_authority": "NONE",
+  "requires_explicit_release": true
+}

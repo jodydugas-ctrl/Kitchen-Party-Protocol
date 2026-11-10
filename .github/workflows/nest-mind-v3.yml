@@ -1,0 +1,20 @@
+name: NEST MIND V3 Journal-shape smoke
+on:
+  push:
+    branches:
+      - nest-openrouter-probe-20261110
+    paths:
+      - .github/workflows/nest-mind-v3.yml
+      - experiments/nest_transport_v3/**
+permissions:
+  contents: read
+jobs:
+  external-mind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Call OpenRouter and emit correlation-bound receipt
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/nest_transport_v3/github_worker.py
