@@ -1,0 +1,22 @@
+name: NEST OpenRouter transport probe (no secrets)
+
+on:
+  push:
+    branches:
+      - nest-openrouter-probe-20261110
+    paths:
+      - .github/workflows/nest-openrouter-probe.yml
+      - experiments/nest_transport/nest_probe.py
+
+permissions:
+  contents: read
+
+jobs:
+  post-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout probe sources
+        uses: actions/checkout@v4
+      - name: Make unauthenticated test HTTPS POST to OpenRouter
+        run: python3 experiments/nest_transport/nest_probe.py
