@@ -1,0 +1,17 @@
+{
+  "recipient": {
+    "key_stored_in": "GH_ACTIONS_SECRET",
+    "private_key_exposed": false,
+    "protocol": "kpp.key-handoff-recipient/1",
+    "public_key": "ZduJfmbNzuqBV9GZiSE8VkHREeKWSJYuTFcu_OnPtVE=",
+    "wrap_nonce": "n5MM4y0jUnC2ulYD",
+    "wrap_salt": "ftc6Y1eWr36-qpHAOB0eaQ==",
+    "wrapped_private": "ifiAjRTM_PD3bZMq2S8pSOd71OfGQ_9sd8A_p5AAZA8C6czIZrTmqX-Qj4lfA8is"
+  },
+  "request_id": "8be92f1477f3808958b5836f4c97ac72",
+  "schema": "kpp.sealed-credential-envelope/1",
+  "sealed_payload": "iWEDd-rYENEGmQwZLmrKgc7xGpVcFyy5UDROHI8y46bzgWO118RfY0iplOBNh2Avfz3QC0g4n9pSYypATv7lMjr3f7DfsZDtdpThCxyXR6sKdmX7PBZUHOUTFLJzgTJ7kwR-T_rdRvKozQJONLa2WdBEMUFdnlaBdCgSmeQGkQgV4HE1nE4OT9kysG7gug_ab_cpuX7iWC6QUrA4vf-czmLMGUKP2rn7ChS-XOqck2coU2c4BnvdIuPyrAVakQGfA1r6XZXydqaYhm6lkTfOLiP5E7tiow9sACCI9QN-xY62bFU4g87YlmBhwxHARjiCRFZ5-y86NIwp2ormGqTqsxlKn3esqsLz_w==",
+  "sender_public": "chcs7vtKFkcAX06EL7078NksFzi4k6wgDxGUu-ZVlzI=",
+  "transfer_nonce": "aTJFlNkJU5Gg355-",
+  "transfer_salt": "qdzSTqib3Z_RdIL3kutjuQ=="
+}
