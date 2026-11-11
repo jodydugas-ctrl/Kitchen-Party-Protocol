@@ -2,6 +2,10 @@
 
 This document is a portable operating contract for an authorized agent. A current user request supplies permission and the message. The host supplies GitHub tools. The runner supplies HTTPS and the repository-managed OpenRouter key. No Python execution or workflow-dispatch tool is needed in the originating chat.
 
+## Activation status
+
+Implementation staged on the experimental branch. Workflow installation was blocked by automatic approval review pending explicit owner approval of persistent secret access and contents-write permission. The queue has NOT been live-qualified. Do not submit requests until installation and a live result are confirmed.
+
 ## Deployment
 
 Repository: `jodydugas-ctrl/Kitchen-Party-Protocol`
