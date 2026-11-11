@@ -1,0 +1,31 @@
+name: KPP sealed OpenRouter queue experiment
+on:
+  push:
+    branches: [kpp-sealed-queue-experiment]
+    paths:
+      - '.github/workflows/kpp-sealed-queue.yml'
+      - 'experiments/sealed-queue/protocol.py'
+      - 'experiments/sealed-queue/worker.py'
+      - 'experiments/sealed-queue/requests/*.json'
+permissions:
+  contents: write
+concurrency:
+  group: kpp-sealed-queue-experiment
+  cancel-in-progress: false
+jobs:
+  relay:
+    if: github.actor == 'jodydugas-ctrl' && github.event.deleted == false && github.event.forced == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install cryptography
+        run: python3 -m pip install --quiet 'cryptography>=42,<50'
+      - name: Initialize recipient or process one ciphertext request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/sealed-queue/worker.py
