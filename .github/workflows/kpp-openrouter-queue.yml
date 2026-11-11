@@ -1,0 +1,25 @@
+name: KPP OpenRouter message queue
+on:
+  push:
+    branches: [kpp-openrouter-queue]
+    paths: ['experiments/openrouter-queue/requests/*.json']
+permissions:
+  contents: write
+concurrency:
+  group: kpp-openrouter-queue
+  cancel-in-progress: false
+jobs:
+  answer:
+    if: github.actor == 'jodydugas-ctrl' && github.event.deleted == false && github.event.forced == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Answer one new public request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: python3 experiments/openrouter-queue/worker.py
