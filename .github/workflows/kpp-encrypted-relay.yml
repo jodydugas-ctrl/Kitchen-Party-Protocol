@@ -1,0 +1,26 @@
+name: KPP encrypted OpenRouter relay
+on:
+  push:
+    branches: [kpp-encrypted-relay]
+    paths: ['experiments/encrypted-relay/init/*.json']
+permissions:
+  contents: write
+concurrency:
+  group: kpp-encrypted-relay
+  cancel-in-progress: false
+jobs:
+  relay:
+    if: github.actor == 'jodydugas-ctrl' && github.event.deleted == false && github.event.forced == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install cryptography
+        run: python3 -m pip install --disable-pip-version-check 'cryptography==50.0.0'
+      - name: Run ephemeral encrypted mailbox
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 experiments/encrypted-relay/worker.py
