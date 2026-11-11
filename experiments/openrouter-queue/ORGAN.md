@@ -4,7 +4,20 @@ This document is a portable operating contract for an authorized agent. A curren
 
 ## Activation status
 
-Implementation staged on the experimental branch. Workflow installation was blocked by automatic approval review pending explicit owner approval of persistent secret access and contents-write permission. The queue has NOT been live-qualified. Do not submit requests until installation and a live result are confirmed.
+LIVE TEST PASSED. Owner approved installation and one public test. The file-creation GitHub connector triggered the installed workflow without a dispatch tool. GitHub's runner sent a real request to OpenRouter and published the result. This deployment uses its repository-managed credential, not the earlier uploaded password-encrypted test credential.
+
+Test message: "How was your day today? Please answer briefly."
+HTTP status: 200
+Actual model: liquid/lfm-3-1.7b:free
+Completion ID: gen-1794356858-1FhHvlDReTQ1LWOILB2i
+Request commit: ec65d612d0a38c03991a161262a965fb63caa884
+Run: https://github.com/jodydugas-ctrl/Kitchen-Party-Protocol/actions/runs/42931408492
+Result: https://github.com/jodydugas-ctrl/Kitchen-Party-Protocol/blob/kpp-openrouter-queue/experiments/openrouter-queue/results/613314798066485a97093d03370040e7.json
+
+Verbatim reply:
+> I don't have days or experiences like humans do, but I'm here and ready to help! What's on your mind today?
+
+The submitting agent retrieved the result using the authenticated GitHub file connector and checked request ID, request commit, request digest, HTTP status and simulated=false. This qualifies one live exchange in this deployment; future agents still require a GitHub connection able to create and read files. No secret is embedded in this organ. No automatic future test or message is authorized by the example above.
 
 ## Deployment
 
