@@ -131,7 +131,7 @@
     "src/mantleos/kpp/resources/docs/JOURNAL-VERIFICATION.md": "feefda9eeb6085d3d1ed1c36f1fae6862b09618d9859735e86e9fd6d2351671a",
     "src/mantleos/kpp/resources/docs/LANGUAGE-CHOICES.md": "6bdabef1b2c60ebf6facef5c442f4234e93677e29c9a77df7cb21375fb9b1cd7",
     "src/mantleos/kpp/resources/docs/ORGAN-SAVE.md": "aa731dc430b9d6a93631235425c0d4045028976c21c89c48cdc381c27d83f032",
-    "src/mantleos/kpp/resources/docs/PANTRY.md": "47f99e08bc5b62f010cd916ab2dd9bdb8b6a745d0a006490fac17e0c836648f2",
+    "src/mantleos/kpp/resources/docs/PANTRY.md": "e67bdfc4525b75b1a07bb4f0ec08015c597aac4b9c99e6bc3c1a4ae7abb93f46",
     "src/mantleos/kpp/resources/docs/PORTABLE-REFLEX-BUNDLES.md": "43c207dd1834b722dcb2cbe1c58c42ffedef8a67f2364da722c1dafb7db7b64d",
     "src/mantleos/kpp/resources/docs/PREVIEW-RECOVERY.md": "b77b68844aed2d9f9b35241cef84e2ba385d6dd3dbffaf7f95bac7e5af8cef4a",
     "src/mantleos/kpp/resources/docs/PRIVATE-SKIN-VERIFICATION.md": "3f9e1a25ab123b44731407dc95e410d3b89fd4045c598b58a65d88d96bb51d63",
@@ -597,5 +597,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "ece4dc01d1191676f44cbc1863ef96a45e44ef2620328914122de7a2e7900bea"
+  "source_digest": "336e44ee07b1046f8ee308530a1c366d11c13c6a9f89378934ffc27e0555f892"
 }
