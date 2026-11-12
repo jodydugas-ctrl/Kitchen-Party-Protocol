@@ -293,6 +293,7 @@
     "src/mantleos/kpp/resources/examples/reflex_book/qualify.py": "9680ab6ce8fffb5c034427c5f3c96a9469ea57aa4d1329a73b305dcb9dae04b5",
     "src/mantleos/kpp/resources/pantry/anchor-satisfaction-engine.json": "adb3158ba48f3185850ac6d7a7ec485151657d6088c0f44e013d29ebb4daf264",
     "src/mantleos/kpp/resources/pantry/anchor-tissue.json": "b22a500b5e454eaa276fbf8ad83262b2babf671f2c58b07953e8cabd2e418d3a",
+    "src/mantleos/kpp/resources/pantry/anchorforge-organ.json": "ca4096eaa15de952339c6503717e5d889f537fc91fdd22f050839c689babf1ab",
     "src/mantleos/kpp/resources/pantry/appai-heart.json": "7339b7f4599618b8b30aa9774c357bbf6acf38d494795d2a9b8de9cfda0c6d8b",
     "src/mantleos/kpp/resources/pantry/browser-file-io.json": "e09d14818d2945979cd07f7492f687b2aef1c8b899f63056adb4f850b46d02e7",
     "src/mantleos/kpp/resources/pantry/chase-gate.json": "d3dd7341d7f089f29884537d500875746df49cd6cbc7b99ba1bc7b5bbc655db4",
@@ -310,7 +311,7 @@
     "src/mantleos/kpp/resources/pantry/local-draft-recovery.json": "347a38b158614a20689eaf74c068de0af91019266aeb555a2aa8b95c5a607503",
     "src/mantleos/kpp/resources/pantry/mind-body-boundary.json": "ce61b7a2d624b735500021aa9536a874392e861ae56ca1cd37c2b56b39c9a579",
     "src/mantleos/kpp/resources/pantry/openrouter-mind.json": "e8b6c99172f42c909992b7b44d7970456020a5c5c36e5c24470a7b3cc328dae7",
-    "src/mantleos/kpp/resources/pantry/organs/README.md": "a4255244f0506992436262dc94d2f70c800e8b3e59a36138b23030b8895b88bc",
+    "src/mantleos/kpp/resources/pantry/organs/README.md": "43b442fb36909864895743abb02176126502b994dcedf7d41245210ce1e87fbb",
     "src/mantleos/kpp/resources/pantry/organs/heart/README.md": "186f32a6554bcaf2701a48d3d37f9fc6f8232e74505c73687437f53da7a85dc4",
     "src/mantleos/kpp/resources/pantry/organs/immune-system/README.md": "a831fd5bce3ee08df1785321ff90f16814e8d48c7794d99b66ecd2cff40fc2bf",
     "src/mantleos/kpp/resources/pantry/organs/limbs/README.md": "58316315ab3cb6c3c39a2e8afecba2fa67206e53ccc0e889f98298bd272e43ab",
@@ -380,7 +381,9 @@
     "src/mantleos/kpp/resources/references/synthetic-qt/MainWindow.ui": "814ec54f9040d9c99317d6a63781dd1017ec76dc34f7d2f065f2c02de7b26d65",
     "src/mantleos/kpp/resources/release-evidence/CANVAS.json": "3619f4bb7c846701c3978980a73670879a2d4a6decbc503dae3e7be7aed2bde8",
     "src/mantleos/kpp/resources/release-evidence/UNIFICATION.json": "b08ffcc62acaff5ec65a90f8c5c971d08e130b38e4345148cbaabf68c83930be",
-    "src/mantleos/kpp/resources/specimens/README.md": "aeec0b93d83d56ff70d00d38d1369997c7b0a828d8597d93a42d3cec427fd912",
+    "src/mantleos/kpp/resources/release-evidence/anchorforge-organ-0.3.0.json": "912f77f7fdc9e9f097d74900d4c2e45efe3c34674a5cc6933af4d831faee3f8a",
+    "src/mantleos/kpp/resources/specimens/AnchorForgeOrgan.anchor": "fa05c4b9e864cf150d84abb37989b09ba6c8b1f9784e624bdf8dc7d969b4cfbb",
+    "src/mantleos/kpp/resources/specimens/README.md": "3f90d91171d15ef8c64bd2328ffa04d6f6ed23f91e3b9b539231c9b68f93dd8f",
     "src/mantleos/kpp/resources/specimens/mantleos/chase-stop.anchor": "455ce6b45bad7956d7c3456049d21ffec4e9471f3b33e9deb3cc0a299e374896",
     "src/mantleos/kpp/resources/specimens/mantleos/intent-boundary.anchor": "17b3834021278df111d9315ba2d2863e8bbf5acd31a45a1dda1e9234781fa4de",
     "src/mantleos/kpp/resources/specimens/mantleos/kernel-cells.anchor": "94596344092f5063361a51f92d32485103d2834346b0ebc535e137d716ce3994",
@@ -594,5 +597,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "0c2af6954df3906a8779405728a7c80b393b2a7e08f42a05a467511b1ada13e2"
+  "source_digest": "ece4dc01d1191676f44cbc1863ef96a45e44ef2620328914122de7a2e7900bea"
 }
