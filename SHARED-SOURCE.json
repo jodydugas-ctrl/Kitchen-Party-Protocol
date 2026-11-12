@@ -293,7 +293,7 @@
     "src/mantleos/kpp/resources/examples/reflex_book/qualify.py": "9680ab6ce8fffb5c034427c5f3c96a9469ea57aa4d1329a73b305dcb9dae04b5",
     "src/mantleos/kpp/resources/pantry/anchor-satisfaction-engine.json": "adb3158ba48f3185850ac6d7a7ec485151657d6088c0f44e013d29ebb4daf264",
     "src/mantleos/kpp/resources/pantry/anchor-tissue.json": "b22a500b5e454eaa276fbf8ad83262b2babf671f2c58b07953e8cabd2e418d3a",
-    "src/mantleos/kpp/resources/pantry/anchorforge-organ.json": "5d273e395d2e326aa56c97aff9a283ce4b98fb2f25966f4bccc4e17b83098e91",
+    "src/mantleos/kpp/resources/pantry/anchorforge-organ.json": "ca4096eaa15de952339c6503717e5d889f537fc91fdd22f050839c689babf1ab",
     "src/mantleos/kpp/resources/pantry/appai-heart.json": "7339b7f4599618b8b30aa9774c357bbf6acf38d494795d2a9b8de9cfda0c6d8b",
     "src/mantleos/kpp/resources/pantry/browser-file-io.json": "e09d14818d2945979cd07f7492f687b2aef1c8b899f63056adb4f850b46d02e7",
     "src/mantleos/kpp/resources/pantry/chase-gate.json": "d3dd7341d7f089f29884537d500875746df49cd6cbc7b99ba1bc7b5bbc655db4",
@@ -597,5 +597,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "773953ecab321f1069df99654bee290f00b9ea2683c74418e9908060d2b96d8a"
+  "source_digest": "ece4dc01d1191676f44cbc1863ef96a45e44ef2620328914122de7a2e7900bea"
 }

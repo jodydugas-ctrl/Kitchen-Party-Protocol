@@ -36,7 +36,7 @@
     "Byte-compiled UTF-8/LF source transport with exact readback and native profile inspection"
   ],
   "adaptation": "Optional Oven companion. Requires a reviewed spec and the shared KPP/MantleOS runtime. Use host-controlled output paths, native Satisfaction for candidate evidence, and separate Baker acceptance.",
-  "verified_with": "AnchorForge 0.3.0 release checks on installed KPP 1.1.0a5 at 4fd2aef58c8f965ff1a96e3037ac196ed0d11c79. See release-evidence/anchorforge-organ-0.3.0.json for platform and counter Satisfaction evidence.",
+  "verified_with": "AnchorForge 0.3.0 release tests on installed KPP 1.1.0a5 at 4fd2aef58c8f965ff1a96e3037ac196ed0d11c79. See release-evidence/anchorforge-organ-0.3.0.json for platform and counter Satisfaction evidence.",
   "provenance": "Revised from AnchorForge 0.2; qualification uses the pinned KPP source revision and local reviewed counter fixtures.",
   "usage": {
     "use_when": "An LLM/Oven must quickly turn scoped requirements into canonical KPP Anchor design and optionally package Python source as an actual supported .anchor carrier.",
@@ -58,5 +58,14 @@
     "profile": "EMIT_TEXT/0.2",
     "emits": "python",
     "sha256": "fa05c4b9e864cf150d84abb37989b09ba6c8b1f9784e624bdf8dc7d969b4cfbb"
+  },
+  "source": {
+    "kind": "repository-files",
+    "repository": "jodydugas-ctrl/Kitchen-Party-Protocol",
+    "paths": [
+      "specimens/AnchorForgeOrgan.anchor",
+      "tests/test_anchor.py",
+      "release-evidence/anchorforge-organ-0.3.0.json"
+    ]
   }
 }
