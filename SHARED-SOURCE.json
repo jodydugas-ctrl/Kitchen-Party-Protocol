@@ -108,7 +108,7 @@
     "src/mantleos/kpp/resources/KPP.md": "08237811e1ed885ec81190975fe3f862e44e682fced72af09159af0dd8a70fa0",
     "src/mantleos/kpp/resources/LICENSE": "5f82ec0daa51896b13158a5978d0aaaa2db17d2a502fcc4a7498b714e6d20a07",
     "src/mantleos/kpp/resources/NEXT-LLM-HANDOFF.md": "286ccc50de47280eb4577e7cc49d0d4626f2b6a016fdb6e938c6ffba68fe4332",
-    "src/mantleos/kpp/resources/README.md": "1ff6a03577454ee1481449b26ac1190a9790171c0fc27f851337da2ad934bdc7",
+    "src/mantleos/kpp/resources/README.md": "f07527ade85b6dd6204452ab5a5ac4884e03e4ca3624e81942be280a885383cd",
     "src/mantleos/kpp/resources/START-HERE.md": "286ccc50de47280eb4577e7cc49d0d4626f2b6a016fdb6e938c6ffba68fe4332",
     "src/mantleos/kpp/resources/SYSTEMS.md": "7e73f6684110a2a61cb7607d883671433c6f7f03cc6cf03bfe172318a7dd70fe",
     "src/mantleos/kpp/resources/THIRD-PARTY-NOTICES.md": "dc82a40490e8767c93da92aafa12fdf42568f3d2ad38d7cacbcffbabcefccbd9",
@@ -435,6 +435,7 @@
     "src/mantleos/kpp/resources/release-evidence/anchor-handoff.json": "0cf433c601785d2a548f1437ecbdcb9f2d5cc65b2401754d7c5e52b7b267279d",
     "src/mantleos/kpp/resources/release-evidence/anchorforge-organ-0.3.0.json": "912f77f7fdc9e9f097d74900d4c2e45efe3c34674a5cc6933af4d831faee3f8a",
     "src/mantleos/kpp/resources/specimens/AnchorForgeOrgan.anchor": "fa05c4b9e864cf150d84abb37989b09ba6c8b1f9784e624bdf8dc7d969b4cfbb",
+    "src/mantleos/kpp/resources/specimens/Notepad-Fidelity9-HANDOFF.md": "cc58b519654882533dd36689cf5fd9358e9768212d6c6e911b1686e6ce7d2259",
     "src/mantleos/kpp/resources/specimens/README.md": "3f90d91171d15ef8c64bd2328ffa04d6f6ed23f91e3b9b539231c9b68f93dd8f",
     "src/mantleos/kpp/resources/specimens/mantleos/chase-stop.anchor": "455ce6b45bad7956d7c3456049d21ffec4e9471f3b33e9deb3cc0a299e374896",
     "src/mantleos/kpp/resources/specimens/mantleos/intent-boundary.anchor": "17b3834021278df111d9315ba2d2863e8bbf5acd31a45a1dda1e9234781fa4de",
@@ -649,5 +650,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "d3cd58e9ae7e1eddc894f07f09162efc03f416d65d44d45672e83b410590eb42"
+  "source_digest": "e4ef6fb519f7ae5f113ee9fa78f5d874a60b88a660b67b5eeb7b6fb5bf3184c1"
 }
