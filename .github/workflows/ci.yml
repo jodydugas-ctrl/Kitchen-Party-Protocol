@@ -17,8 +17,13 @@ jobs:
     env:
       PYTHONPATH: src
       PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
     steps:
+      - name: Disable checkout line-ending conversion
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v7.0.0
         with:
           python-version: ${{ matrix.python }}
