@@ -116,7 +116,7 @@
     "src/mantleos/kpp/resources/docs/ADAPTIVE-INTEGRATION.md": "beb65178ea04a7860397b8832c6597c179214efc06c9d7817739787152025a87",
     "src/mantleos/kpp/resources/docs/ANCHOR-DESIGN-VERIFICATION.md": "0475e43623521ba53b432f059784ef40018494de43fb07e13bd807a5bfe5658a",
     "src/mantleos/kpp/resources/docs/ANCHOR-DESIGN.md": "7de3e619714e031d6b6ff87a75d26435e5431165af22e08e8c13673c7475c624",
-    "src/mantleos/kpp/resources/docs/ANCHOR-HANDOFF.md": "5f8013ae86afb2d8ac31bec773067ad56bf7d6a8ffe44d0e262e40041ce75473",
+    "src/mantleos/kpp/resources/docs/ANCHOR-HANDOFF.md": "4641a9c8b850498f5c10e740687af683e25d66a7b8d48a3023263f1f8ea442be",
     "src/mantleos/kpp/resources/docs/ANCHOR-LOGICAL-EVIDENCE.md": "309b7f7615a8ee63bcab56dbcb40c52f84e42f7bde49dc7e75512ec366125a83",
     "src/mantleos/kpp/resources/docs/ANCHOR-SATISFACTION.md": "71337f5d2c403223364ee87dc49bb5fc72269f471a14b0c603142db027b560b5",
     "src/mantleos/kpp/resources/docs/ANCHOR-STUDIO.md": "92d6daa6e1b7eed35699727d095ec9d6c07e86af8384fcf986bf55e6aa65633a",
@@ -262,7 +262,7 @@
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/blind_trial.py": "558ef52b772833a74ff0267c3479097ffe96cd4ece4cc4409206bb2ac3698fa0",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/blueprint-manifest.json": "71b465229a0da0f1b39bf020c8077fd5843184a5df1e2e6a5cdf75c173076616",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/bridge-client.js": "4cbd28bd21c982f0df54e7ce6f56abe5a8ad186b3d8065393c74724e90428450",
-    "src/mantleos/kpp/resources/examples/notepad-fidelity9/bridge.py": "0e0aa6dbf598c49cb66581be2eb3df2559bfc647e9dbd3416f0d6568ae30c987",
+    "src/mantleos/kpp/resources/examples/notepad-fidelity9/bridge.py": "7134a105d25cc6d4af6ff8eb4c8a86e54efb9f256e5ca40cebede80e29315549",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/browser_smoke.py": "5f934d78c6aff973e5e53d3000cc5340f35a9bedae5623491f844dd94b8b9b5d",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/logical_engine.py": "c76493d00dfe91b69297dae518510e861cbde75a620b307162a831baab91ebbe",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/logical_shell.py": "dbcabf2f0d5cdfa53e437a2231d0d4fa073d3f741e44de0f3c1b9d593e4ee143",
@@ -435,7 +435,7 @@
     "src/mantleos/kpp/resources/release-evidence/anchor-handoff.json": "0cf433c601785d2a548f1437ecbdcb9f2d5cc65b2401754d7c5e52b7b267279d",
     "src/mantleos/kpp/resources/release-evidence/anchorforge-organ-0.3.0.json": "912f77f7fdc9e9f097d74900d4c2e45efe3c34674a5cc6933af4d831faee3f8a",
     "src/mantleos/kpp/resources/specimens/AnchorForgeOrgan.anchor": "fa05c4b9e864cf150d84abb37989b09ba6c8b1f9784e624bdf8dc7d969b4cfbb",
-    "src/mantleos/kpp/resources/specimens/Notepad-Fidelity9-HANDOFF.md": "cc58b519654882533dd36689cf5fd9358e9768212d6c6e911b1686e6ce7d2259",
+    "src/mantleos/kpp/resources/specimens/Notepad-Fidelity9-HANDOFF.md": "95274718dc1de6c94c2ba490b19523b80ec7f61484eca1c1debca2f5e3a4fd6d",
     "src/mantleos/kpp/resources/specimens/README.md": "3f90d91171d15ef8c64bd2328ffa04d6f6ed23f91e3b9b539231c9b68f93dd8f",
     "src/mantleos/kpp/resources/specimens/mantleos/chase-stop.anchor": "455ce6b45bad7956d7c3456049d21ffec4e9471f3b33e9deb3cc0a299e374896",
     "src/mantleos/kpp/resources/specimens/mantleos/intent-boundary.anchor": "17b3834021278df111d9315ba2d2863e8bbf5acd31a45a1dda1e9234781fa4de",
@@ -650,5 +650,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "e4ef6fb519f7ae5f113ee9fa78f5d874a60b88a660b67b5eeb7b6fb5bf3184c1"
+  "source_digest": "40e71d17f4f57bc62739b9caff679120d73889d6b01a92b0fbb8b99ff731bcc7"
 }
