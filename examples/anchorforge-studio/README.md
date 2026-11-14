@@ -48,3 +48,7 @@ This app incorporates the maintainer-supplied AnchorForge Studio source.
 The imported Apache-2.0 notice in `src/App.tsx` is retained with the
 [Apache 2.0 license text](LICENSE-APACHE-2.0.txt). KPP and MantleOS components
 retain their existing [component notices](../../THIRD-PARTY-NOTICES.md).
+
+## Proposed Transition Lab
+
+The **Transition Lab** tab validates the proposed `anchor.transition-trace/1` JSON format through the native KPP Python bridge. It shows only **structural** consistency: declared Gate decisions, ordered before/after snapshots, effect evidence labels, and final-state continuity. It never executes an Anchor, verifies a model prediction, authenticates host observations, or grants Baker acceptance. See `../../docs/ANCHOR-TRANSITION-TRACE.md` and `../../examples/notepad-transition-trace.json` for the draft contract and example. The application source was originally adapted from the maintainer-provided AnchorForge Studio ZIP; this change extends the existing checked-in GUI rather than introducing another independent implementation.
