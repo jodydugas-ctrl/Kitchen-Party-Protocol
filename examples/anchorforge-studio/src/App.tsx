@@ -6,6 +6,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { requestKpp, saveText, type NativeResult } from './lib/nativeKppClient';
 import { KppWorkspaceView } from './components/KppWorkspaceView';
+import { RecipeHandoff } from './components/RecipeHandoff';
 import { NativeRecipeProposal } from './components/NativeRecipeProposal';
 import nativeNotepad from './specimens/notepad.anchor?raw';
 import {
@@ -141,13 +142,16 @@ export default function App() {
     unsupported: 'NATIVE CHECK NOT AVAILABLE FOR THIS FORMAT',
     unavailable: 'NATIVE KPP UNAVAILABLE',
   }[native?.status ?? 'unavailable'];
-  const organSpec = useMemo(() => {
+  const contract = useMemo(() => {
     try {
-      return JSON.parse(source)?.schema === 'anchorforge.organ-spec/1';
+      return JSON.parse(source);
     } catch {
-      return false;
+      return null;
     }
   }, [source]);
+  const organSpec = contract?.schema === 'anchorforge.organ-spec/1';
+  const recipe = (contract?.schema === 'kpp.recipe/3' || contract?.schema === 'kpp.recipe/4')
+    && contract.anchor_design ? contract : null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -198,11 +202,10 @@ export default function App() {
   };
 
   const handleLoadIntoWorkbench = (content: string, filename: string) => {
-    const cleanContent = content.replace(/\r\n/g, '\n');
     const existing = files.find((f) => f.filename === filename);
     if (existing) {
       setFiles((prev) =>
-        prev.map((f) => (f.id === existing.id ? { ...f, content: cleanContent } : f))
+        prev.map((f) => (f.id === existing.id ? { ...f, content } : f))
       );
       setActiveFileId(existing.id);
     } else {
@@ -213,7 +216,7 @@ export default function App() {
         filename,
         category: 'Workspace Buffer',
         description: 'Loaded or generated in AnchorForge Studio session.',
-        content: cleanContent.endsWith('\n') ? cleanContent : cleanContent + '\n',
+        content,
       };
       setFiles((prev) => [newEntry, ...prev]);
       setActiveFileId(newId);
@@ -221,15 +224,19 @@ export default function App() {
     setActiveSection('workbench');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [fileError, setFileError] = useState<string>();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const raw = typeof reader.result === 'string' ? reader.result : '';
+    e.target.value = '';
+    try {
+      const raw = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(await file.arrayBuffer());
       handleLoadIntoWorkbench(raw, file.name);
-    };
-    reader.readAsText(file);
+      setFileError(undefined);
+    } catch {
+      setFileError('Could not read the file as UTF-8.');
+    }
   };
 
   const handleExportActiveArtifact = () => {
@@ -759,7 +766,11 @@ export default function App() {
                       </p>
                     )}
                   </section>
+                  {fileError && <p role="alert" className="text-sm text-red-300">{fileError}</p>}
                   {organSpec && <NativeRecipeProposal spec={source} />}
+                  {recipe && native?.status === 'passed' && (
+                    <RecipeHandoff key={inspection.sourceSha256} source={source} recipeId={recipe.id} />
+                  )}
                   {/* Local projection */}
                   <div
                     className={`p-3.5 rounded-lg border ${

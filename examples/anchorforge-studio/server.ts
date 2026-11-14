@@ -56,7 +56,7 @@ async function startServer() {
   const app = express();
   app.use(express.json({ limit: '2mb' }));
 
-  for (const operation of ['inspect', 'bridge', 'propose'] as const) {
+  for (const operation of ['inspect', 'bridge', 'propose', 'extend', 'brief'] as const) {
     app.post(`/api/kpp/${operation}`, async (req, res) => {
       const source = req.body?.source;
       if (typeof source !== 'string' || !source.trim()) {

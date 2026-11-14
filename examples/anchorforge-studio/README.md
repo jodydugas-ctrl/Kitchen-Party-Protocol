@@ -23,6 +23,16 @@ Open http://127.0.0.1:3000. Environment settings can also go in `.env.local`. Se
 - **Converter** drafts responsibilities from code using the offline heuristic or optional Gemini assistance. Review and edit the AnchorForge input, then select **Propose Recipe with AnchorForge**. Download the native Recipe and matching review together. A conventional, artifact-delivery Recipe at fidelity 1 is the editable starting point. You can also load a complete `anchorforge.organ-spec/1` JSON file in the workbench.
 - **KPP Workspace** reads the native build step of one existing workspace. Set `KPP_WORKSPACE` on the server, then refresh the tab to see phase, next obligation, and acceptance test. A native structural check does not exercise the candidate or grant Baker acceptance.
 
+### Bring in a Recipe from Anchor Studio
+
+In the Node-RED Anchor Studio workspace, save the project and choose **Contracts
+→ Download saved KPP Recipe**. Open the JSON file in AnchorForge Studio's
+workbench. Once the native check passes, **Prepare KPP work packet** renders the
+declared contract and verification obligations. **Extend Recipe with
+AnchorForge** accepts an `anchorforge.extension/1` document and returns a new
+Recipe and matching review. The previous obligations stay intact. Pin an
+approved extension in a new workspace when ready to build.
+
 For a reviewed Recipe, use the KPP CLI to pin it in a fresh workspace, run scoped tests, and record Baker acceptance separately. For example, from the KPP checkout:
 
 ```sh

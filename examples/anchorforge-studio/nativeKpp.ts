@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const adapter = fileURLToPath(new URL('./native/kpp_bridge.py', import.meta.url));
 
-export function nativeKpp(operation: 'inspect' | 'bridge' | 'propose' | 'workspace', source: string) {
+export function nativeKpp(operation: 'inspect' | 'bridge' | 'propose' | 'extend' | 'brief' | 'workspace', source: string) {
   const root = process.env.KPP_ROOT || fileURLToPath(new URL('../../', import.meta.url));
   const workspace = process.env.KPP_WORKSPACE;
   if (operation === 'workspace' && !workspace) {

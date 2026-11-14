@@ -65,6 +65,21 @@ def main():
         elif operation == "workspace":
             from mantleos.kpp.build import step
             result = {"workspace": step(Path(sys.argv[3]))}
+        elif operation == "brief":
+            from mantleos import json_contract
+            recipe = json_contract.loads(raw.decode("utf-8"))
+            result = {"workPacket": anchor_design.render_contract(recipe)}
+        elif operation == "extend":
+            api = organ(root, directory, anchor)
+            request = api["parse_object"](raw, source)
+            if set(request) != {"recipe", "extension"} or any(
+                not isinstance(value, str) for value in request.values()
+            ):
+                raise ValueError("Provide Recipe and AnchorForge extension JSON documents.")
+            base = api["parse_object"](request["recipe"].encode("utf-8"), Path("recipe.json"))
+            extension = api["parse_object"](request["extension"].encode("utf-8"), Path("extension.json"))
+            recipe, review = api["extend_recipe"](base, extension)
+            result = {"recipe": recipe, "review": review}
         elif operation == "propose":
             api = organ(root, directory, anchor)
             recipe, review = api["propose"](api["parse_object"](raw, source))

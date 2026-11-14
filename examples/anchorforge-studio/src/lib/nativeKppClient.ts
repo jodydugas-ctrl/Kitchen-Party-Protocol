@@ -5,11 +5,12 @@ export interface NativeResult {
   kind?: string;
   python?: string;
   recipe?: { id: string };
-  review?: { recipe_sha256: string };
+  review?: { recipe_sha256: string; added_obligation_ids?: string[] };
+  workPacket?: string;
 }
 
 export async function requestKpp(
-  operation: 'inspect' | 'bridge' | 'propose',
+  operation: 'inspect' | 'bridge' | 'propose' | 'extend' | 'brief',
   source: string,
   signal?: AbortSignal,
 ): Promise<NativeResult> {
