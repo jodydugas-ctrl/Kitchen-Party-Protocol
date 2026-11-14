@@ -10,7 +10,7 @@ export interface NativeResult {
 }
 
 export async function requestKpp(
-  operation: 'inspect' | 'bridge' | 'propose' | 'extend' | 'brief',
+  operation: 'inspect' | 'bridge' | 'propose' | 'extend' | 'brief' | 'transition',
   source: string,
   signal?: AbortSignal,
 ): Promise<NativeResult> {

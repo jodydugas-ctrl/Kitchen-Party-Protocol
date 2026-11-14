@@ -35,6 +35,7 @@
     "src/mantleos/anchor_logic_evidence.py": "c64f3f2aa01eb4fba0483f46b7c71aac3c8a0cca48efe3c411be0a614d79e870",
     "src/mantleos/anchor_qualification.py": "c8226b205cf7c6754775d209d4b1c2b2987f6e7bb0a89f24ebea841329e7ed09",
     "src/mantleos/anchor_qualification_cli.py": "cfb4a4731ff35d3671393938daf04185c1b5e9408917b487ee517dee26f7c9bb",
+    "src/mantleos/anchor_transition.py": "f9d408856ffcfc4469bba776fb9392051c3f1fbbee7c019efb883fff542dfb10",
     "src/mantleos/anchors.py": "891f2c3e02eaaba9cd16ec155dbee3f0ec65ca76774fa22d8ca5df8f727ae429",
     "src/mantleos/app_assets/notepad.html": "8fa1e19fb3683e2ee20bdc1803624959fc11d3c4525cdc642df37a685efbcec9",
     "src/mantleos/app_bridges.py": "f0e8ba47ed581b2ca4bf87cc6a269ee341828fdc493e17f2ae3174811bfdda1e",
@@ -120,6 +121,7 @@
     "src/mantleos/kpp/resources/docs/ANCHOR-LOGICAL-EVIDENCE.md": "309b7f7615a8ee63bcab56dbcb40c52f84e42f7bde49dc7e75512ec366125a83",
     "src/mantleos/kpp/resources/docs/ANCHOR-SATISFACTION.md": "71337f5d2c403223364ee87dc49bb5fc72269f471a14b0c603142db027b560b5",
     "src/mantleos/kpp/resources/docs/ANCHOR-STUDIO.md": "6dd7e7e73c0bd73750ddd382cbc2a2a7cc6ff4e89b7acf0aa12a112096369f72",
+    "src/mantleos/kpp/resources/docs/ANCHOR-TRANSITION-TRACE.md": "4588096d4b113c37ffede658741ed673a7ee073306396e74ce35dfabf7498885",
     "src/mantleos/kpp/resources/docs/APPAI-ANTICIPATION.md": "fb92b67f186197d4438775c3303b7a0c54c1a3aec5a27944c96c602cf4d2e7d4",
     "src/mantleos/kpp/resources/docs/APPai-HEART-TRIAL.md": "1279d96296d05cbfb8fe0eb023e4dd5aee972a69d15dd6ef136ee7f2f98024da",
     "src/mantleos/kpp/resources/docs/ARCHITECTURE.md": "838ea4973e1f36c996cf5c1e67255b7c2da24e2ffa539e2326488e8920320237",
@@ -291,6 +293,7 @@
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/test_notepad_logical_contract.py": "bcc15c6bedc73151f38ca6b7a32766999676c878fc76f62db486130747ed46f7",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/test_notepad_search.py": "d63033a202517f0413a22f6aeb0fb31aba536cd9ac9258d7cb4690339f152d56",
     "src/mantleos/kpp/resources/examples/notepad-fidelity9/test_notepad_surface.py": "f43bdd13b3c8b8d252580d5d4d78224784ab2e1e1c1c98fc1cb109a72cb2ce2e",
+    "src/mantleos/kpp/resources/examples/notepad-transition-trace.json": "9fffff009b5f87652019e96835cc21c9c518c1cb2112be7e0134a54ee55b13cf",
     "src/mantleos/kpp/resources/examples/reflex-anchors/check_absent.py": "a4748d72ad8ca8a00846eec112c8dbfae28964c5e32f83fdd57c9178fb7dd9c3",
     "src/mantleos/kpp/resources/examples/reflex-anchors/check_original.py": "fd0b3f2ae8f091717b88400828dfb2203dfaef4e32cb0274464e329a50f2cfb8",
     "src/mantleos/kpp/resources/examples/reflex-anchors/check_reflex.py": "47f42d44fad1e1ac97dbec40e68d919ac021127f28b45ab6e6e04427f3f67236",
@@ -650,5 +653,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "6f06a8a6ca7135906cc0a0900dfdef63d15ada8a4582116a8134d3748fed5ff4"
+  "source_digest": "15ba5d6a50593bd6d0d052b7c24720e089cd1068d25879702bd6005b4ed246e2"
 }

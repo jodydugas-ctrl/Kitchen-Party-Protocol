@@ -65,6 +65,10 @@ def main():
         elif operation == "workspace":
             from mantleos.kpp.build import step
             result = {"workspace": step(Path(sys.argv[3]))}
+        elif operation == "transition":
+            from mantleos import anchor_transition
+            result = {"kind": anchor_transition.SCHEMA,
+                      "validation": anchor_transition.validate_bytes(raw)}
         elif operation == "brief":
             from mantleos import json_contract
             recipe = json_contract.loads(raw.decode("utf-8"))

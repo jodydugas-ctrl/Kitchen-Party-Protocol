@@ -6,6 +6,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { requestKpp, saveText, type NativeResult } from './lib/nativeKppClient';
 import { KppWorkspaceView } from './components/KppWorkspaceView';
+import { TransitionLab } from './components/TransitionLab';
 import { RecipeHandoff } from './components/RecipeHandoff';
 import { NativeRecipeProposal } from './components/NativeRecipeProposal';
 import nativeNotepad from './specimens/notepad.anchor?raw';
@@ -49,7 +50,7 @@ import {
   Wrench,
 } from 'lucide-react';
 
-type ActiveSection = 'workbench' | 'converter' | 'topology' | 'reference' | 'workspace';
+type ActiveSection = 'workbench' | 'converter' | 'topology' | 'reference' | 'workspace' | 'transition';
 type InspectorTab = 'qualification' | 'interpreter' | 'python_bridge' | 'contract_view';
 
 interface WorkspaceFile {
@@ -405,6 +406,10 @@ export default function App() {
           <button type="button" onClick={() => setActiveSection('workspace')}
             className={`py-1 whitespace-nowrap border-b-2 ${activeSection === 'workspace' ? 'text-amber-400 border-amber-400' : 'border-transparent hover:text-slate-100'}`}>
             KPP Workspace
+          </button>
+          <button type="button" onClick={() => setActiveSection('transition')}
+            className={`py-1 whitespace-nowrap border-b-2 ${activeSection === 'transition' ? 'text-amber-400 border-amber-400' : 'border-transparent hover:text-slate-100'}`}>
+            Transition Lab
           </button>
           <a
             href="#reference"
@@ -1167,6 +1172,8 @@ export default function App() {
       )}
 
       {activeSection === 'workspace' && <main className="flex-1"><KppWorkspaceView /></main>}
+
+      {activeSection === 'transition' && <main className="flex-1"><TransitionLab /></main>}
 
       {/* VIEW 4: PROTOCOL REFERENCE & SPECS */}
       {activeSection === 'reference' && (
