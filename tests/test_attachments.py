@@ -1,6 +1,7 @@
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -9,12 +10,22 @@ from mantleos import attachments, cartridge, chromamem, compiled, organism, life
 
 
 class AttachmentTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._base_tmp = tempfile.TemporaryDirectory()
+        cls.base_body = Path(cls._base_tmp.name) / 'base-body'
+        organism.create(cls.base_body, identity='attachment-test')
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._base_tmp.cleanup()
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.body = self.root / 'body'
-        organism.create(self.body, identity='attachment-test')
+        shutil.copytree(self.base_body, self.body)
         self.data = b'opaque candidate, never executable'
         self.pin = hashlib.sha256(self.data).hexdigest()
 

@@ -56,17 +56,17 @@ def finalize(body, *, install_runtime=False, portable=False):
             shutil.copytree(runtime,body/'runtime',dirs_exist_ok=True)
     if (body/'runtime/python.exe').exists():
         (body/'Run.cmd').write_text('@echo off\n"%~dp0runtime\\python.exe" -X utf8 -B "%~dp0runtime.py" %*\n',encoding='utf-8')
-    cartridge.write_manifest(body)
-    receipt = compiled.compile_body(body)
     from .checkpoint import render
     (body/'ENGRAM.md').write_text(render(body),encoding='utf-8')
     cartridge.write_manifest(body)
+    receipt = compiled.compile_body(body)
     compiled.load(body,expected_sha256=receipt['sha256'])
     return receipt
 
 
 def create(birth, output, *, blueprint=None, cartridge_id=None, programs=None,
-           parent=None, inherit_memory=False, portable=True, format=None, nest=None, store=None):
+           parent=None, inherit_memory=False, portable=True, format=None, nest=None, store=None,
+           _finalize=True):
     if type(inherit_memory) is not bool or (inherit_memory and parent is None):
         raise ValueError('Memory inheritance requires an explicit boolean and parent')
     selected=kernel.format_name(format or ('chroma' if str(output).lower().endswith('.png') else 'cartridge'))
@@ -105,7 +105,10 @@ def create(birth, output, *, blueprint=None, cartridge_id=None, programs=None,
                         shutil.copy2(parent/'ENGRAM.jsonl',stage/'ENGRAM.jsonl')
             if programs is not None:
                 install_programs(stage,programs)
-            receipt = finalize(stage,portable=portable)
+            if _finalize:
+                receipt = finalize(stage,portable=portable)
+            else:
+                receipt = {'result':'STAGED'}
             lineage=compiled.read_json(stage/'CARTRIDGE.json')['lineage']
             if output.exists():
                 raise ValueError('Output already exists')

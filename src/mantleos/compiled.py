@@ -44,6 +44,13 @@ def bindings(body):
             if rel not in {'COMPILED.json', 'ENGRAM.md'}}
 
 
+def _bindings_from_manifest(body):
+    manifest = json.loads((Path(body) / 'MANIFEST.json').read_text(encoding='utf-8'))
+    return {item['path']: item['sha256']
+            for item in manifest.get('files', [])
+            if item['path'] not in {'COMPILED.json', 'ENGRAM.md'}}
+
+
 def _programs(body):
     spec = read_json(body/'PROGRAMS.json') if (body/'PROGRAMS.json').exists() else {'schema':'mantle.programs/1','programs':[]}
     if set(spec) != {'schema','programs'} or spec['schema'] != 'mantle.programs/1' or not isinstance(spec['programs'],list) or len(spec['programs']) > 256:
@@ -104,7 +111,7 @@ def compile_body(body):
     """Compile a staged, verified Body. Never calls a model or runs generated Python."""
     body = Path(body).resolve()
     cartridge.verify(body)
-    source_bindings=bindings(body)
+    source_bindings = _bindings_from_manifest(body)
     programs=required=None
     if (body/'COMPILED.json').exists():
         previous=json.loads((body/'COMPILED.json').read_text('utf-8'),object_pairs_hook=_unique)
@@ -172,7 +179,7 @@ def load(body, *, expected_sha256=None):
         raise ValueError('Compiled Body digest mismatch')
     if expected_sha256 is not None and signature != expected_sha256:
         raise ValueError('Compiled Body does not match trusted receipt')
-    if value['sources'] != bindings(body):
+    if value['sources'] != _bindings_from_manifest(body):
         raise ValueError('Compiled Body is stale; compile after changes')
     records=engram.read(body/'ENGRAM.jsonl')
     ledger_head=records[-1]['sha256'] if records else engram.ZERO

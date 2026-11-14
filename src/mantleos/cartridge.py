@@ -26,26 +26,55 @@ MAX_ARCHIVE_FILES = 10000
 MAX_ARCHIVE_UNCOMPRESSED = 512 * 1024 * 1024
 
 
-def validate_portable_tree(root: str | Path):
+def _scan_tree(root: Path, *, check_violations: bool):
     root = Path(root)
-    violations = []
-    for p in sorted(root.rglob("*")):
-        rel = p.relative_to(root).as_posix()
-        if rel.startswith(".git/"):
-            continue
-        if p.is_symlink():
-            violations.append(rel + ":symlink")
-            continue
-        parts = Path(rel).parts
-        if parts and parts[0].lower() in {"nest", ".nest"}:
-            violations.append(rel + ":NEST-not-portable")
-            continue
-        if p.is_file():
-            name = p.name.lower()
-            if name in SECRET_EXACT or name.startswith(".env."):
-                violations.append(rel + ":secret-named-file")
-    if violations:
-        raise ValueError("Body contains non-portable/secret material: " + ", ".join(violations[:20]))
+    violations: list[tuple[tuple[str, ...], str]] = []
+    files: list[tuple[tuple[str, ...], Path, str]] = []
+
+    def walk(dirpath: Path, prefix: str, in_pycache: bool) -> None:
+        with os.scandir(dirpath) as it:
+            entries = sorted(it, key=lambda e: e.name)
+        for entry in entries:
+            name = entry.name
+            rel = f"{prefix}/{name}" if prefix else name
+            parts_key = tuple(rel.split("/"))
+            if prefix == "" and name == ".git":
+                if check_violations and entry.is_symlink():
+                    violations.append((parts_key, rel + ":symlink"))
+                continue
+            if entry.is_symlink():
+                if check_violations:
+                    violations.append((parts_key, rel + ":symlink"))
+                continue
+            if check_violations and parts_key[0].lower() in {"nest", ".nest"}:
+                violations.append((parts_key, rel + ":NEST-not-portable"))
+                if entry.is_dir(follow_symlinks=False):
+                    walk(Path(entry.path), rel, in_pycache or name == "__pycache__")
+                continue
+            if entry.is_dir(follow_symlinks=False):
+                next_pycache = in_pycache or name == "__pycache__"
+                if next_pycache and not check_violations:
+                    continue
+                walk(Path(entry.path), rel, next_pycache)
+            elif entry.is_file(follow_symlinks=False):
+                if check_violations:
+                    lowered = name.lower()
+                    if lowered in SECRET_EXACT or lowered.startswith(".env."):
+                        violations.append((parts_key, rel + ":secret-named-file"))
+                if not in_pycache and not rel.endswith(".pyc"):
+                    files.append((parts_key, Path(entry.path), rel))
+
+    if root.exists():
+        walk(root, "", False)
+    if check_violations and violations:
+        violations.sort(key=lambda item: item[0])
+        raise ValueError("Body contains non-portable/secret material: " + ", ".join(msg for _, msg in violations[:20]))
+    files.sort(key=lambda item: item[0])
+    return [(path, rel) for _, path, rel in files]
+
+
+def validate_portable_tree(root: str | Path):
+    _scan_tree(Path(root), check_violations=True)
     return {"schema": "mantle.portable-tree/1", "result": "PASS"}
 
 REQUIRED = [
@@ -64,27 +93,27 @@ def load_json(path: Path):
 
 
 def tracked_paths(root: str | Path):
-    root = Path(root)
     excluded = {"MANIFEST.json", ".DS_Store"}
-    for p in sorted(root.rglob("*")):
-        if not p.is_file() or p.is_symlink():
-            continue
-        rel = p.relative_to(root).as_posix()
-        if rel in excluded or "/__pycache__/" in "/" + rel + "/" or rel.endswith(".pyc"):
-            continue
-        if rel.startswith(".git/"):
+    for p, rel in _scan_tree(Path(root), check_violations=False):
+        if rel in excluded:
             continue
         yield p, rel
 
 
+def _validated_tracked(root: Path) -> list[tuple[Path, str]]:
+    excluded = {"MANIFEST.json", ".DS_Store"}
+    return [(p, rel) for p, rel in _scan_tree(root, check_violations=True) if rel not in excluded]
+
+
 def write_manifest(root: str | Path) -> dict:
     root = Path(root)
-    validate_portable_tree(root)
+    pairs = _validated_tracked(root)
+    actual = {rel: p for p, rel in pairs}
     files = []
-    for p, rel in tracked_paths(root):
-        mode = "0755" if os.access(p, os.X_OK) else "0644"
-        data = p.read_bytes()
-        files.append({"path": rel, "sha256": sha(data), "bytes": len(data), "mode": mode})
+    with closing(_manifest_fingerprints(actual)) as fingerprints:
+        for rel, digest, size in fingerprints:
+            mode = "0755" if os.access(actual[rel], os.X_OK) else "0644"
+            files.append({"path": rel, "sha256": digest, "bytes": size, "mode": mode})
     value = {"schema": MANIFEST_SCHEMA, "files": files}
     (root / "MANIFEST.json").write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return value
@@ -125,14 +154,13 @@ def _manifest_fingerprints(actual):
 
 def verify_manifest(root: str | Path) -> dict:
     root = Path(root)
-    validate_portable_tree(root)
+    actual = {rel: p for p, rel in _validated_tracked(root)}
     manifest = load_json(root / "MANIFEST.json")
     if manifest.get("schema") != MANIFEST_SCHEMA:
         raise ValueError("Unsupported manifest schema")
     expected = {item["path"]: item for item in manifest.get("files", [])}
     if len(expected) != len(manifest.get("files", [])):
         raise ValueError("Duplicate manifest path")
-    actual = {rel: p for p, rel in tracked_paths(root)}
     if set(expected) != set(actual):
         missing = sorted(set(expected) - set(actual))
         extra = sorted(set(actual) - set(expected))
@@ -267,16 +295,12 @@ def verify(root: str | Path) -> dict:
 
 def pack(root: str | Path, output: str | Path):
     root, output = Path(root).resolve(), Path(output).resolve()
-    validate_portable_tree(root)
     verify(root)
     if output.exists() or output.is_relative_to(root):
         raise ValueError("Output already exists or is inside Body")
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "x", compression=zipfile.ZIP_DEFLATED) as z:
-        for p in sorted(root.rglob("*")):
-            if not p.is_file() or p.is_symlink() or any(part in {".git","__pycache__"} for part in p.relative_to(root).parts) or p.suffix==".pyc":
-                continue
-            rel = p.relative_to(root).as_posix()
+        for p, rel in _scan_tree(root, check_violations=False):
             info = zipfile.ZipInfo(rel)
             info.date_time = (2026, 1, 1, 0, 0, 0)
             mode = 0o755 if os.access(p, os.X_OK) else 0o644
@@ -298,6 +322,7 @@ def unpack(archive: str | Path, output: str | Path):
             if sum(i.file_size for i in infos) > MAX_ARCHIVE_UNCOMPRESSED:
                 raise ValueError("Cartridge archive exceeds uncompressed size limit")
             seen = set()
+            created_dirs = {output}
             for info in infos:
                 rel = Path(info.filename)
                 normalized = rel.as_posix().rstrip("/").casefold()
@@ -310,11 +335,14 @@ def unpack(archive: str | Path, output: str | Path):
                 if mode == stat.S_IFLNK:
                     raise ValueError("Symlinks are not allowed in a Cartridge")
                 dest = output / rel
-                dest.parent.mkdir(parents=True, exist_ok=True)
+                parent = dest.parent
+                if parent not in created_dirs:
+                    parent.mkdir(parents=True, exist_ok=True)
+                    created_dirs.add(parent)
                 if not info.is_dir():
                     dest.write_bytes(z.read(info))
                     perms = (info.external_attr >> 16) & 0o777
-                    if perms:
+                    if perms and (os.name != "nt" or not (perms & 0o200)):
                         dest.chmod(perms)
         return verify(output)
     except Exception:

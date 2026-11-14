@@ -7,10 +7,17 @@ from . import engram
 from .primer import load_primer
 
 
+_CODE_DIGEST: str | None = None
+
+
 def code_digest():
+    global _CODE_DIGEST
+    if _CODE_DIGEST is not None:
+        return _CODE_DIGEST
     root=Path(__file__).resolve().parent
-    return hashlib.sha256(engram.canonical({p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
+    _CODE_DIGEST = hashlib.sha256(engram.canonical({p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
         for p in sorted(root.rglob('*.py')) if '__pycache__' not in p.parts}).encode()).hexdigest()
+    return _CODE_DIGEST
 
 
 def identity(body):

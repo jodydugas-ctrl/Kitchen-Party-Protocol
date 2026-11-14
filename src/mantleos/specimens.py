@@ -46,7 +46,7 @@ def fresh(output, *, name='Example Engram', identity=None, expression='engram',
     stage = destination.parent / ('.' + destination.name + '.fresh-' + uuid.uuid4().hex)
     with body_lock(destination):
         try:
-            lifecycle.create(definition, stage, parent=parent, inherit_memory=False, portable=False)
+            lifecycle.create(definition, stage, parent=parent, inherit_memory=False, portable=False, _finalize=False)
             if raw_primer:
                 for filename, data in raw_primer.items():
                     (stage / 'PRIMER' / filename).write_bytes(data)

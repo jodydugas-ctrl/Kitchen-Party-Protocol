@@ -21,6 +21,8 @@ SCHEMA = 'mantle.journal-engram/1'
 PROTOCOL = 'mantle.journal-encounter/1'
 ZERO = engram.ZERO
 canon = engram.canonical
+_VERIFIED_SNAPSHOT_CACHE: dict[str, str] = {}
+_SNAPSHOT_CACHE_MAX = 64
 
 def sha(raw):
     return hashlib.sha256(raw).hexdigest()
@@ -161,13 +163,19 @@ class Journal:
         key=self._meta('snapshot')
         cached=getattr(self,'_snapshot_cache',None)
         if cached is None or cached[0]!=key:
-            with tempfile.TemporaryDirectory(prefix='journal-verify-') as td:
-                archive=Path(td)/'body.vcw'; archive.write_bytes(snapshot[0])
-                body=Path(td)/'body';cartridge.unpack(archive,body)
-                view={'records':engram.read(body/'ENGRAM.jsonl'),'primer':primer.load_primer(body),
-                      'register':anchor_language.validate_register(json.loads((body/'ANCHOR-REGISTER.json').read_text('utf8'))),
-                      'birth':json.loads((body/'BIRTH.json').read_text('utf8'))}
-            self._snapshot_cache=(key,canon(view))
+            cached_json=_VERIFIED_SNAPSHOT_CACHE.get(key)
+            if cached_json is None:
+                with tempfile.TemporaryDirectory(prefix='journal-verify-') as td:
+                    archive=Path(td)/'body.vcw'; archive.write_bytes(snapshot[0])
+                    body=Path(td)/'body';cartridge.unpack(archive,body)
+                    view={'records':engram.read(body/'ENGRAM.jsonl'),'primer':primer.load_primer(body),
+                          'register':anchor_language.validate_register(json.loads((body/'ANCHOR-REGISTER.json').read_text('utf8'))),
+                          'birth':json.loads((body/'BIRTH.json').read_text('utf8'))}
+                cached_json=canon(view)
+                if len(_VERIFIED_SNAPSHOT_CACHE)>=_SNAPSHOT_CACHE_MAX:
+                    _VERIFIED_SNAPSHOT_CACHE.pop(next(iter(_VERIFIED_SNAPSHOT_CACHE)))
+                _VERIFIED_SNAPSHOT_CACHE[key]=cached_json
+            self._snapshot_cache=(key,cached_json)
         view=json.loads(self._snapshot_cache[1])
         original=view['records'];reg=view['register'];birth=view['birth']
         if view['primer']!=self._meta('primer'):raise ValueError('Founding material mismatch')
