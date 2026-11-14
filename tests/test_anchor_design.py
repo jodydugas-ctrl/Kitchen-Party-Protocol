@@ -53,8 +53,8 @@ class DesignTests(unittest.TestCase):
   import json,re
   from pathlib import Path
   from mantleos.kpp import anchor
-  root=Path(__file__).resolve().parents[1]
-  paint_html=(root/'src/mantleos/kpp/resources/examples/anchor-design/Minimalist-Paint-MVP.html').read_text(encoding='utf-8')
+  resources=Path(anchor.__file__).resolve().parent/'resources'
+  paint_html=(resources/'examples/anchor-design/Minimalist-Paint-MVP.html').read_text(encoding='utf-8')
   m_manifest=re.search(r'<script type="application/json" id="mantle-anchor-manifest">\s*(\{.*?\})\s*</script>',paint_html,re.DOTALL)
   self.assertIsNotNone(m_manifest)
   manifest=json.loads(m_manifest.group(1))
@@ -62,7 +62,7 @@ class DesignTests(unittest.TestCase):
   app_ids=[app['id'] for app in checked['applications']]
   self.assertEqual(app_ids,['BH-INPUT','N-CANVAS','N-WINDOW','WH-INTEGRITY'])
   self.assertTrue({'ART','BEH','RA'}.isdisjoint(app_ids))
-  handoff_md=(root/'src/mantleos/kpp/resources/docs/ANCHOR-CODE-HANDOFF.md').read_text(encoding='utf-8')
+  handoff_md=(resources/'docs/ANCHOR-CODE-HANDOFF.md').read_text(encoding='utf-8')
   m_bp=re.search(r'### 3\.2.*?```text\n(ANCHOR BLUEPRINT: ANCHOR_CODE_TOOLKIT.*?END EXECUTION\n)```',handoff_md,re.DOTALL)
   m_py=re.search(r'### 3\.3[^\n]*\n\n```python\n(.*?\n)```',handoff_md,re.DOTALL)
   self.assertIsNotNone(m_bp)

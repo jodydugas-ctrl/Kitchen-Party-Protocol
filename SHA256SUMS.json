@@ -1059,7 +1059,7 @@
     "tests/test_adaptation.py": "8f3da8ede3107136dc4fe281780fd7df41049f521625e5a8e45dbf3048396305",
     "tests/test_anchor.py": "a864df6fd30c53ef15b425d5091c7f471ffe8a6fe7135cee08fc8e73d8328409",
     "tests/test_anchor_decision_boost.py": "f97d67169e0d6d7f6c698157d890af5057b5e5beeeb686a64904fa6a2acabbae",
-    "tests/test_anchor_design.py": "78786c978e1731cd99da1b153e7379a388d961dda40e0c5def3bbbc2ab9e4024",
+    "tests/test_anchor_design.py": "f2ceec444831822405f468ce1a47aa3c4cb1820bb7f709c47a249a5216479fdd",
     "tests/test_anchor_handoff.py": "37403f39d56500773744162210e43148461a08a99a9aac0d7cf588fed3aa22d8",
     "tests/test_anchor_logic_evidence.py": "4a5ca75bb3d7847a5764b1ed4d4f0ff1331e8cb0b5501e28afb2194ae9b29567",
     "tests/test_attachments.py": "d33087d1616671ce633e637822a4e1238f5d10f6e8ecdfa1acfdae8bee9fe52a",
