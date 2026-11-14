@@ -20,6 +20,9 @@
     "anchor",
     "anchor-coding",
     "recommended-optional",
+    "strongly-suggested",
+    "bioprogram",
+    "encrypted-key",
     "decision",
     "openrouter",
     "encoding",
@@ -37,12 +40,14 @@
   "dependencies": [],
   "capabilities": [
     "Deterministic offline Anchor polarity, opcode, and rule-economy decision solver (Default OFF for Decider AI)",
+    "Dormant OpenRouter Perplexity Decider V1.2 (perplexity/pplx-decider-v1.2) configuration encoded directly into KPP Anchor Code (N_DECIDER_OPENROUTER, decider_boost OFF by default)",
+    "Zero-dependency v1.scrypt-aes256gcm password-unlocked API key BioProgram envelopes (scrypt N=32768 + AES-256-GCM, AAD api-key-v1) with pure-stdlib fallback",
     "Single-pass OpenRouter Perplexity Decider V1.2 (perplexity/pplx-decider-v1.2, default boost provider) and Flash V1.2 noul, choice, and score batching",
     "Single-pass Gemini Decision 1 (gemini-decision-1 via v1beta/decisions) selectable Decider option",
-    "Calibrated confidence gating that turns low-confidence classifications into explicit unknowns"
+    "Fidelity Anchor budgeting for encoding (max Anchors potentially used) and decoding (target Anchors decoded), plus calibrated confidence gating to explicit unknowns"
   ],
-  "adaptation": "Recommended optional decision optimization ingredient whenever a recipe involves Anchor coding (coding around set Anchors). Decider speedup is OFF by default (DETERMINISTIC_OFFLINE with zero LLM or network) and recommended if the host has an OpenRouter API key. When enabled, defaults to OpenRouter (perplexity/pplx-decider-v1.2) with Gemini (gemini-decision-1) also selectable. Advisory only; confers no execution or Baker authority.",
-  "verified_with": "tests/test_anchor_decision_boost.py; deterministic offline solver, OpenRouter pplx-decider-v1.2 and Gemini gemini-decision-1 calibration fixtures",
+  "adaptation": "Strongly suggested optional decision optimization ingredient whenever a recipe involves Anchor coding (coding around set Anchors). OpenRouter Perplexity Decider V1.2 (perplexity/pplx-decider-v1.2) is encoded into Anchor Code with decider_boost OFF by default (DETERMINISTIC_OFFLINE with zero LLM or network) and activates only when unlocked with an explicit OpenRouter API key, a password-unlocked v1.scrypt-aes256gcm BioProgram token, or selectable Gemini (gemini-decision-1). Fidelity acts as the Anchor budget/count during encoding and decoding; advisory only with authority NONE.",
+  "verified_with": "tests/test_anchor_decision_boost.py; deterministic offline solver, v1.scrypt-aes256gcm stdlib/cryptography parity, BioProgram unlock, OpenRouter pplx-decider-v1.2 and Gemini gemini-decision-1 calibration fixtures",
   "provenance": "Native MantleOS/KPP shared Anchor decision optimization ingredient.",
   "source": {
     "kind": "repository-files",
@@ -54,9 +59,9 @@
     ]
   },
   "usage": {
-    "use_when": "Recommended optional ingredient (Default OFF) whenever a recipe involves Anchor coding (coding around set Anchors) — especially when an OpenRouter API key or openrouter-mind is used — with selectable OpenRouter (default: perplexity/pplx-decider-v1.2) or Gemini (gemini-decision-1) acceleration.",
+    "use_when": "Strongly suggested (RECOMMENDED_OPTIONAL, Default OFF) whenever a recipe involves Anchor coding — especially when an OpenRouter API key, openrouter-mind, or password-unlocked v1.scrypt-aes256gcm BioProgram is provided — with selectable OpenRouter (default: perplexity/pplx-decider-v1.2) or Gemini (gemini-decision-1) acceleration and fidelity Anchor budgeting.",
     "inputs": [
-      "Candidate source or scan units, Anchor design or recipe contract, optional OpenRouter pplx-decider-v1.2 or gemini-decision-1 responses"
+      "Candidate source or scan units, Anchor design or recipe contract, optional fidelity budget, optional v1.scrypt-aes256gcm encrypted key + password or OpenRouter/Gemini responses"
     ],
     "outputs": [
       "Validated anchor.design/1, Molecule entries, decision batches, and routed decode dispositions"

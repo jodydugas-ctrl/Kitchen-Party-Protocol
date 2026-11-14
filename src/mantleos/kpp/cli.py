@@ -273,6 +273,7 @@ def main(argv=None):
     c.add_argument("--id",default="anchor-system")
     c.add_argument("--goal",default="Encode Anchor design")
     c.add_argument("--stimulus",type=Path)
+    c.add_argument("--fidelity",type=int,help="Optional Anchor decode fidelity limit (1..64)")
     c.add_argument("--openrouter-request",action="store_true",help="Format output for OpenRouter api/alpha/decisions (default Decider provider)")
     c.add_argument("--gemini-request",action="store_true",help="Format output for Gemini v1beta/decisions")
     c.add_argument("--model",help="Optional Decider model identifier for --openrouter-request or --gemini-request")
@@ -285,6 +286,9 @@ def main(argv=None):
     c.add_argument("--provider",choices=("openrouter","gemini"),default="openrouter",help="Decider AI provider when --responses is supplied (default: openrouter)")
     c.add_argument("--model",help="Optional Decider model override for recorded responses")
     c.add_argument("--responses",type=Path,help="Optional recorded Decider AI answers JSON")
+    c.add_argument("--fidelity",type=int,help="Optional Anchor encoding fidelity budget (1..64)")
+    c.add_argument("--encrypted-key",help="Optional v1.scrypt-aes256gcm encrypted API key token (stays OFF unless --password supplied)")
+    c.add_argument("--password",help="Optional password to unlock --encrypted-key at runtime")
     c.add_argument("--confidence",type=float,default=0.65)
     c.add_argument("--out",type=Path)
     c=ad_cmd.add_parser("decode",help="Decode and route a stimulus through an Anchor design or recipe contract")
@@ -294,7 +298,18 @@ def main(argv=None):
     c.add_argument("--provider",choices=("openrouter","gemini"),default="openrouter",help="Decider AI provider when --responses is supplied (default: openrouter)")
     c.add_argument("--model",help="Optional Decider model override for recorded responses")
     c.add_argument("--responses",type=Path,help="Optional recorded Decider AI answers JSON")
+    c.add_argument("--fidelity",type=int,help="Optional Anchor decoding fidelity count (1..64)")
+    c.add_argument("--encrypted-key",help="Optional v1.scrypt-aes256gcm encrypted API key token")
+    c.add_argument("--password",help="Optional password to unlock --encrypted-key at runtime")
     c.add_argument("--confidence",type=float,default=0.65)
+    c.add_argument("--out",type=Path)
+    c=ad_cmd.add_parser("verify-key",help="Validate a v1.scrypt-aes256gcm encrypted API key token (and optionally check unlock with --password without printing plaintext)")
+    c.add_argument("--token",required=True)
+    c.add_argument("--password",help="Optional password to verify decryption")
+    c=ad_cmd.add_parser("lock-key",help="Seal an API key into a v1.scrypt-aes256gcm BioProgram envelope without printing plaintext")
+    c.add_argument("--api-key",help="API key plaintext to encrypt (prefer --api-key-env when available)")
+    c.add_argument("--api-key-env",help="Environment variable name holding the API key to encrypt")
+    c.add_argument("--password",required=True)
     c.add_argument("--out",type=Path)
     a=sub.add_parser("observe",help="Record a potential emergent capability for Baker review (not acceptance)")
     a.add_argument("--workspace",type=Path,required=True)
@@ -479,23 +494,33 @@ def main(argv=None):
             elif args.anchor_cmd=="run":sys.stdout.write(run_anchor(args.source, read_json(args.input) if args.input else None))
             elif args.anchor_cmd=="bridge-python":print_json(bridge_python(args.source,args.out))
         elif args.cmd=="anchor-decision":
-            from .decision_boost import boost_status, decode_file, encode_file, export_batch
+            from .decision_boost import boost_status, decode_file, encode_file, export_batch, seal_key_token, verify_key_token
             if args.decision_cmd=="status":
                 result=boost_status(args.recipe)
+                print_json(result)
+            elif args.decision_cmd=="verify-key":
+                result=verify_key_token(args.token,password=args.password)
                 print_json(result)
             else:
                 if args.decision_cmd=="batch":
                     result=export_batch(args.input,mode=args.mode,design_id=args.id,goal=args.goal,
                                         stimulus_path=args.stimulus,openrouter_request=args.openrouter_request,
-                                        gemini_request=args.gemini_request,model=args.model)
+                                        gemini_request=args.gemini_request,model=args.model,
+                                        fidelity=args.fidelity)
                 elif args.decision_cmd=="encode":
                     result=encode_file(args.input,design_id=args.id,goal=args.goal,recipe_path=args.recipe,
                                        responses_path=args.responses,provider=args.provider,
-                                       model=args.model,confidence_threshold=args.confidence)
-                else:
+                                       model=args.model,confidence_threshold=args.confidence,
+                                       fidelity=args.fidelity,encrypted_key=args.encrypted_key,
+                                       password=args.password)
+                elif args.decision_cmd=="decode":
                     result=decode_file(args.contract,args.stimulus,recipe_path=args.recipe,
                                        responses_path=args.responses,provider=args.provider,
-                                       model=args.model,confidence_threshold=args.confidence)
+                                       model=args.model,confidence_threshold=args.confidence,
+                                       fidelity=args.fidelity,encrypted_key=args.encrypted_key,
+                                       password=args.password)
+                else:
+                    result=seal_key_token(args.api_key,args.password,api_key_env=args.api_key_env)
                 if args.out:write_json(args.out,result);print(args.out)
                 else:print_json(result)
         elif args.cmd=="observe":

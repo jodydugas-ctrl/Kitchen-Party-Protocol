@@ -240,23 +240,24 @@ python -m mantleos kpp design-view --recipe recipes/journal-engram-design.json`}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs text-slate-400">
             <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
               <div className="font-mono font-semibold text-sky-300 mb-1">
-                WhiteHole `contradicts` Host-Trap Guards
+                Fidelity, WhiteHole `contradicts` & N-RULE-ECONOMY
               </div>
               <p>
-                `WhiteHole` applications in `anchor.design/1` may declare an optional `contradicts`
-                array of banned shortcuts (e.g. `subpixel_path_smoothing` or silent failure
-                swallowing). Non-`WhiteHole` applications cannot carry `contradicts`.
+                Under `N-RULE-ECONOMY`, Fidelity sets how many Anchors encoding can potentially use
+                and how many decoding will decode (usually matching the artifact count, though not
+                always). Typical small GUI apps like Notepad need ~8–10 Anchors; detailed rules
+                belong in `GateConditions`, and `WhiteHole` apps may declare `contradicts`.
               </p>
             </div>
             <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
               <div className="font-mono font-semibold text-emerald-300 mb-1">
-                Optional `anchor-decision-boost` Ingredient
+                Strongly Suggested `anchor-decision-boost` (Default OFF)
               </div>
               <p>
-                Defaults to offline `DeterministicDecisionEngine` (`DETERMINISTIC_OFFLINE`), with
-                optional closed-ended `noul`/`choice`/`score` batching via OpenRouter
-                (`perplexity/pplx-decider-v1.2`, default boost provider) or Google
-                (`gemini-decision-1`). Outputs remain `authority: NONE`.
+                OpenRouter `perplexity/pplx-decider-v1.2` is encoded as a strongly suggested
+                dormant option (`decider_boost: OFF` by default for `DETERMINISTIC_OFFLINE`),
+                unlockable at runtime via `v1.scrypt-aes256gcm` password-protected BioProgram keys
+                or selectable `gemini-decision-1`. Outputs remain `authority: NONE`.
               </p>
             </div>
           </div>

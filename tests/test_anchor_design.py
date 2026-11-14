@@ -68,6 +68,10 @@ class DesignTests(unittest.TestCase):
   self.assertIsNotNone(m_bp)
   self.assertIsNotNone(m_py)
   self.assertEqual(anchor.interpret(m_bp.group(1)),m_py.group(1))
+  compile(m_py.group(1),'anchor_toolkit.py','exec')
+  mol_body=m_bp.group(1).split('BEGIN MOLECULE ANCHOR_CODE_TOOLKIT\n',1)[1].split('\nEND MOLECULE',1)[0]
+  bp_units=[ln for ln in mol_body.splitlines() if ': Neutral -01 -00 -text=' in ln]
+  self.assertIn(f'Decoding the `{len(bp_units)}`-unit',handoff_md)
 
 
 class JournalDesignTests(unittest.TestCase):

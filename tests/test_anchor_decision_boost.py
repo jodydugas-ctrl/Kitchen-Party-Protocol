@@ -7,23 +7,34 @@ import unittest
 
 from mantleos import anchor_design, anchors
 from mantleos.anchor_decision_boost import (
+    BIOPROGRAM_SCHEMA,
     DEFAULT_BOOST_PROVIDER,
     DEFAULT_GEMINI_MODEL,
     DEFAULT_MODEL,
     DEFAULT_OPENROUTER_MODEL,
     DeterministicDecisionEngine,
+    ENCODED_OPENROUTER_DECIDER_SPEC,
+    ENCRYPTED_KEY_SCHEME,
+    FIDELITY_SEMANTICS,
     GeminiDecisionBoostAdapter,
     OpenRouterDecisionBoostAdapter,
     SUPPORTED_BOOST_PROVIDERS,
+    build_decider_bioprogram,
     build_decode_batch,
     build_encode_batch,
     create_decision_boost_adapter,
     decode_through_anchor,
+    default_openrouter_decider_config,
     encode_to_anchor,
     involves_anchor_coding,
+    load_decider_bioprogram,
+    lock_api_key_token,
     recipe_boost_status,
+    render_openrouter_decider_anchor,
     to_gemini_decisions_request,
     to_openrouter_decisions_request,
+    unlock_api_key_token,
+    validate_encrypted_key_token,
     validate_result,
 )
 from mantleos.anchor_engine.tools import anchor_structure
@@ -587,6 +598,208 @@ class AnchorDecisionBoostTests(unittest.TestCase):
             handoff_text = workshop_handoff(ws)
             self.assertIn("Anchor decision boost:", handoff_text)
             self.assertIn("RECOMMENDED_OPTIONAL", handoff_text)
+
+    def test_encrypted_key_roundtrip_parity_and_tamper_failure(self):
+        synthetic_key = "sk-or-v1-synthetic-fixture-key-not-real-00000001"
+        salt = b"synthetic-salt16"
+        nonce = b"synth-nonce!"
+        token_default = lock_api_key_token(synthetic_key, "Banana", salt=salt, nonce=nonce)
+        token_stdlib = lock_api_key_token(
+            synthetic_key, "Banana", salt=salt, nonce=nonce, use_stdlib_only=True
+        )
+        self.assertEqual(token_default, token_stdlib)
+        self.assertTrue(token_default.startswith(f"{ENCRYPTED_KEY_SCHEME}."))
+
+        info = validate_encrypted_key_token(token_default)
+        self.assertTrue(info["valid"])
+        self.assertEqual(info["scheme"], ENCRYPTED_KEY_SCHEME)
+        self.assertEqual(info["aad"], "api-key-v1")
+
+        self.assertEqual(unlock_api_key_token(token_default, "Banana"), synthetic_key)
+        self.assertEqual(
+            unlock_api_key_token(token_default, "Banana", use_stdlib_only=True),
+            synthetic_key,
+        )
+
+        with self.assertRaises(ValueError):
+            unlock_api_key_token(token_default, "WrongPassword")
+        with self.assertRaises(ValueError):
+            unlock_api_key_token(token_default, "WrongPassword", use_stdlib_only=True)
+
+        parts = token_default.split(".")
+        tampered_tail = ("A" if parts[4][0] != "A" else "B") + parts[4][1:]
+        tampered_token = ".".join((*parts[:4], tampered_tail))
+        with self.assertRaises(ValueError):
+            unlock_api_key_token(tampered_token, "Banana", use_stdlib_only=True)
+
+    def test_bioprogram_default_off_password_unlock_and_secret_redaction(self):
+        synthetic_key = "sk-or-v1-synthetic-bioprogram-key-00000002"
+        token = lock_api_key_token(synthetic_key, "Banana", salt=b"1234567890abcdef", nonce=b"1234567890ab")
+        bp = build_decider_bioprogram(encrypted_api_key=token)
+        self.assertEqual(bp["schema"], BIOPROGRAM_SCHEMA)
+        self.assertEqual(bp["decider_boost"], "OFF")
+        self.assertEqual(bp["default_mode"], "DETERMINISTIC_OFFLINE")
+        self.assertEqual(bp["recommendation_strength"], "STRONGLY_SUGGESTED")
+        self.assertEqual(bp["provider"], "openrouter")
+        self.assertEqual(bp["model"], DEFAULT_OPENROUTER_MODEL)
+        shapes = anchor_structure.check_structures(bp["decider_anchor_line"], all_types=False)
+        self.assertEqual([s.id for s in shapes], ["N_DECIDER_OPENROUTER"])
+
+        dormant = load_decider_bioprogram(bp)
+        self.assertEqual(dormant["decider_boost"], "OFF")
+        self.assertEqual(dormant["mode"], "DETERMINISTIC_OFFLINE")
+        self.assertFalse(dormant["unlocked"])
+        self.assertIsNone(dormant["adapter"])
+
+        with self.assertRaises(ValueError):
+            load_decider_bioprogram(bp, enable_boost=True)
+
+        def mock_transport(payload):
+            answers = {}
+            for qid, qspec in payload["questions"].items():
+                if qspec["type"] == "noul":
+                    answers[qid] = {"type": "noul", "noul": 0.95}
+                elif qspec["type"] == "choice":
+                    first_opt = next(iter(qspec["criteria"]))
+                    answers[qid] = {
+                        "type": "choice",
+                        "choice": first_opt,
+                        "probabilities": {first_opt: 0.94},
+                        "confidence": 0.91,
+                    }
+                else:
+                    answers[qid] = {
+                        "type": "score",
+                        "score": 2.85,
+                        "legend": {str(i): label for i, label in enumerate(qspec["criteria"])},
+                        "confidence": 0.91,
+                    }
+            return {"answers": answers}
+
+        prompt = f"Load this BioProgram. Password: Banana\n\n{token}"
+        unlocked = load_decider_bioprogram(prompt, transport=mock_transport)
+        self.assertEqual(unlocked["decider_boost"], "ON")
+        self.assertEqual(unlocked["mode"], "DECISION_AI_BOOST")
+        self.assertTrue(unlocked["unlocked"])
+        self.assertIsNotNone(unlocked["adapter"])
+        self.assertNotIn(synthetic_key, repr(unlocked["adapter"]))
+        self.assertNotIn("Banana", repr(unlocked["adapter"]))
+
+        serializable = {k: v for k, v in unlocked.items() if k != "adapter"}
+        dumped = json.dumps(serializable)
+        self.assertNotIn(synthetic_key, dumped)
+        self.assertNotIn("Banana", dumped)
+
+        direct_adapter = create_decision_boost_adapter(
+            provider="openrouter",
+            encrypted_api_key=token,
+            password="Banana",
+            transport=mock_transport,
+        )
+        batch = build_encode_batch("def receive_event(x): return x", design_id="BioTest", goal="Verify adapter")
+        res = direct_adapter.evaluate(batch)
+        self.assertEqual(res["authority"], "NONE")
+        self.assertNotIn(synthetic_key, repr(direct_adapter))
+
+    def test_encoding_and_decoding_fidelity_and_embedded_decider_spec(self):
+        multi_unit_source = "\n\n".join(
+            [
+                "def recv_alpha(x): return x",
+                "def parse_beta(x): return x.strip()",
+                "def validate_gamma(x): return bool(x)",
+                "def verify_delta(x): return len(x) > 0",
+                "def guard_epsilon(x): return x is not None",
+                "def save_zeta(x): return x",
+                "def update_eta(x): return x",
+                "def emit_theta(x): return str(x)",
+            ]
+        )
+        encoded = encode_to_anchor(
+            multi_unit_source,
+            design_id="NotepadLike",
+            goal="Bounded notepad editing with Fidelity",
+            fidelity=3,
+        )
+        self.assertEqual(encoded["encoding_fidelity"], 3)
+        self.assertEqual(encoded["anchor_count"], 3)
+        self.assertGreaterEqual(encoded["estimated_project_anchors"], encoded["anchor_count"])
+        self.assertEqual(encoded["decider_config"]["decider_boost"], "OFF")
+        self.assertEqual(encoded["decider_config"]["provider"], "openrouter")
+        self.assertEqual(encoded["decider_config"]["model"], DEFAULT_OPENROUTER_MODEL)
+        self.assertTrue(encoded["decider_anchor_line"].startswith("N_DECIDER_OPENROUTER: Neutral -30 -00 -spec="))
+        self.assertEqual(
+            encoded["fidelity_semantics"]["encoding"],
+            FIDELITY_SEMANTICS["encoding"],
+        )
+        anchor_structure.check_structures(encoded["decider_anchor_line"], all_types=False)
+
+        shapes = anchor_structure.check_structures(encoded["molecule_source"], all_types=True)
+        self.assertEqual({s.id for s in shapes}, {a["id"] for a in encoded["design"]["applications"]})
+        neutral_specs = [
+            json.loads(line.split("-spec=", 1)[1])
+            for line in encoded["molecules"]
+            if ": Neutral " in line
+        ]
+        self.assertTrue(any(spec.get("decider_boost", {}).get("model") == DEFAULT_OPENROUTER_MODEL for spec in neutral_specs))
+
+        # Verify decode_through_anchor honors decoding fidelity against a larger artifact design.
+        unrestricted = encode_to_anchor(
+            multi_unit_source,
+            design_id="LargeNotepad",
+            goal="Unrestricted multi-anchor build",
+        )
+        artifact_count = len(unrestricted["design"]["applications"])
+        self.assertGreaterEqual(artifact_count, 4)
+
+        full_dec = decode_through_anchor(unrestricted["design"], {"request": "save_zeta"})
+        self.assertEqual(full_dec["decoding_fidelity"], artifact_count)
+        self.assertEqual(full_dec["artifact_anchor_count"], artifact_count)
+        self.assertFalse(full_dec["fidelity_truncated"])
+
+        sliced_dec = decode_through_anchor(unrestricted["design"], {"request": "save_zeta"}, fidelity=3)
+        self.assertEqual(sliced_dec["decoding_fidelity"], 3)
+        self.assertEqual(sliced_dec["artifact_anchor_count"], artifact_count)
+        self.assertTrue(sliced_dec["fidelity_truncated"])
+
+        status = recipe_boost_status(read_json(ROOT / "recipes/anchor-decision-boost-v4.json"))
+        self.assertEqual(status["recommendation_strength"], "STRONGLY_SUGGESTED")
+        self.assertEqual(status["default_decider_state"], "OFF")
+        self.assertEqual(status["key_unlock_scheme"], ENCRYPTED_KEY_SCHEME)
+
+    def test_cli_verify_key_and_lock_key_never_print_plaintext(self):
+        synthetic_key = "sk-or-v1-synthetic-cli-key-00000003"
+        out_lock = io.StringIO()
+        err_lock = io.StringIO()
+        with contextlib.redirect_stdout(out_lock), contextlib.redirect_stderr(err_lock):
+            rc_lock = kpp_main(["anchor-decision", "lock-key", "--api-key", synthetic_key, "--password", "Banana"])
+        self.assertEqual(rc_lock, 0)
+        locked_text = out_lock.getvalue()
+        self.assertNotIn(synthetic_key, locked_text)
+        self.assertNotIn("Banana", locked_text)
+        self.assertEqual(err_lock.getvalue(), "")
+        locked_doc = json.loads(locked_text)
+        token = locked_doc["encrypted_api_key"]
+        self.assertEqual(locked_doc["bioprogram"]["schema"], BIOPROGRAM_SCHEMA)
+
+        out_verify = io.StringIO()
+        err_verify = io.StringIO()
+        with contextlib.redirect_stdout(out_verify), contextlib.redirect_stderr(err_verify):
+            rc_verify = kpp_main(["anchor-decision", "verify-key", "--token", token, "--password", "Banana"])
+        self.assertEqual(rc_verify, 0)
+        verified_text = out_verify.getvalue()
+        self.assertNotIn(synthetic_key, verified_text)
+        self.assertNotIn("Banana", verified_text)
+        verified_doc = json.loads(verified_text)
+        self.assertTrue(verified_doc["valid"])
+        self.assertTrue(verified_doc["unlocked"])
+        self.assertEqual(verified_doc["decider_boost"], "READY")
+
+        out_bad = io.StringIO()
+        err_bad = io.StringIO()
+        with contextlib.redirect_stdout(out_bad), contextlib.redirect_stderr(err_bad):
+            rc_bad = kpp_main(["anchor-decision", "verify-key", "--token", token, "--password", "WrongPw"])
+        self.assertEqual(rc_bad, 2)
+        self.assertNotIn(synthetic_key, err_bad.getvalue())
 
 
 if __name__ == "__main__":

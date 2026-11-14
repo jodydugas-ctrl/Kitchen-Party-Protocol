@@ -11,7 +11,33 @@ Because closed-ended decision batching fits every Anchor Coding system, KPP surf
 - `kpp language-plan` (`anchor_decision_boost` and `recommended_optional_ingredients`)
 - `kpp pantry-fit` (`recommended_optional`)
 - `kpp build-step` and `kpp handoff` (`implementation.anchor_decision_boost` and the Handoff Contract block)
-- `kpp anchor-decision status --recipe FILE` (`involves_anchor_coding`, `anchor_signals`, `default_mode`, `default_boost_provider`, `supported_boost_providers`, `openrouter_mind_present`, `recommendation`)
+- `kpp anchor-decision status --recipe FILE` (`involves_anchor_coding`, `anchor_signals`, `default_mode`, `default_boost_provider`, `supported_boost_providers`, `openrouter_mind_present`, `recommendation`, `recommendation_strength`, `encoded_anchor_line`, `key_unlock_scheme`, `fidelity_semantics`)
+
+## Strongly Suggested OpenRouter Decider V1.2 Encoded in Anchor Code (Default OFF)
+
+KPP treats OpenRouter Perplexity Decider V1.2 (`perplexity/pplx-decider-v1.2`) as a **strongly suggested** option (`recommendation_strength: "STRONGLY_SUGGESTED"` on Anchor recipes) and encodes that option directly inside generated KPP Anchor Code in a **Default OFF** state:
+
+- Canonical standalone line: `N_DECIDER_OPENROUTER: Neutral -30 -00 -spec={...}` (validated by `anchor_structure.check_structures`, carrying `"decider_boost": "OFF"`, `"default_mode": "DETERMINISTIC_OFFLINE"`, `"provider": "openrouter"`, `"model": "perplexity/pplx-decider-v1.2"`, and `"key_unlock_scheme": "v1.scrypt-aes256gcm"`).
+- Inside `encode_to_anchor(...)`: embedded under `"decider_boost"` in the primary `Neutral` Anchor's `-spec` JSON payload as well as `decider_config` and `decider_anchor_line`.
+- Staying `OFF` preserves 100% deterministic offline execution with zero network or API credentials required.
+
+## Password-Unlocked API Keys (`v1.scrypt-aes256gcm`) & BioProgram Loading
+
+To let an operator supply an encrypted OpenRouter API key inside a BioProgram or prompt and unlock it only at runtime with a separate password:
+
+- Token format: `v1.scrypt-aes256gcm.<salt>.<nonce>.<ciphertext+tag>` (unpadded base64url segments).
+- Key derivation: `hashlib.scrypt(password_utf8, salt, n=32768, r=8, p=1, dklen=32, maxmem=128*1024*1024)`.
+- AEAD decryption & authentication: `AES-256-GCM` with associated data `api-key-v1` (`cryptography` fast path when installed, with a built-in zero-dependency pure-stdlib AES-256-GCM implementation as fallback).
+- Wrong passwords or modified tokens fail closed on tag mismatch without exposing plaintext. Plaintext keys are handed only to the HTTPS request client and are never printed in chat, logs, `repr(adapter)`, or command output.
+- Python API: `lock_api_key_token(...)`, `validate_encrypted_key_token(...)`, `unlock_api_key_token(...)`, `build_decider_bioprogram(...)`, and `load_decider_bioprogram(...)` (accepts either a BioProgram dict/JSON or text such as `"Load this BioProgram. Password: ..."` containing the encrypted token; without a password it remains Default OFF).
+
+## Fidelity Semantics (Encoding Budget, Decoding Count & Complexity Estimation)
+
+Under `N-RULE-ECONOMY`, **Fidelity** naturally captures Anchor sizing without introducing artificial sizing tiers:
+
+- **Encoding `fidelity`:** How many Anchors encoding can potentially use (`encode_to_anchor(..., fidelity=N)` caps/consolidates excess non-primary Anchors into `primary_by_polarity` up to `max(3, N)` while reporting `estimated_project_anchors` before capping).
+- **Decoding `fidelity`:** How many Anchors decoding will decode (`decode_through_anchor(..., fidelity=N)` usually matches `artifact_anchor_count`, though callers may choose a smaller slice).
+- **Complexity estimation:** Project complexity can be estimated by how many Anchors the LLM/builder believes it needs; typical small apps like **Notepad** take around **8–10 Anchors including GUI**, while detailed behavioral clauses live in `GateConditions` and `RecipeObligations`.
 
 ## Why Closed-Ended Decision Batching Fits Anchor Code
 
@@ -67,5 +93,13 @@ python -m mantleos kpp anchor-decision encode --input path/to/source.py --id MyD
 Decode and triage a stimulus against an Anchor design or KPP recipe:
 
 ```bash
-python -m mantleos kpp anchor-decision decode --contract recipes/anchor-decision-boost-v4.json --stimulus stimulus.json --provider openrouter
+python -m mantleos kpp anchor-decision decode --contract recipes/anchor-decision-boost-v4.json --stimulus stimulus.json --provider openrouter --fidelity 3
+```
+
+Validate or seal a password-unlocked OpenRouter API key (`v1.scrypt-aes256gcm`) without printing plaintext, and pass `--fidelity` or `--encrypted-key` / `--password` when encoding:
+
+```bash
+python -m mantleos kpp anchor-decision lock-key --api-key-env OPENROUTER_API_KEY --password "YourSecretPassword" --out bioprogram.json
+python -m mantleos kpp anchor-decision verify-key --token "v1.scrypt-aes256gcm...." --password "YourSecretPassword"
+python -m mantleos kpp anchor-decision encode --input path/to/source.py --id MyDesign --goal "Route validated requests" --fidelity 8 --encrypted-key "v1.scrypt-aes256gcm...." --out encoded.json
 ```

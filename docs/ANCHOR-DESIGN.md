@@ -3,7 +3,13 @@
 Describe the smallest set of responsibilities that covers the required variables.
 Use existing BlackHole, Neutral and WhiteHole definitions with contextual attributes.
 Four applications are examples, not an anatomy requirement. Implementation modules
-may expand without multiplying the design responsibilities.
+may expand without multiplying the design responsibilities. Under `N-RULE-ECONOMY`,
+**Fidelity** expresses Anchor budget directly: encoding `fidelity` is how many Anchors
+encoding can potentially use, and decoding `fidelity` is how many Anchors decoding will
+decode (usually matching the artifact's Anchor count, though not always). Project complexity
+is estimated by how many Anchors the LLM/builder believes it needs — typical small apps
+like **Notepad** take around **8–10 Anchors including GUI** — while detailed behavioral
+rules live in `GateConditions` and `RecipeObligations`.
 
 `anchor.design/1` contains schema, id, purpose, applications, flows, state and effects.
 Applications are existing `anchor.application/1` values with responsibility attributes.

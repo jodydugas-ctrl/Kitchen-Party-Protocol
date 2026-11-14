@@ -1,12 +1,12 @@
 {
   "schema": "kpp.recipe/4",
   "id": "anchor-decision-boost-v4",
-  "goal": "Construct or transform Anchor contracts offline by default (Decider boost OFF) with opt-in OpenRouter Perplexity Decider V1.2 (default boost provider) or Gemini Decision 1 boost.",
+  "goal": "Construct or transform Anchor contracts offline by default (dormant OpenRouter perplexity/pplx-decider-v1.2 encoded into Anchor Code with Decider boost OFF) with opt-in password-unlocked v1.scrypt-aes256gcm OpenRouter or Gemini Decision 1 acceleration and fidelity Anchor budgeting.",
   "mode": "composition",
   "tissue": "mixed",
   "fidelity": 2,
   "target": {
-    "description": "Anchor design encoder/decoder pipeline using model-neutral decision batches and optional calibrated OpenRouter pplx-decider-v1.2 or Gemini Decision 1 answers"
+    "description": "Anchor design encoder/decoder pipeline with encoded Default-OFF OpenRouter pplx-decider-v1.2 BioProgram support, v1.scrypt-aes256gcm key unlocking, fidelity Anchor budgeting, and selectable Gemini Decision 1 answers"
   },
   "ingredients": [
     "anchor-decision-boost"

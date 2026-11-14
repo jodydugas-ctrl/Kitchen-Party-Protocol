@@ -13,9 +13,13 @@ singularities or grant Baker acceptance.
 from __future__ import annotations
 
 import ast
+import base64
 from copy import deepcopy
+import hashlib
+import hmac
 import json
 import math
+import os
 from pathlib import Path
 import re
 import urllib.error
@@ -30,6 +34,13 @@ BATCH_SCHEMA = "anchor.decision-batch/1"
 RESULT_SCHEMA = "anchor.decision-result/1"
 ENCODING_SCHEMA = "anchor.decision-encoding/1"
 DECODING_SCHEMA = "anchor.decision-decoding/1"
+BIOPROGRAM_SCHEMA = "anchor.decider-bioprogram/1"
+
+ENCRYPTED_KEY_SCHEME = "v1.scrypt-aes256gcm"
+ENCRYPTED_KEY_AAD = b"api-key-v1"
+ENCRYPTED_KEY_SCRYPT_N = 32768
+ENCRYPTED_KEY_SCRYPT_R = 8
+ENCRYPTED_KEY_SCRYPT_P = 1
 
 DEFAULT_BOOST_PROVIDER = "openrouter"
 SUPPORTED_BOOST_PROVIDERS = ("openrouter", "gemini")
@@ -52,6 +63,25 @@ ALLOWED_GEMINI_DECISION_MODELS = frozenset({DEFAULT_GEMINI_MODEL, f"models/{DEFA
 DEFAULT_MODEL = DEFAULT_OPENROUTER_MODEL
 DECISIONS_ENDPOINT = GEMINI_DECISIONS_ENDPOINT
 ALLOWED_DECISION_MODELS = ALLOWED_OPENROUTER_DECISION_MODELS | ALLOWED_GEMINI_DECISION_MODELS
+
+ENCODED_OPENROUTER_DECIDER_SPEC = {
+    "decider_boost": "OFF",
+    "default_mode": "DETERMINISTIC_OFFLINE",
+    "recommendation": "STRONGLY_SUGGESTED",
+    "provider": DEFAULT_BOOST_PROVIDER,
+    "model": DEFAULT_OPENROUTER_MODEL,
+    "flash_model": "perplexity/pplx-decider-flash-v1.2",
+    "alternate_provider": "gemini",
+    "alternate_model": DEFAULT_GEMINI_MODEL,
+    "endpoint": OPENROUTER_DECISIONS_ENDPOINT,
+    "key_unlock_scheme": ENCRYPTED_KEY_SCHEME,
+}
+
+FIDELITY_SEMANTICS = {
+    "encoding": "Fidelity during encoding is how many Anchors it can potentially use.",
+    "decoding": "Fidelity during decoding is how many Anchors it will decode (usually matching the artifact's Anchor count, though not always).",
+    "complexity_estimation": "Project complexity is estimated by how many Anchors the LLM believes it would need (typical small apps like Notepad take ~8-10 Anchors including GUI; detailed rules live in GateConditions).",
+}
 
 MAX_UNITS = 128
 MAX_QUESTIONS = 1000
@@ -96,6 +126,371 @@ _NEUTRAL_TOKENS = frozenset({
 })
 _EMIT_TOKENS = frozenset({"emit", "format", "literal", "print", "render", "serialize"})
 _SIGNAL_VOCAB = _WHITEHOLE_TOKENS | _BLACKHOLE_TOKENS | _NEUTRAL_TOKENS | _EMIT_TOKENS
+
+# FIPS 197 AES S-box and round constants for zero-dependency AES-256-GCM fallback.
+_AES_SBOX = (
+    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
+    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
+    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
+    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
+    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
+    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
+    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
+    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
+    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
+    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
+    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
+    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
+    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
+    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
+    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
+    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16,
+)
+_AES_RCON = (0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36)
+
+
+def _b64url_decode(value: str) -> bytes:
+    """Decode an unpadded or padded base64url string."""
+    if not isinstance(value, str) or not value:
+        raise ValueError("Expected non-empty base64url string")
+    padded = value + "=" * (-len(value) % 4)
+    return base64.urlsafe_b64decode(padded.encode("ascii"))
+
+
+def _b64url_encode(data: bytes) -> str:
+    """Encode bytes as unpadded base64url."""
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def _derive_scrypt_key(password: str, salt: bytes) -> bytes:
+    """Derive a 32-byte key from a UTF-8 password and salt via stdlib scrypt."""
+    if not isinstance(password, str) or not password:
+        raise ValueError("Password must be a non-empty string")
+    return hashlib.scrypt(
+        password.encode("utf-8"),
+        salt=salt,
+        n=ENCRYPTED_KEY_SCRYPT_N,
+        r=ENCRYPTED_KEY_SCRYPT_R,
+        p=ENCRYPTED_KEY_SCRYPT_P,
+        dklen=32,
+        maxmem=128 * 1024 * 1024,
+    )
+
+
+def _aes256_expand_key(key: bytes) -> list[bytes]:
+    """Expand a 32-byte AES-256 key into 15 16-byte round keys."""
+    if len(key) != 32:
+        raise ValueError("AES-256 key must be 32 bytes")
+    words = [int.from_bytes(key[i : i + 4], "big") for i in range(0, 32, 4)]
+
+    def _sub_word(word: int) -> int:
+        return (
+            (_AES_SBOX[(word >> 24) & 0xFF] << 24)
+            | (_AES_SBOX[(word >> 16) & 0xFF] << 16)
+            | (_AES_SBOX[(word >> 8) & 0xFF] << 8)
+            | _AES_SBOX[word & 0xFF]
+        )
+
+    for idx in range(8, 60):
+        temp = words[idx - 1]
+        if idx % 8 == 0:
+            rot = ((temp << 8) | (temp >> 24)) & 0xFFFFFFFF
+            temp = _sub_word(rot) ^ (_AES_RCON[idx // 8] << 24)
+        elif idx % 8 == 4:
+            temp = _sub_word(temp)
+        words.append(words[idx - 8] ^ temp)
+
+    return [b"".join(words[r * 4 + c].to_bytes(4, "big") for c in range(4)) for r in range(15)]
+
+
+def _aes256_encrypt_block(block: bytes, round_keys: list[bytes]) -> bytes:
+    """Encrypt a single 16-byte block with pre-expanded AES-256 round keys."""
+    state = bytearray(a ^ b for a, b in zip(block, round_keys[0]))
+
+    for rnd in range(1, 15):
+        for i in range(16):
+            state[i] = _AES_SBOX[state[i]]
+        state[1], state[5], state[9], state[13] = state[5], state[9], state[13], state[1]
+        state[2], state[6], state[10], state[14] = state[10], state[14], state[2], state[6]
+        state[3], state[7], state[11], state[15] = state[15], state[3], state[7], state[11]
+        if rnd < 14:
+            for c in range(0, 16, 4):
+                a0, a1, a2, a3 = state[c], state[c + 1], state[c + 2], state[c + 3]
+                xor_all = a0 ^ a1 ^ a2 ^ a3
+
+                def _xtime(x: int) -> int:
+                    return ((x << 1) ^ 0x1B) & 0xFF if (x & 0x80) else (x << 1)
+
+                state[c] = a0 ^ xor_all ^ _xtime(a0 ^ a1)
+                state[c + 1] = a1 ^ xor_all ^ _xtime(a1 ^ a2)
+                state[c + 2] = a2 ^ xor_all ^ _xtime(a2 ^ a3)
+                state[c + 3] = a3 ^ xor_all ^ _xtime(a3 ^ a0)
+        rk = round_keys[rnd]
+        for i in range(16):
+            state[i] ^= rk[i]
+    return bytes(state)
+
+
+def _ghash_mul(x: int, y: int) -> int:
+    """Multiply two GF(2^128) elements per NIST SP 800-38D."""
+    z = 0
+    v = y
+    for bit in range(128):
+        if (x >> (127 - bit)) & 1:
+            z ^= v
+        lsb = v & 1
+        v >>= 1
+        if lsb:
+            v ^= 0xE1000000000000000000000000000000
+    return z
+
+
+def _ghash(h_int: int, aad: bytes, data: bytes) -> bytes:
+    """Compute 16-byte GHASH over associated data and ciphertext."""
+    acc = 0
+    for chunk_source in (aad, data):
+        rem = len(chunk_source) % 16
+        padded = chunk_source + (b"\x00" * (16 - rem) if rem else b"")
+        for offset in range(0, len(padded), 16):
+            block_int = int.from_bytes(padded[offset : offset + 16], "big")
+            acc = _ghash_mul(acc ^ block_int, h_int)
+    lengths = (len(aad) * 8).to_bytes(8, "big") + (len(data) * 8).to_bytes(8, "big")
+    acc = _ghash_mul(acc ^ int.from_bytes(lengths, "big"), h_int)
+    return acc.to_bytes(16, "big")
+
+
+def _aes256_gcm_crypt(
+    key: bytes,
+    nonce: bytes,
+    data: bytes,
+) -> tuple[int, bytes, bytes]:
+    """Run AES-256 GCTR encryption/decryption and return (H, tag_mask, output)."""
+    if not nonce:
+        raise ValueError("AES-GCM nonce must not be empty")
+    round_keys = _aes256_expand_key(key)
+    h_int = int.from_bytes(_aes256_encrypt_block(b"\x00" * 16, round_keys), "big")
+    if len(nonce) == 12:
+        j0 = nonce + b"\x00\x00\x00\x01"
+    else:
+        j0 = _ghash(h_int, b"", nonce)
+    tag_mask = _aes256_encrypt_block(j0, round_keys)
+
+    counter = int.from_bytes(j0[12:], "big")
+    prefix = j0[:12]
+    out = bytearray(len(data))
+    for offset in range(0, len(data), 16):
+        counter = (counter + 1) & 0xFFFFFFFF
+        ctr_block = prefix + counter.to_bytes(4, "big")
+        keystream = _aes256_encrypt_block(ctr_block, round_keys)
+        chunk = data[offset : offset + 16]
+        for idx, byte in enumerate(chunk):
+            out[offset + idx] = byte ^ keystream[idx]
+    return h_int, tag_mask, bytes(out)
+
+
+def _stdlib_aes256_gcm_decrypt(
+    key: bytes,
+    nonce: bytes,
+    ciphertext_and_tag: bytes,
+    aad: bytes,
+) -> bytes:
+    """Decrypt and verify AES-256-GCM ciphertext using only Python stdlib."""
+    if len(ciphertext_and_tag) < 16:
+        raise ValueError("Corrupted encrypted key token (missing GCM tag)")
+    ciphertext = ciphertext_and_tag[:-16]
+    tag = ciphertext_and_tag[-16:]
+    h_int, tag_mask, plaintext = _aes256_gcm_crypt(key, nonce, ciphertext)
+    ghash_digest = _ghash(h_int, aad, ciphertext)
+    expected_tag = bytes(a ^ b for a, b in zip(tag_mask, ghash_digest))
+    if not hmac.compare_digest(expected_tag, tag):
+        raise ValueError("Wrong password or modified encrypted key token")
+    return plaintext
+
+
+def _stdlib_aes256_gcm_encrypt(
+    key: bytes,
+    nonce: bytes,
+    plaintext: bytes,
+    aad: bytes,
+) -> bytes:
+    """Encrypt and authenticate AES-256-GCM plaintext using only Python stdlib."""
+    h_int, tag_mask, ciphertext = _aes256_gcm_crypt(key, nonce, plaintext)
+    ghash_digest = _ghash(h_int, aad, ciphertext)
+    tag = bytes(a ^ b for a, b in zip(tag_mask, ghash_digest))
+    return ciphertext + tag
+
+
+def _aes256_gcm_decrypt(
+    key: bytes,
+    nonce: bytes,
+    ciphertext_and_tag: bytes,
+    aad: bytes,
+    *,
+    use_stdlib_only: bool = False,
+) -> bytes:
+    """Decrypt AES-256-GCM preferring optional cryptography, with pure-stdlib fallback."""
+    if not use_stdlib_only:
+        try:
+            from cryptography.exceptions import InvalidTag
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        except ImportError:
+            pass
+        else:
+            try:
+                return AESGCM(key).decrypt(nonce, ciphertext_and_tag, aad)
+            except InvalidTag as exc:
+                raise ValueError("Wrong password or modified encrypted key token") from exc
+    return _stdlib_aes256_gcm_decrypt(key, nonce, ciphertext_and_tag, aad)
+
+
+def _aes256_gcm_encrypt(
+    key: bytes,
+    nonce: bytes,
+    plaintext: bytes,
+    aad: bytes,
+    *,
+    use_stdlib_only: bool = False,
+) -> bytes:
+    """Encrypt AES-256-GCM preferring optional cryptography, with pure-stdlib fallback."""
+    if not use_stdlib_only:
+        try:
+            from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+        except ImportError:
+            pass
+        else:
+            return AESGCM(key).encrypt(nonce, plaintext, aad)
+    return _stdlib_aes256_gcm_encrypt(key, nonce, plaintext, aad)
+
+
+def validate_encrypted_key_token(token: str) -> dict:
+    """Validate structure of a ``v1.scrypt-aes256gcm.<salt>.<nonce>.<ct+tag>`` token without decrypting."""
+    if not isinstance(token, str) or not token.strip():
+        raise ValueError("Encrypted key token must be a non-empty string")
+    parts = token.strip().split(".")
+    if len(parts) != 5:
+        raise ValueError("Encrypted key token must contain 5 dot-separated segments")
+    version, scheme, salt_b64, nonce_b64, ct_b64 = parts
+    full_scheme = f"{version}.{scheme}"
+    if full_scheme != ENCRYPTED_KEY_SCHEME:
+        raise ValueError(f"Unsupported encrypted key scheme {full_scheme!r}; expected {ENCRYPTED_KEY_SCHEME!r}")
+    salt = _b64url_decode(salt_b64)
+    nonce = _b64url_decode(nonce_b64)
+    ciphertext_and_tag = _b64url_decode(ct_b64)
+    if len(salt) < 8:
+        raise ValueError("Encrypted key token salt is too short")
+    if len(nonce) < 12:
+        raise ValueError("Encrypted key token nonce must be at least 12 bytes")
+    if len(ciphertext_and_tag) < 16:
+        raise ValueError("Encrypted key token ciphertext+tag is truncated")
+    return {
+        "valid": True,
+        "scheme": full_scheme,
+        "salt_bytes": len(salt),
+        "nonce_bytes": len(nonce),
+        "ciphertext_bytes": len(ciphertext_and_tag) - 16,
+        "tag_bytes": 16,
+        "aad": ENCRYPTED_KEY_AAD.decode("ascii"),
+        "scrypt": {
+            "N": ENCRYPTED_KEY_SCRYPT_N,
+            "r": ENCRYPTED_KEY_SCRYPT_R,
+            "p": ENCRYPTED_KEY_SCRYPT_P,
+            "dklen": 32,
+        },
+        "authority": "NONE",
+    }
+
+
+def unlock_api_key_token(token: str, password: str, *, use_stdlib_only: bool = False) -> str:
+    """Decrypt a ``v1.scrypt-aes256gcm`` API key token using ``password``. Never logs plaintext."""
+    validate_encrypted_key_token(token)
+    _, _, salt_b64, nonce_b64, ct_b64 = token.strip().split(".")
+    salt = _b64url_decode(salt_b64)
+    nonce = _b64url_decode(nonce_b64)
+    ciphertext_and_tag = _b64url_decode(ct_b64)
+    key = _derive_scrypt_key(password, salt)
+    raw = _aes256_gcm_decrypt(
+        key,
+        nonce,
+        ciphertext_and_tag,
+        ENCRYPTED_KEY_AAD,
+        use_stdlib_only=use_stdlib_only,
+    )
+    api_key = raw.decode("utf-8").strip()
+    if not api_key:
+        raise ValueError("Decrypted API key is empty")
+    return api_key
+
+
+def lock_api_key_token(
+    api_key: str,
+    password: str,
+    *,
+    salt: bytes | None = None,
+    nonce: bytes | None = None,
+    use_stdlib_only: bool = False,
+) -> str:
+    """Encrypt an API key into a ``v1.scrypt-aes256gcm`` token sealed by ``password``."""
+    if not isinstance(api_key, str) or not api_key.strip():
+        raise ValueError("API key to encrypt must be a non-empty string")
+    raw_salt = os.urandom(16) if salt is None else bytes(salt)
+    raw_nonce = os.urandom(12) if nonce is None else bytes(nonce)
+    if len(raw_salt) < 8:
+        raise ValueError("Salt must be at least 8 bytes")
+    if len(raw_nonce) < 12:
+        raise ValueError("Nonce must be at least 12 bytes")
+    key = _derive_scrypt_key(password, raw_salt)
+    ct_and_tag = _aes256_gcm_encrypt(
+        key,
+        raw_nonce,
+        api_key.strip().encode("utf-8"),
+        ENCRYPTED_KEY_AAD,
+        use_stdlib_only=use_stdlib_only,
+    )
+    return ".".join(
+        (
+            ENCRYPTED_KEY_SCHEME,
+            _b64url_encode(raw_salt),
+            _b64url_encode(raw_nonce),
+            _b64url_encode(ct_and_tag),
+        )
+    )
+
+
+def default_openrouter_decider_config(
+    *,
+    enabled: bool = False,
+    model: str | None = None,
+    encrypted_api_key: str | None = None,
+) -> dict:
+    """Return canonical encoded OpenRouter Perplexity Decider configuration (OFF by default)."""
+    resolved_model = DEFAULT_OPENROUTER_MODEL if model is None else str(model)
+    cfg = dict(ENCODED_OPENROUTER_DECIDER_SPEC)
+    cfg["decider_boost"] = "ON" if enabled else "OFF"
+    cfg["model"] = resolved_model
+    cfg["authority"] = "NONE"
+    if encrypted_api_key:
+        info = validate_encrypted_key_token(encrypted_api_key)
+        cfg["encrypted_key_present"] = True
+        cfg["encrypted_api_key"] = encrypted_api_key.strip()
+        cfg["key_unlock_scheme"] = info["scheme"]
+    else:
+        cfg["encrypted_key_present"] = False
+    return cfg
+
+
+def render_openrouter_decider_anchor(
+    *,
+    enabled: bool = False,
+    model: str | None = None,
+    encrypted_api_key: str | None = None,
+) -> str:
+    """Render the canonical Neutral Anchor configuration line encoding the OpenRouter Decider option."""
+    cfg = default_openrouter_decider_config(
+        enabled=enabled,
+        model=model,
+        encrypted_api_key=encrypted_api_key,
+    )
+    return f"N_DECIDER_OPENROUTER: Neutral -30 -00 -spec={c.canonical(cfg)}"
 
 
 def _safe_identifier(raw: str, prefix: str = "U") -> str:
@@ -420,9 +815,69 @@ def _design_from_contract(contract: dict) -> dict:
     return {}
 
 
-def build_decode_batch(contract: dict, stimulus) -> dict:
+def _slice_design_for_fidelity(design: dict, fidelity: int | None) -> tuple[dict, dict]:
+    """Select up to ``fidelity`` Anchors for decoding while keeping bounded integrity."""
+    total_anchors = len(design["applications"])
+    if fidelity is None:
+        return design, {
+            "artifact_anchor_count": total_anchors,
+            "decoding_fidelity": total_anchors,
+            "fidelity_truncated": False,
+        }
+    c.require(type(fidelity) is int and 1 <= fidelity <= 64, "Decoding fidelity must be an integer in 1..64")
+    if fidelity >= total_anchors:
+        return design, {
+            "artifact_anchor_count": total_anchors,
+            "decoding_fidelity": fidelity,
+            "fidelity_truncated": False,
+        }
+
+    # Preserve one representative of each polarity when fidelity >= 3, then original order.
+    selected: list[dict] = []
+    seen_ids: set[str] = set()
+    if fidelity >= 3:
+        for pol in POLARITIES:
+            for app in design["applications"]:
+                if app["type"] == pol and app["id"] not in seen_ids:
+                    selected.append(app)
+                    seen_ids.add(app["id"])
+                    break
+    for app in design["applications"]:
+        if len(selected) >= fidelity:
+            break
+        if app["id"] not in seen_ids:
+            selected.append(app)
+            seen_ids.add(app["id"])
+
+    selected_ids = {app["id"] for app in selected}
+    sliced_flows = [f for f in design.get("flows", []) if f["from"] in selected_ids and f["to"] in selected_ids]
+    sliced_state = [s for s in design.get("state", []) if s["owner"] in selected_ids]
+    sliced_effects = [
+        e for e in design.get("effects", [])
+        if e["requester"] in selected_ids and e["guard"] in selected_ids
+    ]
+    sliced = {
+        "schema": design["schema"],
+        "id": design["id"],
+        "purpose": design["purpose"],
+        "applications": selected,
+        "flows": sliced_flows,
+        "state": sliced_state,
+        "effects": sliced_effects,
+    }
+    if sliced_state and sliced_effects and len(selected) >= 3:
+        sliced = anchor_design.validate(sliced)
+    return sliced, {
+        "artifact_anchor_count": total_anchors,
+        "decoding_fidelity": fidelity,
+        "fidelity_truncated": True,
+    }
+
+
+def build_decode_batch(contract: dict, stimulus, *, fidelity: int | None = None) -> dict:
     """Build a model-neutral ``anchor.decision-batch/1`` packet for Anchor decoding/routing."""
-    design = _design_from_contract(contract)
+    full_design = _design_from_contract(contract)
+    design, fidelity_info = _slice_design_for_fidelity(full_design, fidelity)
     if isinstance(stimulus, str):
         c.text(stimulus, maximum=4096)
         stim_obj = {"request": stimulus.strip()}
@@ -433,8 +888,13 @@ def build_decode_batch(contract: dict, stimulus) -> dict:
         c.require(False, "Stimulus must be a string or JSON object")
 
     apps_by_type = {t: [a for a in design["applications"] if a["type"] == t] for t in POLARITIES}
+    if len(design["applications"]) >= 3 and design.get("state") and design.get("effects"):
+        design_context = anchor_design.render(design).strip()
+    else:
+        app_lines = [f"- {a['id']} ({a['type']}): {a['attributes']['responsibility']}" for a in design["applications"]]
+        design_context = f"ANCHOR_DESIGN {design['id']} (fidelity slice {len(design['applications'])}/{fidelity_info['artifact_anchor_count']}):\n" + "\n".join(app_lines)
     context_lines = [
-        anchor_design.render(design).strip(),
+        design_context,
         "",
         "STIMULUS:",
         json.dumps(stim_obj, ensure_ascii=False, sort_keys=True),
@@ -487,6 +947,9 @@ def build_decode_batch(contract: dict, stimulus) -> dict:
         "mode": "decode",
         "design_id": design["id"],
         "design": design,
+        "decoding_fidelity": fidelity_info["decoding_fidelity"],
+        "artifact_anchor_count": fidelity_info["artifact_anchor_count"],
+        "fidelity_truncated": fidelity_info["fidelity_truncated"],
         "stimulus": stim_obj,
         "input_text": "\n".join(context_lines),
         "questions": questions,
@@ -862,6 +1325,8 @@ class _BaseDecisionBoostAdapter:
         self,
         *,
         api_key: str | None = None,
+        encrypted_api_key: str | None = None,
+        password: str | None = None,
         model: str | None = None,
         endpoint: str | None = None,
         transport=None,
@@ -882,7 +1347,25 @@ class _BaseDecisionBoostAdapter:
             raise ValueError("budget_calls must be an integer in 1..1000")
         if not isinstance(resolved_endpoint, str) or not resolved_endpoint.startswith("https://"):
             raise ValueError("Decisions endpoint must use https://")
-        self.api_key = api_key
+        if api_key is not None and encrypted_api_key is not None:
+            raise ValueError("Provide either api_key or encrypted_api_key, not both")
+
+        resolved_key = api_key
+        self.encrypted_key_used = False
+        self.key_unlock_scheme: str | None = None
+        if encrypted_api_key is not None:
+            info = validate_encrypted_key_token(encrypted_api_key)
+            self.encrypted_key_used = True
+            self.key_unlock_scheme = info["scheme"]
+            if password is not None:
+                resolved_key = unlock_api_key_token(encrypted_api_key, password)
+            elif transport is None:
+                raise ValueError(
+                    "Password required to unlock encrypted_api_key "
+                    "(use Default OFF deterministic mode when password is not supplied)"
+                )
+
+        self.api_key = resolved_key
         self.model = self._normalize_model(resolved_model)
         self.endpoint = resolved_endpoint
         self.transport = transport
@@ -891,6 +1374,12 @@ class _BaseDecisionBoostAdapter:
         self.timeout = float(timeout)
         self.calls_used = 0
         self.last_usage: dict | None = None
+
+    def __repr__(self) -> str:
+        return (
+            f"{type(self).__name__}(provider={self.provider!r}, model={self.model!r}, "
+            f"has_api_key={bool(self.api_key)}, encrypted_key_used={self.encrypted_key_used})"
+        )
 
     def _normalize_model(self, model: str) -> str:
         return model
@@ -1005,6 +1494,8 @@ def create_decision_boost_adapter(
     *,
     provider: str = DEFAULT_BOOST_PROVIDER,
     api_key: str | None = None,
+    encrypted_api_key: str | None = None,
+    password: str | None = None,
     model: str | None = None,
     endpoint: str | None = None,
     transport=None,
@@ -1022,6 +1513,8 @@ def create_decision_boost_adapter(
         raise ValueError(f"Unsupported Decider provider {provider!r}; expected one of {SUPPORTED_BOOST_PROVIDERS}")
     return cls(
         api_key=api_key,
+        encrypted_api_key=encrypted_api_key,
+        password=password,
         model=model,
         endpoint=endpoint,
         transport=transport,
@@ -1029,6 +1522,187 @@ def create_decision_boost_adapter(
         budget_calls=budget_calls,
         timeout=timeout,
     )
+
+
+def build_decider_bioprogram(
+    *,
+    bioprogram_id: str = "openrouter-decider-v1-2",
+    encrypted_api_key: str | None = None,
+    provider: str = DEFAULT_BOOST_PROVIDER,
+    model: str | None = None,
+    enabled_by_default: bool = False,
+    anchor_design_contract: dict | None = None,
+) -> dict:
+    """Build an ``anchor.decider-bioprogram/1`` envelope with dormant OpenRouter Decider V1.2 config."""
+    c.identifier(bioprogram_id)
+    if provider not in SUPPORTED_BOOST_PROVIDERS:
+        raise ValueError(f"Unsupported Decider provider {provider!r}; expected one of {SUPPORTED_BOOST_PROVIDERS}")
+    if provider == "openrouter":
+        decider_config = default_openrouter_decider_config(
+            enabled=enabled_by_default,
+            model=model,
+            encrypted_api_key=encrypted_api_key,
+        )
+    else:
+        resolved_model = DEFAULT_GEMINI_MODEL if model is None else str(model)
+        if resolved_model not in ALLOWED_GEMINI_DECISION_MODELS:
+            raise ValueError(f"Unsupported Gemini Decider model {resolved_model!r}")
+        decider_config = {
+            "decider_boost": "ON" if enabled_by_default else "OFF",
+            "default_mode": "DETERMINISTIC_OFFLINE",
+            "recommendation": "STRONGLY_SUGGESTED",
+            "provider": "gemini",
+            "model": resolved_model,
+            "endpoint": GEMINI_DECISIONS_ENDPOINT,
+            "key_unlock_scheme": ENCRYPTED_KEY_SCHEME,
+            "encrypted_key_present": bool(encrypted_api_key),
+            "authority": "NONE",
+        }
+        if encrypted_api_key:
+            validate_encrypted_key_token(encrypted_api_key)
+            decider_config["encrypted_api_key"] = encrypted_api_key.strip()
+
+    anchor_line = render_openrouter_decider_anchor(
+        enabled=False,
+        model=decider_config["model"] if provider == "openrouter" else None,
+        encrypted_api_key=encrypted_api_key,
+    )
+    anchor_structure.check_structures(anchor_line, all_types=False)
+
+    validated_design = None
+    if anchor_design_contract is not None:
+        validated_design = anchor_design.validate(anchor_design_contract)
+
+    return {
+        "schema": BIOPROGRAM_SCHEMA,
+        "id": bioprogram_id,
+        "provider": provider,
+        "model": decider_config["model"],
+        "decider_boost": "ON" if enabled_by_default else "OFF",
+        "default_mode": "DETERMINISTIC_OFFLINE",
+        "recommendation_strength": "STRONGLY_SUGGESTED",
+        "key_unlock_scheme": ENCRYPTED_KEY_SCHEME,
+        "encrypted_api_key": encrypted_api_key.strip() if encrypted_api_key else None,
+        "decider_config": decider_config,
+        "decider_anchor_line": anchor_line,
+        "fidelity_semantics": dict(FIDELITY_SEMANTICS),
+        "anchor_design": validated_design,
+        "authority": "NONE",
+        "baker_acceptance": "NOT_GRANTED",
+    }
+
+
+def _extract_bioprogram_payload(bioprogram_or_text, password: str | None) -> tuple[dict, str | None]:
+    """Parse a BioProgram dict, JSON string, or prompt containing an encrypted key token."""
+    if isinstance(bioprogram_or_text, dict):
+        return deepcopy(bioprogram_or_text), password
+    if not isinstance(bioprogram_or_text, str) or not bioprogram_or_text.strip():
+        raise ValueError("BioProgram must be a mapping, JSON string, or text with a v1.scrypt-aes256gcm token")
+
+    raw = bioprogram_or_text.strip()
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        parsed = None
+    if isinstance(parsed, dict):
+        return parsed, password
+
+    resolved_password = password
+    if resolved_password is None:
+        pw_match = re.search(r"(?:^|\s)Password:\s*([^\r\n]+)", raw, flags=re.IGNORECASE)
+        if pw_match:
+            resolved_password = pw_match.group(1).strip().strip("\"'")
+
+    token_match = re.search(
+        r"v1\.scrypt-aes256gcm\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",
+        raw,
+    )
+    if not token_match:
+        raise ValueError("BioProgram text did not contain JSON or a v1.scrypt-aes256gcm key token")
+    return build_decider_bioprogram(encrypted_api_key=token_match.group(0)), resolved_password
+
+
+def load_decider_bioprogram(
+    bioprogram_or_text,
+    *,
+    password: str | None = None,
+    enable_boost: bool | None = None,
+    transport=None,
+    confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+    budget_calls: int = 16,
+    timeout: float = 30.0,
+) -> dict:
+    """Load a BioProgram envelope; stays Default OFF unless password-unlocked or enabled with transport."""
+    doc, resolved_password = _extract_bioprogram_payload(bioprogram_or_text, password)
+    if doc.get("schema") != BIOPROGRAM_SCHEMA:
+        raise ValueError(f"Expected schema {BIOPROGRAM_SCHEMA!r}")
+
+    provider = doc.get("provider", DEFAULT_BOOST_PROVIDER)
+    model = doc.get("model")
+    enc_token = doc.get("encrypted_api_key") or (doc.get("decider_config") or {}).get("encrypted_api_key")
+    if enc_token:
+        validate_encrypted_key_token(enc_token)
+
+    anchor_line = doc.get("decider_anchor_line") or render_openrouter_decider_anchor(
+        enabled=False,
+        encrypted_api_key=enc_token,
+    )
+    anchor_structure.check_structures(anchor_line, all_types=False)
+
+    adapter = None
+    unlocked = False
+    mode = "DETERMINISTIC_OFFLINE"
+    decider_boost = "OFF"
+
+    if enable_boost is False:
+        adapter = None
+    elif resolved_password is not None:
+        if not enc_token:
+            raise ValueError("BioProgram has no encrypted_api_key token to unlock")
+        adapter = create_decision_boost_adapter(
+            provider=provider,
+            encrypted_api_key=enc_token,
+            password=resolved_password,
+            model=model,
+            transport=transport,
+            confidence_threshold=confidence_threshold,
+            budget_calls=budget_calls,
+            timeout=timeout,
+        )
+        unlocked = True
+        mode = "DECISION_AI_BOOST"
+        decider_boost = "ON"
+    elif enable_boost is True:
+        if transport is not None and not enc_token:
+            adapter = create_decision_boost_adapter(
+                provider=provider,
+                model=model,
+                transport=transport,
+                confidence_threshold=confidence_threshold,
+                budget_calls=budget_calls,
+                timeout=timeout,
+            )
+            mode = "DECISION_AI_BOOST"
+            decider_boost = "ON"
+        else:
+            raise ValueError("Password required to unlock BioProgram encrypted_api_key")
+
+    return {
+        "schema": BIOPROGRAM_SCHEMA,
+        "bioprogram_id": doc.get("id", "openrouter-decider-v1-2"),
+        "provider": provider,
+        "model": model or DEFAULT_OPENROUTER_MODEL,
+        "decider_boost": decider_boost,
+        "mode": mode,
+        "unlocked": unlocked,
+        "encrypted_key_present": bool(enc_token),
+        "key_unlock_scheme": ENCRYPTED_KEY_SCHEME,
+        "decider_anchor_line": anchor_line,
+        "anchor_design": doc.get("anchor_design"),
+        "adapter": adapter,
+        "authority": "NONE",
+        "baker_acceptance": "NOT_GRANTED",
+    }
 
 
 def involves_anchor_coding(recipe: dict) -> dict:
@@ -1089,27 +1763,34 @@ def recipe_boost_status(recipe: dict) -> dict:
     enabled = INGREDIENT_ID in ing_set
     openrouter_mind_present = "openrouter-mind" in ing_set
     recommendation = "SELECTED" if enabled else ("RECOMMENDED_OPTIONAL" if involves else "OPTIONAL")
+    recommendation_strength = "STRONGLY_SUGGESTED" if (involves or enabled) else "OPTIONAL"
     if enabled:
         advisory = (
-            "Selected in recipe ingredients. Default execution stays OFF (DETERMINISTIC_OFFLINE); "
-            "if an API key is configured, Decider speedup defaults to OpenRouter (perplexity/pplx-decider-v1.2) "
-            "or selectable Gemini (gemini-decision-1)."
+            "Selected in recipe ingredients (STRONGLY_SUGGESTED option encoded into Anchor code). "
+            "Default execution stays OFF (DETERMINISTIC_OFFLINE); if an OpenRouter API key or password-unlocked "
+            "v1.scrypt-aes256gcm token is configured, Decider speedup defaults to OpenRouter "
+            "(perplexity/pplx-decider-v1.2) or selectable Gemini (gemini-decision-1)."
         )
     elif recommendation == "RECOMMENDED_OPTIONAL":
         if openrouter_mind_present:
             advisory = (
-                "Recipe involves Anchor coding and uses openrouter-mind; Decider boost is OFF by default "
-                "(DETERMINISTIC_OFFLINE), recommended if you have an OpenRouter API key, defaulting to "
-                "OpenRouter (perplexity/pplx-decider-v1.2) with Gemini (gemini-decision-1) also selectable."
+                "Recipe involves Anchor coding and uses openrouter-mind; Perplexity Decider V1.2 is encoded as a "
+                "STRONGLY_SUGGESTED option (Default OFF / DETERMINISTIC_OFFLINE). Unlock with an OpenRouter API key "
+                "or password-unlocked v1.scrypt-aes256gcm token (default provider: openrouter / perplexity/pplx-decider-v1.2, "
+                "with gemini / gemini-decision-1 selectable)."
             )
         else:
             advisory = (
-                "Recipe involves Anchor coding (coding around set Anchors); Decider speedup is OFF by default "
-                "(DETERMINISTIC_OFFLINE) and recommended as an optional ingredient if you have an OpenRouter API key "
-                "(default provider: openrouter / perplexity/pplx-decider-v1.2, or gemini / gemini-decision-1)."
+                "Recipe involves Anchor coding (coding around set Anchors); Perplexity Decider V1.2 is encoded as a "
+                "STRONGLY_SUGGESTED optional ingredient (Default OFF / DETERMINISTIC_OFFLINE) if you have an OpenRouter API key "
+                "or password-unlocked v1.scrypt-aes256gcm token (default provider: openrouter / perplexity/pplx-decider-v1.2, "
+                "or gemini / gemini-decision-1)."
             )
     else:
-        advisory = "Optional ingredient (Default OFF) available if the recipe adopts Anchor coding."
+        advisory = (
+            "Optional ingredient (Default OFF; OpenRouter perplexity/pplx-decider-v1.2 encoded as dormant option) "
+            "available if the recipe adopts Anchor coding."
+        )
     return {
         "schema": "anchor.decision-status/1",
         "ingredient": INGREDIENT_ID,
@@ -1118,6 +1799,8 @@ def recipe_boost_status(recipe: dict) -> dict:
         "anchor_signals": signals,
         "enabled": enabled,
         "recommendation": recommendation,
+        "recommendation_strength": recommendation_strength,
+        "default_decider_state": "OFF",
         "advisory": advisory,
         "default_mode": "DETERMINISTIC_OFFLINE",
         "default_boost_provider": DEFAULT_BOOST_PROVIDER,
@@ -1129,6 +1812,9 @@ def recipe_boost_status(recipe: dict) -> dict:
         },
         "boost_model": DEFAULT_MODEL,
         "openrouter_mind_present": openrouter_mind_present,
+        "key_unlock_scheme": ENCRYPTED_KEY_SCHEME,
+        "encoded_anchor_line": render_openrouter_decider_anchor(enabled=False),
+        "fidelity_semantics": dict(FIDELITY_SEMANTICS),
         "authority": "NONE",
     }
 
@@ -1150,9 +1836,13 @@ def encode_to_anchor(
     recipe: dict | None = None,
     decision_provider=None,
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+    fidelity: int | None = None,
+    encrypted_api_key: str | None = None,
 ) -> dict:
     """Encode source or specification into validated ``anchor.design/1``, Molecule entries, and recipe/4 obligations."""
     _check_recipe_allows_boost(recipe, decision_provider)
+    if fidelity is not None:
+        c.require(type(fidelity) is int and 1 <= fidelity <= 64, "Encoding fidelity must be an integer in 1..64")
     batch = build_encode_batch(source_or_spec, design_id=design_id, goal=goal)
     if decision_provider is not None:
         result = decision_provider.evaluate(batch)
@@ -1274,6 +1964,47 @@ def encode_to_anchor(
             primary_by_polarity[pol] = record
             retained_anchors.append(record)
 
+    estimated_project_anchors = len(retained_anchors)
+    if fidelity is not None:
+        anchor_budget = max(3, fidelity)
+        while len(retained_anchors) > anchor_budget:
+            removed = False
+            for idx in range(len(retained_anchors) - 1, -1, -1):
+                rec = retained_anchors[idx]
+                pol = rec["polarity"]
+                if rec is not primary_by_polarity[pol]:
+                    primary = primary_by_polarity[pol]
+                    primary["units"].extend(rec["units"])
+                    primary["summaries"].extend(rec["summaries"])
+                    primary["owns_state"] = primary["owns_state"] or rec["owns_state"]
+                    primary["guards_effect"] = primary["guards_effect"] or rec["guards_effect"]
+                    primary["review_needed"] = primary["review_needed"] or rec["review_needed"]
+                    for uid, assigned in list(unit_assignments.items()):
+                        if assigned == rec["anchor_id"]:
+                            unit_assignments[uid] = primary["anchor_id"]
+                    retained_anchors.pop(idx)
+                    removed = True
+                    break
+            if not removed:
+                break
+
+    active_openrouter = (
+        decision_provider is not None
+        and getattr(decision_provider, "provider", None) == "openrouter"
+    )
+    active_model = getattr(decision_provider, "model", None) if active_openrouter else None
+    decider_cfg = default_openrouter_decider_config(
+        enabled=active_openrouter,
+        model=active_model,
+        encrypted_api_key=encrypted_api_key,
+    )
+    decider_anchor_line = render_openrouter_decider_anchor(
+        enabled=active_openrouter,
+        model=active_model,
+        encrypted_api_key=encrypted_api_key,
+    )
+    anchor_structure.check_structures(decider_anchor_line, all_types=False)
+
     applications: list[dict] = []
     molecule_lines: list[str] = []
     for record in retained_anchors:
@@ -1290,12 +2021,15 @@ def encode_to_anchor(
             definition_id=record["polarity"],
             attributes={"responsibility": responsibility},
         ))
+        spec_dict = {
+            "stage": record["stage"],
+            "units": record["units"],
+            "responsibility": responsibility,
+        }
+        if record is primary_by_polarity["Neutral"]:
+            spec_dict["decider_boost"] = decider_cfg
         spec_payload = json.dumps(
-            {
-                "stage": record["stage"],
-                "units": record["units"],
-                "responsibility": responsibility,
-            },
+            spec_dict,
             ensure_ascii=False,
             separators=(",", ":"),
         ).translate(_LINE_SEPARATORS)
@@ -1408,6 +2142,12 @@ def encode_to_anchor(
         "unknowns": unknowns,
         "unit_assignments": unit_assignments,
         "consolidated_unit_count": len(batch["units"]) - len(retained_anchors) if len(batch["units"]) > len(retained_anchors) else 0,
+        "encoding_fidelity": fidelity if fidelity is not None else len(retained_anchors),
+        "estimated_project_anchors": estimated_project_anchors,
+        "anchor_count": len(retained_anchors),
+        "fidelity_semantics": dict(FIDELITY_SEMANTICS),
+        "decider_config": decider_cfg,
+        "decider_anchor_line": decider_anchor_line,
         "design": design,
         "review": anchor_design.review(design),
         "molecules": molecule_lines,
@@ -1426,11 +2166,12 @@ def decode_through_anchor(
     recipe: dict | None = None,
     decision_provider=None,
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD,
+    fidelity: int | None = None,
 ) -> dict:
     """Decode and route a stimulus through an Anchor contract; low-confidence decisions fail closed."""
     contract_recipe = recipe if recipe is not None else (contract if isinstance(contract, dict) and contract.get("schema") in ("kpp.recipe/3", "kpp.recipe/4") else None)
     _check_recipe_allows_boost(contract_recipe, decision_provider)
-    batch = build_decode_batch(contract, stimulus)
+    batch = build_decode_batch(contract, stimulus, fidelity=fidelity)
     if decision_provider is not None:
         result = decision_provider.evaluate(batch)
     else:
@@ -1481,6 +2222,10 @@ def decode_through_anchor(
         "mode": result["mode"],
         "model": result["model"],
         "provenance": result["provenance"],
+        "decoding_fidelity": batch["decoding_fidelity"],
+        "artifact_anchor_count": batch["artifact_anchor_count"],
+        "fidelity_truncated": batch["fidelity_truncated"],
+        "fidelity_semantics": dict(FIDELITY_SEMANTICS),
         "disposition": disposition,
         "review_required": bool(unknowns) or disposition != "ADMIT_TO_NEUTRAL",
         "route": {
@@ -1503,6 +2248,7 @@ __all__ = [
     "ALLOWED_GEMINI_DECISION_MODELS",
     "ALLOWED_OPENROUTER_DECISION_MODELS",
     "BATCH_SCHEMA",
+    "BIOPROGRAM_SCHEMA",
     "CAPABILITY_ID",
     "DECISIONS_ENDPOINT",
     "DECODE_DISPOSITIONS",
@@ -1516,7 +2262,14 @@ __all__ = [
     "DISPOSITIONS",
     "DeterministicDecisionEngine",
     "ECONOMY_RUBRIC",
+    "ENCODED_OPENROUTER_DECIDER_SPEC",
     "ENCODING_SCHEMA",
+    "ENCRYPTED_KEY_AAD",
+    "ENCRYPTED_KEY_SCHEME",
+    "ENCRYPTED_KEY_SCRYPT_N",
+    "ENCRYPTED_KEY_SCRYPT_P",
+    "ENCRYPTED_KEY_SCRYPT_R",
+    "FIDELITY_SEMANTICS",
     "GEMINI_DECISIONS_ENDPOINT",
     "GeminiDecisionBoostAdapter",
     "INGREDIENT_ID",
@@ -1530,16 +2283,23 @@ __all__ = [
     "RESULT_SCHEMA",
     "STAGES",
     "SUPPORTED_BOOST_PROVIDERS",
+    "build_decider_bioprogram",
     "build_decode_batch",
     "build_encode_batch",
     "create_decision_boost_adapter",
     "decode_through_anchor",
+    "default_openrouter_decider_config",
     "encode_to_anchor",
     "extract_candidate_units",
     "involves_anchor_coding",
+    "load_decider_bioprogram",
+    "lock_api_key_token",
     "recipe_boost_status",
+    "render_openrouter_decider_anchor",
     "to_gemini_decisions_request",
     "to_openrouter_decisions_request",
+    "unlock_api_key_token",
     "validate_batch",
+    "validate_encrypted_key_token",
     "validate_result",
 ]
