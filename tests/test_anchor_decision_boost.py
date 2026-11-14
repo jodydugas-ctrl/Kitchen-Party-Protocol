@@ -34,7 +34,7 @@ from mantleos.kpp.pantry import discover as pantry_discover, view as pantry_view
 from mantleos.kpp.pantry_index import fit as pantry_fit
 from mantleos.kpp.workshop import begin as workshop_begin, handoff as workshop_handoff
 
-ROOT = next(p for p in Path(__file__).resolve().parents if (p / "tools/export_kpp.py").is_file())
+ROOT = Path(__import__("mantleos.kpp", fromlist=["x"]).__file__).parent / "resources"
 
 SAMPLE_PY = '''def receive_request(payload):
     """Parse and ingest external request payload."""

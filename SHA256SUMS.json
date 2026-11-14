@@ -1054,7 +1054,7 @@
     "tests/reflex_book/test_prepared.py": "d7fcd42648d185b5d6247ae04f28eb7d774b4940dc61013950edfffb96d40641",
     "tests/test_adaptation.py": "8f3da8ede3107136dc4fe281780fd7df41049f521625e5a8e45dbf3048396305",
     "tests/test_anchor.py": "1bb7cecb35e685426be7e1cd7cc8a4f1cb270800d51f9d79b99800339458c8ac",
-    "tests/test_anchor_decision_boost.py": "32dc4678172bc141b48ad4b907e9e7c30cfdc9010bd8f39efcfeccc34c8186ce",
+    "tests/test_anchor_decision_boost.py": "f97d67169e0d6d7f6c698157d890af5057b5e5beeeb686a64904fa6a2acabbae",
     "tests/test_anchor_design.py": "74580906ea06149d69c9bde636002e840f6b2be8fb5cc88c9c6b0ecf4fe40353",
     "tests/test_anchor_handoff.py": "37403f39d56500773744162210e43148461a08a99a9aac0d7cf588fed3aa22d8",
     "tests/test_anchor_logic_evidence.py": "4a5ca75bb3d7847a5764b1ed4d4f0ff1331e8cb0b5501e28afb2194ae9b29567",
