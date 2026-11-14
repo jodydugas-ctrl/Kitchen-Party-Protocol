@@ -1,0 +1,147 @@
+{
+  "schema": "kpp.recipe/4",
+  "id": "anchor-decision-boost-v4",
+  "goal": "Construct or transform Anchor contracts offline by default (Decider boost OFF) with opt-in OpenRouter Perplexity Decider V1.2 (default boost provider) or Gemini Decision 1 boost.",
+  "mode": "composition",
+  "tissue": "mixed",
+  "fidelity": 2,
+  "target": {
+    "description": "Anchor design encoder/decoder pipeline using model-neutral decision batches and optional calibrated OpenRouter pplx-decider-v1.2 or Gemini Decision 1 answers"
+  },
+  "ingredients": [
+    "anchor-decision-boost"
+  ],
+  "oven": {
+    "assumption": "Deterministic offline solver runs with zero external models; OpenRouter or Gemini Decider AI boost is Default OFF, opt-in, and advisory only",
+    "provider": "any capable host",
+    "iterations": "as needed",
+    "implementation": "incremental",
+    "verification": "Baker acceptance"
+  },
+  "acceptance": "Every required obligation needs current deterministic or reviewed evidence; model outputs never grant approval.",
+  "product_kind": "conventional",
+  "delivery_mode": "artifact",
+  "capabilities": {
+    "agent": false,
+    "mind": false,
+    "mantleos_splice": false
+  },
+  "implementation": {
+    "components": [
+      {
+        "id": "engine",
+        "policy": "required",
+        "languages": [
+          "python"
+        ]
+      },
+      {
+        "id": "contracts",
+        "policy": "required",
+        "languages": [
+          "anchor"
+        ],
+        "profile": "EMIT_TEXT/0.2"
+      }
+    ]
+  },
+  "construction": {
+    "techniques": []
+  },
+  "anchor_binding": "none",
+  "anchor_design": {
+    "schema": "anchor.design/1",
+    "id": "Anchor-Decision-Boost",
+    "purpose": "LLM-independent Anchor encoding and decoding with Default OFF Decider boost and opt-in OpenRouter pplx-decider-v1.2 or Gemini Decision 1 acceleration.",
+    "applications": [
+      {
+        "schema": "anchor.application/1",
+        "id": "INTAKE_GATE",
+        "definition": "BlackHole",
+        "type": "BlackHole",
+        "singularity": "Receive the declared input.",
+        "attributes": {
+          "responsibility": "Receive source units, stimuli, and decision batches without executing untrusted data."
+        },
+        "sha256": "62bd4282551240a6d292306560178a2282940d5d44509632dd1cf1f550824291"
+      },
+      {
+        "schema": "anchor.application/1",
+        "id": "CONFIDENCE_GUARD",
+        "definition": "WhiteHole",
+        "type": "WhiteHole",
+        "singularity": "Enforce the declared boundary.",
+        "attributes": {
+          "responsibility": "Enforce schema invariants, recipe ingredient selection, confidence thresholds, and NONE authority."
+        },
+        "sha256": "d89a87c9fffd9bdece5444ae6d5479f688f793b589c76dd157fdd1e60094a45b"
+      },
+      {
+        "schema": "anchor.application/1",
+        "id": "DECISION_CORE",
+        "definition": "Neutral",
+        "type": "Neutral",
+        "singularity": "Apply the declared relationship.",
+        "attributes": {
+          "responsibility": "Own deterministic encoding, rule-economy consolidation, and routed Anchor state."
+        },
+        "sha256": "3678e9dcb2f43045340e06ef416c62897a7cc29429248114a7e6bba0052c6246"
+      }
+    ],
+    "flows": [
+      {
+        "from": "INTAKE_GATE",
+        "to": "CONFIDENCE_GUARD",
+        "relationship": "Normalize input and evaluate decision batch confidence"
+      },
+      {
+        "from": "CONFIDENCE_GUARD",
+        "to": "DECISION_CORE",
+        "relationship": "Admit verified classification or hold as UNDETERMINED"
+      }
+    ],
+    "state": [
+      {
+        "id": "decision_batch_ledger",
+        "owner": "DECISION_CORE"
+      }
+    ],
+    "effects": [
+      {
+        "id": "decision_boost_route",
+        "requester": "DECISION_CORE",
+        "guard": "CONFIDENCE_GUARD",
+        "confirmation": "CONFIDENCE_GUARD verifies schema bounds and confidence >= threshold without granting authority."
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "id": "offline-deterministic-fallback",
+      "statement": "Deterministic offline solver encodes and decodes Anchor contracts with zero LLM or network calls.",
+      "test": "Run anchor-decision encode and decode without API credentials and inspect schema validity.",
+      "required": true,
+      "depth": 1,
+      "depends": [],
+      "preserves": [],
+      "design_anchors": [
+        "INTAKE_GATE",
+        "DECISION_CORE"
+      ]
+    },
+    {
+      "id": "calibrated-confidence-gating",
+      "statement": "Low-confidence Decision AI answers fail closed to UNDETERMINED and confer authority NONE.",
+      "test": "Verify sub-threshold answers populate unknowns and force disposition UNDETERMINED.",
+      "required": true,
+      "depth": 2,
+      "depends": [
+        "offline-deterministic-fallback"
+      ],
+      "preserves": [],
+      "design_anchors": [
+        "CONFIDENCE_GUARD"
+      ]
+    }
+  ]
+}

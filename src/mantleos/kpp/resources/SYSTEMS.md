@@ -196,3 +196,19 @@ Recipe declarations grant no host authority. Studio selects eight roles and two
 workers around an ordinary Node-RED host; other agents may use zero, one or
 sequential limbs. See docs/ENGRAM-LIMBS.md and docs/ANCHOR-STUDIO.md. Python
 implements coordination; canonical Anchor applications remain design contracts.
+
+## Optional Anchor decision batching
+
+`mantleos.anchor_decision_boost` and `kpp anchor-decision` compile closed-ended
+`anchor.decision-batch/1` packets for Anchor encoding and stimulus routing.
+Decider acceleration is **OFF by default**: `DeterministicDecisionEngine` runs
+offline with Python's standard library and zero reliance on any LLM. When a
+recipe selects `anchor-decision-boost` and an API key is supplied, the host may
+enable `OpenRouterDecisionBoostAdapter` (default boost provider,
+`perplexity/pplx-decider-v1.2` via OpenRouter `/api/alpha/decisions`) or
+`GeminiDecisionBoostAdapter` (`gemini-decision-1` via `/v1beta/decisions`);
+all model results remain `model_inferred` with `authority: NONE` and fail closed
+below the confidence threshold. Recipes involving Anchor coding surface
+`anchor-decision-boost` as `RECOMMENDED_OPTIONAL` (especially alongside
+`openrouter-mind` or an OpenRouter API key). See
+docs/ANCHOR-DECISION-BOOST.md.

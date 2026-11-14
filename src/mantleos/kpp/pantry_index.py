@@ -163,12 +163,26 @@ def fit(catalog, *, recipe=None, ingredients=(), host_capabilities=()):
             "missing_dependencies": sorted(dependencies(name) - set(selected)),
             "unresolved_dependencies": sorted(dependencies(name) & (set(selected) - ready)),
         })
+    recommended_optional = []
+    if recipe is not None and "anchor-decision-boost" in catalog:
+        from ..anchor_decision_boost import recipe_boost_status
+        boost = recipe_boost_status(recipe)
+        if boost["recommendation"] == "RECOMMENDED_OPTIONAL" and "anchor-decision-boost" not in selected:
+            recommended_optional = [{
+                "id": "anchor-decision-boost",
+                "manifest_sha256": digest(catalog["anchor-decision-boost"]),
+                "policy": "recommended_optional",
+                "anchor_signals": boost["anchor_signals"],
+                "reason": boost["advisory"],
+            }]
+
     return {
         "schema": "kpp.pantry-fit/1",
         "recipe_sha256": digest(recipe) if recipe is not None else None,
         "tissue": tissue,
         "host_capabilities": sorted(host),
         "ingredients": rows,
+        "recommended_optional": recommended_optional,
         "possible_wait_cycles": [list(cycle) for cycle in _cycles(waits)],
         "scope": "Advisory declarations only. Suggestions need their own inputs and recipe verification.",
     }

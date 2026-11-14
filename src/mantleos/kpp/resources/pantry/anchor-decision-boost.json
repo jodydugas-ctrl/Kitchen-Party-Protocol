@@ -1,0 +1,66 @@
+{
+  "schema": "kpp.ingredient/1",
+  "id": "anchor-decision-boost",
+  "version": "0.1.0",
+  "function": "LLM-independent Anchor encoding and decoding decision batch engine (Default OFF: deterministic offline) with optional OpenRouter Perplexity Decider V1.2 (default boost provider) or Gemini Decision 1 acceleration.",
+  "status": "ready",
+  "preferred_for": [
+    "mantleos",
+    "biosoftware",
+    "bioagent",
+    "appai",
+    "conventional"
+  ],
+  "compatible_tissues": [
+    "anchor",
+    "python",
+    "mixed"
+  ],
+  "tags": [
+    "anchor",
+    "anchor-coding",
+    "recommended-optional",
+    "decision",
+    "openrouter",
+    "encoding",
+    "decoding",
+    "optimization",
+    "department:cognition",
+    "department:construction",
+    "department:languages"
+  ],
+  "provides": [
+    "anchor-decision-boost/1"
+  ],
+  "requires": [],
+  "minimum_fidelity": 1,
+  "dependencies": [],
+  "capabilities": [
+    "Deterministic offline Anchor polarity, opcode, and rule-economy decision solver (Default OFF for Decider AI)",
+    "Single-pass OpenRouter Perplexity Decider V1.2 (perplexity/pplx-decider-v1.2, default boost provider) and Flash V1.2 noul, choice, and score batching",
+    "Single-pass Gemini Decision 1 (gemini-decision-1 via v1beta/decisions) selectable Decider option",
+    "Calibrated confidence gating that turns low-confidence classifications into explicit unknowns"
+  ],
+  "adaptation": "Recommended optional decision optimization ingredient whenever a recipe involves Anchor coding (coding around set Anchors). Decider speedup is OFF by default (DETERMINISTIC_OFFLINE with zero LLM or network) and recommended if the host has an OpenRouter API key. When enabled, defaults to OpenRouter (perplexity/pplx-decider-v1.2) with Gemini (gemini-decision-1) also selectable. Advisory only; confers no execution or Baker authority.",
+  "verified_with": "tests/test_anchor_decision_boost.py; deterministic offline solver, OpenRouter pplx-decider-v1.2 and Gemini gemini-decision-1 calibration fixtures",
+  "provenance": "Native MantleOS/KPP shared Anchor decision optimization ingredient.",
+  "source": {
+    "kind": "repository-files",
+    "repository": "jodydugas-ctrl/Kitchen-Party-Protocol",
+    "paths": [
+      "src/mantleos/anchor_decision_boost.py",
+      "src/mantleos/kpp/decision_boost.py",
+      "tests/test_anchor_decision_boost.py"
+    ]
+  },
+  "usage": {
+    "use_when": "Recommended optional ingredient (Default OFF) whenever a recipe involves Anchor coding (coding around set Anchors) — especially when an OpenRouter API key or openrouter-mind is used — with selectable OpenRouter (default: perplexity/pplx-decider-v1.2) or Gemini (gemini-decision-1) acceleration.",
+    "inputs": [
+      "Candidate source or scan units, Anchor design or recipe contract, optional OpenRouter pplx-decider-v1.2 or gemini-decision-1 responses"
+    ],
+    "outputs": [
+      "Validated anchor.design/1, Molecule entries, decision batches, and routed decode dispositions"
+    ],
+    "limits": "Up to 128 candidate units and 1000 closed-ended questions per batch; model outputs are model_inferred with authority NONE and never bypass deterministic validation or Baker acceptance."
+  }
+}

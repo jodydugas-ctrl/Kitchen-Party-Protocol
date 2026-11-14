@@ -94,9 +94,13 @@ def implementation_plan(recipe):
                 'outside_preferences': bool(selected and item['policy'] == 'preferred' and selected not in item['languages']),
                 'execution_support': support, 'available_execution_profiles': profiles,
                 'verification': 'NOT_RUN'})
+    from ..anchor_decision_boost import recipe_boost_status
+    boost = recipe_boost_status(recipe)
     return {'schema': 'kpp.implementation-plan/1', 'recipe_sha256': digest(recipe),
             'recipe_schema': recipe['schema'], 'anchor_binding': binding_mode(recipe),
             'legacy_tissue': recipe['tissue'], 'components': components,
+            'anchor_decision_boost': boost,
+            'recommended_optional_ingredients': [boost['ingredient']] if boost['recommendation'] == 'RECOMMENDED_OPTIONAL' else [],
             'ready': all(item['decision'] == 'RESOLVED' for item in components),
             'execution': 'NONE', 'acceptance': 'NOT_GRANTED',
             'limitations': 'Declared choices and existing tooling paths only; no compiler/backend installation, execution or behavioral qualification. Legacy recipe/3 tissue is unchanged.'}

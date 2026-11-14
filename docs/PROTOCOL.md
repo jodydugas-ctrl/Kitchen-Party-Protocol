@@ -90,3 +90,5 @@ See ARTISANAL-CONSTRUCTION.md for optional recipe/4 construction.techniques and 
 See docs/ANCHOR-DESIGN.md for compact responsibility contracts, recipe coverage and Journal integration.
 
 See [cumulative satisfaction](ANCHOR-SATISFACTION.md) for opt-in candidate-bound verification, batch planning and complete design views.
+
+See [Anchor Decision Boost](ANCHOR-DECISION-BOOST.md) for closed-ended Anchor encoding/decoding decision batches (`anchor.decision-batch/1`) and advisory `RECOMMENDED_OPTIONAL` Pantry fit.

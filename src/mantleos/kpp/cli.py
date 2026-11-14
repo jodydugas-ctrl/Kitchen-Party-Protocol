@@ -263,6 +263,39 @@ def main(argv=None):
         c.add_argument("source",type=Path)
         if option=="bridge-python":c.add_argument("--out",type=Path,required=True)
         if option=='run':c.add_argument('--input', type=Path, help='Explicit JSON command for NOTEPAD/hosted profiles')
+    a=sub.add_parser("anchor-decision", help="Encode/decode Anchor contracts deterministically (default OFF) or with optional Decider AI responses")
+    ad_cmd=a.add_subparsers(dest="decision_cmd",required=True)
+    c=ad_cmd.add_parser("status",help="Inspect whether a recipe enables anchor-decision-boost")
+    c.add_argument("--recipe",type=Path,required=True)
+    c=ad_cmd.add_parser("batch",help="Emit a closed-ended Anchor decision batch JSON")
+    c.add_argument("--input",type=Path,required=True)
+    c.add_argument("--mode",choices=("encode","decode"),default="encode")
+    c.add_argument("--id",default="anchor-system")
+    c.add_argument("--goal",default="Encode Anchor design")
+    c.add_argument("--stimulus",type=Path)
+    c.add_argument("--openrouter-request",action="store_true",help="Format output for OpenRouter api/alpha/decisions (default Decider provider)")
+    c.add_argument("--gemini-request",action="store_true",help="Format output for Gemini v1beta/decisions")
+    c.add_argument("--model",help="Optional Decider model identifier for --openrouter-request or --gemini-request")
+    c.add_argument("--out",type=Path)
+    c=ad_cmd.add_parser("encode",help="Encode source/spec/scan into anchor.design/1 and Molecule entries")
+    c.add_argument("--input",type=Path,required=True)
+    c.add_argument("--id",required=True)
+    c.add_argument("--goal",required=True)
+    c.add_argument("--recipe",type=Path)
+    c.add_argument("--provider",choices=("openrouter","gemini"),default="openrouter",help="Decider AI provider when --responses is supplied (default: openrouter)")
+    c.add_argument("--model",help="Optional Decider model override for recorded responses")
+    c.add_argument("--responses",type=Path,help="Optional recorded Decider AI answers JSON")
+    c.add_argument("--confidence",type=float,default=0.65)
+    c.add_argument("--out",type=Path)
+    c=ad_cmd.add_parser("decode",help="Decode and route a stimulus through an Anchor design or recipe contract")
+    c.add_argument("--contract",type=Path,required=True)
+    c.add_argument("--stimulus",type=Path,required=True)
+    c.add_argument("--recipe",type=Path)
+    c.add_argument("--provider",choices=("openrouter","gemini"),default="openrouter",help="Decider AI provider when --responses is supplied (default: openrouter)")
+    c.add_argument("--model",help="Optional Decider model override for recorded responses")
+    c.add_argument("--responses",type=Path,help="Optional recorded Decider AI answers JSON")
+    c.add_argument("--confidence",type=float,default=0.65)
+    c.add_argument("--out",type=Path)
     a=sub.add_parser("observe",help="Record a potential emergent capability for Baker review (not acceptance)")
     a.add_argument("--workspace",type=Path,required=True)
     a.add_argument("--feature",required=True)
@@ -445,6 +478,26 @@ def main(argv=None):
             if args.anchor_cmd=="inspect":print_json(inspect_anchor(args.source))
             elif args.anchor_cmd=="run":sys.stdout.write(run_anchor(args.source, read_json(args.input) if args.input else None))
             elif args.anchor_cmd=="bridge-python":print_json(bridge_python(args.source,args.out))
+        elif args.cmd=="anchor-decision":
+            from .decision_boost import boost_status, decode_file, encode_file, export_batch
+            if args.decision_cmd=="status":
+                result=boost_status(args.recipe)
+                print_json(result)
+            else:
+                if args.decision_cmd=="batch":
+                    result=export_batch(args.input,mode=args.mode,design_id=args.id,goal=args.goal,
+                                        stimulus_path=args.stimulus,openrouter_request=args.openrouter_request,
+                                        gemini_request=args.gemini_request,model=args.model)
+                elif args.decision_cmd=="encode":
+                    result=encode_file(args.input,design_id=args.id,goal=args.goal,recipe_path=args.recipe,
+                                       responses_path=args.responses,provider=args.provider,
+                                       model=args.model,confidence_threshold=args.confidence)
+                else:
+                    result=decode_file(args.contract,args.stimulus,recipe_path=args.recipe,
+                                       responses_path=args.responses,provider=args.provider,
+                                       model=args.model,confidence_threshold=args.confidence)
+                if args.out:write_json(args.out,result);print(args.out)
+                else:print_json(result)
         elif args.cmd=="observe":
             from .workshop import report_observation
             print_json(report_observation(args.workspace,args.feature,args.evidence))

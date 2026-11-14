@@ -153,3 +153,5 @@ Python standard library runs the kitchen; browser products share one runtime. Qt
 See [artisanal construction](docs/ARTISANAL-CONSTRUCTION.md) for role-neutral Baker responsibility, optional Chase and augmentation evidence.
 
 See docs/ANCHOR-DESIGN.md for compact responsibility contracts, recipe coverage and Journal integration.
+
+See [Anchor Decision Boost](docs/ANCHOR-DECISION-BOOST.md) for offline deterministic Anchor decision batching (Default OFF) and optional OpenRouter (`perplexity/pplx-decider-v1.2`, default boost provider) or Gemini (`gemini-decision-1`) acceleration.

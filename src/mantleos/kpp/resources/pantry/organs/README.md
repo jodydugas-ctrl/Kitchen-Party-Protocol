@@ -13,6 +13,7 @@ These are browsing categories. Each recipe chooses its organ composition.
 
 ## Other Pantry ingredients
 
+- [anchor-decision-boost](../anchor-decision-boost.json)
 - [anchor-satisfaction-engine](../anchor-satisfaction-engine.json)
 - [anchor-tissue](../anchor-tissue.json)
 - [anchorforge-organ](../anchorforge-organ.json)

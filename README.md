@@ -127,3 +127,5 @@ behavior, separate live/synthetic evidence, timings and remaining limits.
 Fidelity 9 Notepad source, contracts, tests and an optional Python language bridge.
 
 Download the [complete Notepad handoff](specimens/Notepad-Fidelity9-HANDOFF.md) as raw UTF-8 to preserve exact payload bytes.
+
+[Anchor Decision Boost](docs/ANCHOR-DECISION-BOOST.md) provides offline deterministic Anchor decision batching (Default OFF) with optional selectable Decider AI acceleration defaulting to OpenRouter (`perplexity/pplx-decider-v1.2`) or Google Gemini (`gemini-decision-1`) via `kpp anchor-decision`, surfaced as `RECOMMENDED_OPTIONAL` whenever a recipe uses Anchor coding (especially when an OpenRouter API key is available).
