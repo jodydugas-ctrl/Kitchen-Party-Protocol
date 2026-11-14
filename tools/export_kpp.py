@@ -7,17 +7,33 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+STUDIO = 'examples/anchorforge-studio'
+STUDIO_OUTPUTS = {'node_modules', 'dist', 'build', 'coverage'}
 
 
-def files(directory):
-    for path in sorted(directory.rglob('*')):
-        relative = path.relative_to(directory)
+def studio_output(relative):
+    path = Path(relative)
+    if not path.is_relative_to(STUDIO):
+        return False
+    parts = path.relative_to(STUDIO).parts
+    return (bool(parts) and parts[0] in STUDIO_OUTPUTS
+            or path.name.startswith('.env') and path.name != '.env.example')
+
+
+def files(directory, *, prefix=''):
+    for path in sorted(directory.iterdir()):
+        relative = Path(prefix) / path.name
+        if studio_output(relative):
+            continue
         if '__pycache__' in relative.parts or path.suffix in ('.pyc', '.pyo'):
             continue
         if path.is_symlink():
             raise ValueError('Source symlink is not distributable: ' + str(relative))
-        if path.is_file():
-            yield relative.as_posix(), path.read_bytes()
+        if path.is_dir():
+            for name, blob in files(path, prefix=relative):
+                yield Path(path.name, name).as_posix(), blob
+        elif path.is_file():
+            yield path.name, path.read_bytes()
 
 
 def sha(blob):
@@ -91,6 +107,9 @@ for _name in MODULES:
             result['tools/kpp_project/' + name] = blob
     spec=importlib.util.spec_from_file_location('reviewed_examples',package/'kpp/artifacts.py')
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    studio = source / STUDIO
+    if studio.is_dir():
+        result.update({f'{STUDIO}/{name}': blob for name, blob in files(studio, prefix=STUDIO)})
     for name in module.inventory(source):
         result[name]=(source/name).read_bytes()
     shared = {name: sha(blob) for name, blob in result.items() if name.startswith('src/mantleos/')}
