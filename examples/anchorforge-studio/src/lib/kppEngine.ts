@@ -621,6 +621,7 @@ export interface AnchorApplicationRecord {
   singularity: string;
   attributes: {
     responsibility: string;
+    contradicts?: string[];
     [key: string]: unknown;
   };
   sha256: string;
@@ -732,6 +733,19 @@ export function validateAnchorDesign(design: AnchorDesignContract): {
     if (!app.attributes?.responsibility?.trim()) {
       errors.push(`Application "${app.id}" is missing attributes.responsibility`);
     }
+    if (app.attributes && 'contradicts' in app.attributes) {
+      const contradicts = app.attributes.contradicts;
+      if (app.type !== 'WhiteHole') {
+        errors.push(`Application "${app.id}": contradicts requires a WhiteHole application`);
+      } else if (
+        !Array.isArray(contradicts) ||
+        contradicts.length === 0 ||
+        contradicts.length > 64 ||
+        contradicts.some((item) => typeof item !== 'string' || !item.trim())
+      ) {
+        errors.push(`Application "${app.id}": contradicts must be a non-empty list of non-empty text`);
+      }
+    }
     appsById.set(app.id, app);
   }
 
@@ -838,6 +852,9 @@ export function renderAnchorDesignText(design: AnchorDesignContract): string {
   for (const a of design.applications || []) {
     lines.push(`${a.id} | ${a.type} | ${a.singularity}`);
     lines.push(`  ${a.attributes?.responsibility || ''}`);
+    if (Array.isArray(a.attributes?.contradicts) && a.attributes.contradicts.length > 0) {
+      lines.push(`  CONTRADICTS: ${a.attributes.contradicts.join('; ')}`);
+    }
   }
   lines.push('', 'FLOW:');
   for (const e of design.flows || []) {

@@ -173,6 +173,70 @@ export const ANCHOR_JOURNAL_DESIGN: AnchorDesignContract = {
   ],
 };
 
+export const SIMPLEPAINT_DESIGN: AnchorDesignContract = {
+  schema: 'anchor.design/1',
+  id: 'SimplePaint',
+  purpose: 'Deterministic single-layer Paint Body with canonical ingress, canvas/window state ownership, and host-trap boundaries.',
+  applications: [
+    createAnchorApplication(
+      'BH-INPUT',
+      'BlackHole',
+      'Receive pointer events, keyboard commands, menu actions, color/tool choices, and host file results as explicit commands without mutating pixels.'
+    ),
+    createAnchorApplication(
+      'N-CANVAS',
+      'Neutral',
+      'Own the authoritative RGBA raster buffer, deterministic stroke/shape rasterization, undo/redo history, and dirty document state.'
+    ),
+    createAnchorApplication(
+      'N-WINDOW',
+      'Neutral',
+      'Own viewport zoom/scroll presentation and drag previews, translate pointer coordinates, display pixels, and request authorized host I/O.'
+    ),
+    createAnchorApplication(
+      'WH-INTEGRITY',
+      'WhiteHole',
+      'Enforce image bounds, protect unsaved edits, validate host file/clipboard results, and reject silent anti-aliasing or unconfirmed saves.',
+      {
+        contradicts: [
+          'subpixel_path_smoothing',
+          'unverified_host_save_claim',
+          'discard_unsaved_without_confirmation',
+        ],
+      }
+    ),
+  ],
+  flows: [
+    {
+      from: 'BH-INPUT',
+      to: 'WH-INTEGRITY',
+      relationship: 'Validate pointer/menu commands and host I/O results before mutation',
+    },
+    {
+      from: 'WH-INTEGRITY',
+      to: 'N-CANVAS',
+      relationship: 'Admit validated drawing, transform, and history transitions',
+    },
+    {
+      from: 'N-CANVAS',
+      to: 'N-WINDOW',
+      relationship: 'Project owned raster pixels and dirty/dimension state',
+    },
+  ],
+  state: [
+    { id: 'document-state', owner: 'N-CANVAS' },
+    { id: 'presentation-state', owner: 'N-WINDOW' },
+  ],
+  effects: [
+    {
+      id: 'host-io',
+      requester: 'N-WINDOW',
+      guard: 'WH-INTEGRITY',
+      confirmation: 'Explicit host confirmation required; failed or cancelled I/O preserves existing pixels and dirty state.',
+    },
+  ],
+};
+
 export const NOTEPAD_FIDELITY9_DESIGN_TXT = `# Notepad Fidelity 9 — human-readable design, NOT executable native .anchor
 # 9 Anchors; exactly one new from Fidelity 8: WH-BLUEPRINT-GATE (WhiteHole)
 
@@ -292,6 +356,17 @@ export const KPP_SPECIMENS: KppSpecimen[] = [
       'Canonical 4-Anchor responsibility contract (BH-ENCOUNTER, WH-INTEGRITY, N-CONTINUITY, N-HOST) from src/mantleos/anchor_design.py.',
     repoPath: 'src/mantleos/anchor_design.py',
     content: JSON.stringify(ANCHOR_JOURNAL_DESIGN, null, 2) + '\n',
+  },
+  {
+    id: 'simplepaint-design',
+    title: 'SimplePaint (anchor.design/1 JSON)',
+    filename: 'simplepaint.design.json',
+    kind: 'anchor.design/1',
+    category: 'Responsibility Design',
+    description:
+      'Canonical Paint responsibility contract (BH-INPUT, N-CANVAS, N-WINDOW, WH-INTEGRITY) with WhiteHole contradicts host-trap guards.',
+    repoPath: 'src/mantleos/kpp/resources/examples/anchor-design/simplepaint-contract.anchor.txt',
+    content: JSON.stringify(SIMPLEPAINT_DESIGN, null, 2) + '\n',
   },
   {
     id: 'notepad-fidelity9-txt',

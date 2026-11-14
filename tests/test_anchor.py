@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mantleos.kpp.anchor import PRIMER, run_file, interpret, inspect_file, bridge_python
+from mantleos.kpp.anchor import PRIMER, run_file, interpret, inspect_file, bridge_python, format_anchor_tsv09
 from mantleos.kpp.core import KPPError, ingredient_catalog, validate_recipe
 from mantleos.kpp.workshop import begin, report_observation, inspection
 
@@ -119,5 +119,18 @@ class AnchorSpecimenTests(unittest.TestCase):
             health = json.loads(self.run_script(controller, 'doctor').stdout)
             self.assertEqual(health['organ_version'], ingredient['version'])
             self.assertEqual(health['kpp_shared_runtime'], 'AVAILABLE')
+
+    def test_format_anchor_tsv09(self):
+        hello = (ROOT.parents[1] / 'anchor_engine' / 'profiles' / 'hello_world_compact.anchor').read_text(encoding='utf-8')
+        tsv = format_anchor_tsv09(hello, 'hello_world_compact.anchor')
+        self.assertIn('# AnchorCode/0.9', tsv)
+        self.assertIn('FILE\t0\thello_world_compact.anchor\t-\t-\t-\t-\tlines=17', tsv)
+        self.assertIn('MOLECULE\t11\tHelloWorld\thello_world_compact.anchor\t-\t-\t-\t-', tsv)
+        self.assertIn('ANCHOR\t12\tA\tHelloWorld\tNeutral\t-01\t-00\ttext="Hello, World!"', tsv)
+        self.assertIn('# SUMMARY anchors=1 molecules=1 context_lines=11', tsv)
+        with self.assertRaises(KPPError):
+            format_anchor_tsv09('A: BadPolarity -01 -00 -text="x"\n')
+        with self.assertRaises(KPPError):
+            format_anchor_tsv09(hello, 'bad\tname.anchor')
 
 if __name__=='__main__':unittest.main()

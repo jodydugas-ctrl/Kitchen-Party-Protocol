@@ -18,6 +18,13 @@ def validate(value):
         app=anchors.validate(raw);aid=app['id']
         c.require(aid not in apps, 'Duplicate design application')
         c.text(app['attributes'].get('responsibility'))
+        if 'contradicts' in app['attributes']:
+            contradicts=app['attributes']['contradicts']
+            c.require(app['type']=='WhiteHole', 'contradicts requires a WhiteHole application')
+            c.require(type(contradicts) is list and 1<=len(contradicts)<=64,
+                      'contradicts must be a non-empty list of non-empty text')
+            for item in contradicts:
+                c.text(item)
         apps[aid]=app
     seen=set()
     for edge in value['flows']:
@@ -84,6 +91,8 @@ def render(value):
            'ANCHORS (ID | canonical type | canonical singularity | responsibility)']
     for a in value['applications']:
         lines.extend([a['id']+' | '+a['type']+' | '+a['singularity'],'  '+a['attributes']['responsibility']])
+        if 'contradicts' in a['attributes']:
+            lines.append('  CONTRADICTS: '+'; '.join(a['attributes']['contradicts']))
     lines+=['','FLOW:']+[e['from']+' -> '+e['to']+': '+e['relationship'] for e in value['flows']]
     lines+=['','STATE OWNERSHIP:']+[s['id']+' -> '+s['owner'] for s in value['state']]
     lines+=['','GUARDED EFFECTS:']+[e['id']+': '+e['requester']+' -> '+e['guard']+'; '+e['confirmation'] for e in value['effects']]

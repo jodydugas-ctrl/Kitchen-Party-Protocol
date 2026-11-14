@@ -237,6 +237,29 @@ python -m mantleos kpp design-view --recipe recipes/journal-engram-design.json`}
           <div className="text-xs font-mono text-slate-400">
             N-RULE-ECONOMY: {RULE_ECONOMY}
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs text-slate-400">
+            <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
+              <div className="font-mono font-semibold text-sky-300 mb-1">
+                WhiteHole `contradicts` Host-Trap Guards
+              </div>
+              <p>
+                `WhiteHole` applications in `anchor.design/1` may declare an optional `contradicts`
+                array of banned shortcuts (e.g. `subpixel_path_smoothing` or silent failure
+                swallowing). Non-`WhiteHole` applications cannot carry `contradicts`.
+              </p>
+            </div>
+            <div className="p-3 bg-slate-950/70 rounded border border-slate-800">
+              <div className="font-mono font-semibold text-emerald-300 mb-1">
+                Optional `anchor-decision-boost` Ingredient
+              </div>
+              <p>
+                Defaults to offline `DeterministicDecisionEngine` (`DETERMINISTIC_OFFLINE`), with
+                optional closed-ended `noul`/`choice`/`score` batching via OpenRouter
+                (`perplexity/pplx-decider-v1.2`, default boost provider) or Google
+                (`gemini-decision-1`). Outputs remain `authority: NONE`.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </div>

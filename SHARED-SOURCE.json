@@ -14,7 +14,7 @@
     "src/mantleos/anchor_blueprint.py": "2b270699d3a5d9bf0270fad6f521241622055f4ae0a4ad46a0572eb441eaa59c",
     "src/mantleos/anchor_canvas.py": "b99f5262bf4532b32308b4459019f4ef24b4fea0241459c5986b0f5751c6c8be",
     "src/mantleos/anchor_decision_boost.py": "bda7e26960eb1e08fd740bb29c8097ba014e18eca85bdd9ba7a965165cafaa78",
-    "src/mantleos/anchor_design.py": "a98763f4ed553eac94849fb97c0cf7dfc01baf593c2e111f1131a5cdfa7bd4b2",
+    "src/mantleos/anchor_design.py": "ffd1eba80b67b94048ba2b9d0013d8e0842368f007558e506ce59c8f74193f7d",
     "src/mantleos/anchor_engine/SOURCE-PINS.json": "b372862e3893bf8be584eba5f1b0bfdfe503dc73b561806ec2cb978634451a89",
     "src/mantleos/anchor_engine/__init__.py": "07a9b5223bbd4669bca4f4d4cc0b4709daec2895c32bc288820889c8a5e0071a",
     "src/mantleos/anchor_engine/profiles/hello_world_compact.anchor": "2493c4d34f902539c2d030d84044a686829f154561290c74e12082b3b1651211",
@@ -77,7 +77,7 @@
     "src/mantleos/kpp/__init__.py": "c24aa9a0582bf5189e6526c8564f03ac53a80458df10ec69b947a21056355856",
     "src/mantleos/kpp/__main__.py": "79ee6f134c5c5193377cf9b189cbdcc3e2095e49ba9cec310114441c15a917c4",
     "src/mantleos/kpp/adaptation.py": "fdaa7a3f1e26096a4cb8ae457d6a5b1b652f1b80eeedc9ba85f0c65668b27a7a",
-    "src/mantleos/kpp/anchor.py": "ba92e01ad4262cce47622ff9e963b6b2ef6e538a05fc2d72dea1f99a1e3f54d4",
+    "src/mantleos/kpp/anchor.py": "09eeaf0a68efa55161d5afb387a82a5d5d540489c8c590dda1702c82b900af2f",
     "src/mantleos/kpp/artifacts.py": "bf5e372f519f2435cf68fbae4968f4e1feea4c6be54a693d7b714d18861211c6",
     "src/mantleos/kpp/assets/progressive-v1.js": "024a814137bc31eda0ed51345dedc0e40550b981aef00e4fad4b7fd5ffe04f5f",
     "src/mantleos/kpp/assets/progressive.js": "4612742a893271b23c72ce5ee346a207793994a5991b4e63d35e7a55151ebc0c",
@@ -116,6 +116,7 @@
     "src/mantleos/kpp/resources/THIRD-PARTY-NOTICES.md": "dc82a40490e8767c93da92aafa12fdf42568f3d2ad38d7cacbcffbabcefccbd9",
     "src/mantleos/kpp/resources/contracts/notepad-organs.json": "f61f51060db1b836a961c2923ee938a4e0b43b435d8b6bda3378c833de1c11f6",
     "src/mantleos/kpp/resources/docs/ADAPTIVE-INTEGRATION.md": "beb65178ea04a7860397b8832c6597c179214efc06c9d7817739787152025a87",
+    "src/mantleos/kpp/resources/docs/ANCHOR-CODE-HANDOFF.md": "c4aa2d2eff126f9527482b90e970e536c37d6126065f799ba01310404426bf53",
     "src/mantleos/kpp/resources/docs/ANCHOR-DECISION-BOOST.md": "98fca5a48fabd48e0ee54d37685f9013187317c552631fdf0ab710ba7f189dd9",
     "src/mantleos/kpp/resources/docs/ANCHOR-DESIGN-VERIFICATION.md": "0475e43623521ba53b432f059784ef40018494de43fb07e13bd807a5bfe5658a",
     "src/mantleos/kpp/resources/docs/ANCHOR-DESIGN.md": "7de3e619714e031d6b6ff87a75d26435e5431165af22e08e8c13673c7475c624",
@@ -181,6 +182,7 @@
     "src/mantleos/kpp/resources/examples/adaptive-reflex/request.json": "57d70643fc346e964ded88b6f831e544302cdfec21cd6f4edd26dde40743974f",
     "src/mantleos/kpp/resources/examples/adaptive-reflex/smoke.py": "40f4d23b4f5531081036265da7c597dbf563334b5877ffccdb05d19e476571be",
     "src/mantleos/kpp/resources/examples/adaptive-reflex/task_agent.py": "e130a11d81e4af1bd21ee5d5ed10685b4d5fc0b5d5a1bab0cef2a6761fb34eff",
+    "src/mantleos/kpp/resources/examples/anchor-design/Minimalist-Paint-MVP.html": "d517a4d9e88df57d0e75f872d8f210f930796c343966515a0208c88647b77b0e",
     "src/mantleos/kpp/resources/examples/anchor-design/SimplePaint_4_Anchors.anchor.txt": "08db6d5f3efb7f670f39d3cc202bbcb66ce14a49e0f1f053fb2fcb2866d0af5d",
     "src/mantleos/kpp/resources/examples/anchor-design/Windows_XP_Notepad_4_Anchors.anchor.txt": "cd2542e6b06b615f580704b6c2e4747503139d0d2e1ef115cfab99d8fb5e23df",
     "src/mantleos/kpp/resources/examples/anchor-design/benchmark.json": "c574a2c7d8bebf5d5be07dd248a41cc6ca5ecaab9156704019142d8ca1f0b92d",
@@ -655,5 +657,5 @@
   },
   "implementation": "mantleos",
   "schema": "mantle.shared-source/1",
-  "source_digest": "d9854e39bad9a79afb05ef80ab36f998d634573c22a55875a9ee0b484152face"
+  "source_digest": "842d76ade9f8b0776685e6999f434056ec846da279d7dff3f8782ee1ca62c2dd"
 }

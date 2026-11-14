@@ -35,6 +35,40 @@ class DesignTests(unittest.TestCase):
   with self.assertRaises(ValueError):validate_recipe(recipe)
   recipe['anchors'][0]['design_anchors']=[]
   with self.assertRaises(ValueError):validate_recipe(recipe)
+ def test_whitehole_contradicts_validation_and_rendering(self):
+  wh=self.design['applications'][3]
+  wh_with_trap=d.anchors.apply_attributes(wh,{'responsibility':wh['attributes']['responsibility'],'contradicts':['subpixel_antialiasing','silent_error_swallow']})
+  self.design['applications'][3]=wh_with_trap
+  checked=d.validate(self.design)
+  rendered=d.render(checked)
+  self.assertIn('  CONTRADICTS: subpixel_antialiasing; silent_error_swallow',rendered)
+  bad_neutral=copy.deepcopy(checked)
+  n_app=bad_neutral['applications'][1]
+  bad_neutral['applications'][1]=d.anchors.apply_attributes(n_app,{'responsibility':n_app['attributes']['responsibility'],'contradicts':['wall_clock']})
+  with self.assertRaises(ValueError):d.validate(bad_neutral)
+  bad_empty=copy.deepcopy(checked)
+  bad_empty['applications'][3]=d.anchors.apply_attributes(wh,{'responsibility':wh['attributes']['responsibility'],'contradicts':[]})
+  with self.assertRaises(ValueError):d.validate(bad_empty)
+ def test_generated_handoff_and_minimalist_paint_alignment(self):
+  import json,re
+  from pathlib import Path
+  from mantleos.kpp import anchor
+  root=Path(__file__).resolve().parents[1]
+  paint_html=(root/'src/mantleos/kpp/resources/examples/anchor-design/Minimalist-Paint-MVP.html').read_text(encoding='utf-8')
+  m_manifest=re.search(r'<script type="application/json" id="mantle-anchor-manifest">\s*(\{.*?\})\s*</script>',paint_html,re.DOTALL)
+  self.assertIsNotNone(m_manifest)
+  manifest=json.loads(m_manifest.group(1))
+  checked=d.validate(manifest['design'])
+  app_ids=[app['id'] for app in checked['applications']]
+  self.assertEqual(app_ids,['BH-INPUT','N-CANVAS','N-WINDOW','WH-INTEGRITY'])
+  self.assertTrue({'ART','BEH','RA'}.isdisjoint(app_ids))
+  handoff_md=(root/'src/mantleos/kpp/resources/docs/ANCHOR-CODE-HANDOFF.md').read_text(encoding='utf-8')
+  m_bp=re.search(r'### 3\.2.*?```text\n(ANCHOR BLUEPRINT: ANCHOR_CODE_TOOLKIT.*?END EXECUTION\n)```',handoff_md,re.DOTALL)
+  m_py=re.search(r'### 3\.3[^\n]*\n\n```python\n(.*?\n)```',handoff_md,re.DOTALL)
+  self.assertIsNotNone(m_bp)
+  self.assertIsNotNone(m_py)
+  self.assertEqual(anchor.interpret(m_bp.group(1)),m_py.group(1))
+
 
 class JournalDesignTests(unittest.TestCase):
  @classmethod
